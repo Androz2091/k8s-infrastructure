@@ -6,14 +6,13 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   rules:
-  - host: k8stest.androz2091.fr  # Remplacez par votre nom de domaine
+  - host: k8stest.androz2091.fr  # Replace with your domain name
     http:
       paths:
-       - path: / # Specify the path
+      - path: / # Specify the path
         pathType: Prefix # Specify the pathType
         backend:
           service:
             name: my-app-service
             port:
               number: 8080
-
