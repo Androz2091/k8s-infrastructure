@@ -9,7 +9,11 @@ spec:
   - host: k8stest.androz2091.fr  # Remplacez par votre nom de domaine
     http:
       paths:
-      - backend:
-        serviceName: my-app-service
-        servicePort: 8080
+       - path: / # Specify the path
+        pathType: Prefix # Specify the pathType
+        backend:
+          service:
+            name: my-app-service
+            port:
+              number: 8080
 
