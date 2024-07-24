@@ -1,0 +1,12 @@
+# Values : https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
+
+## Argo Configs
+configs:
+  # General Argo CD configuration
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml
+  cm:
+    application.resourceTrackingMethod: annotation
+    kustomize.buildOptions: --enable-helm # allow to kustomize Helm charts
+
+  params:
+    server.insecure: true
