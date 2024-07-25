@@ -1,8 +1,8 @@
 # k8s infrastructure
 
-### Namespaces
+## Namespaces
 
-#### Managed
+### Managed
 
 This namespace is for all the services hosted for my customers (mainly Discord bots but also websites, APIs, etc.).
 
@@ -26,7 +26,7 @@ This namespace is for all the services hosted for my customers (mainly Discord b
 * WhatIsLife Discord Bot
 * Wheel Discord Bot
 
-#### Pro
+### Pro
 
 This namespace is for all the services hosted for me as a freelancer.
 
@@ -37,13 +37,13 @@ This namespace is for all the services hosted for me as a freelancer.
 * Diswho
 * Instaddict
 
-#### ManageInvite
+### ManageInvite
 
 * ManageInvite API
 * ManageInvite Dashboard
 * ManageInvite Bot
 
-#### Home
+### Home
 
 * Vaultwarden
 * TimeTagger
@@ -52,7 +52,7 @@ This namespace is for all the services hosted for me as a freelancer.
 * Mealie
 * FileBrowser
 
-#### Dumpus
+### Dumpus
 
 ⚠️ requires extra network isolation for security reasons ⚠️  
 how to do so...?
@@ -60,11 +60,11 @@ how to do so...?
 * Dumpus API
 * some Dumpus workers (can we make it auto scale?)
 
-#### Nextcloud
+### Nextcloud
 
 This namespace is for all the services related to Nextcloud.
 
-#### Sushiflix
+### Sushiflix
 
 This namespace is for all media services.
 
