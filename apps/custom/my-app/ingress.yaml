@@ -4,7 +4,9 @@ metadata:
   name: my-app-ingress
   namespace: test
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    acme.cert-manager.io/http01-ingress-class: traefik
 spec:
   rules:
   - host: k8stest.androz2091.fr  # Replace with your domain name
@@ -17,3 +19,8 @@ spec:
             name: my-app-service
             port:
               number: 8080
+
+  tls:
+  - hosts:
+    - k8stest.androz2091.fr
+    secretName: my-app-ingress-tls
