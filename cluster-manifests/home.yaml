@@ -39,7 +39,7 @@ spec:
     metadata:
       name: '{{.path.basename}}'
     spec:
-      project: "my-project"
+      project: "home"
       source:
         repoURL: https://github.com/Androz2091/k8s-infrastructure.git
         targetRevision: HEAD
