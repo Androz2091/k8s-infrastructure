@@ -18,14 +18,6 @@ helmCharts:
                 envFrom:
                   - secretRef:
                       name: timetagger-secret
-                volumeMounts:
-                  - name: timetagger-data
-                    mountPath: /root/_timetagger
-
-            volumes:
-              - name: timetagger-data
-                persistentVolumeClaim:
-                  claimName: timetagger-pvc
 
 resources:
   - sealed-secrets.yaml
