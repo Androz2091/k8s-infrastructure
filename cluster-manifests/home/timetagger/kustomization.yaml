@@ -6,6 +6,9 @@ helmCharts:
     version: 8.2.0
     repo: oci://tccr.io/truecharts
     valuesInline:
+      global:
+        fallbackDefaults:
+          pvcSize: 10Gi
       workload:
         main:
           podSpec:
