@@ -3,7 +3,7 @@ helmCharts:
     includeCRDs: false
     releaseName: timetagger
     namespace: home
-    version: 24.07.1
+    version: 8.2.0
     repo: oci://tccr.io/truecharts
     valuesInline:
       workload:
