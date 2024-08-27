@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     directory:
-      recurse: true
+      recurse: false
     path: cluster-manifests
     targetRevision: HEAD
     repoURL: https://github.com/Androz2091/k8s-infrastructure
