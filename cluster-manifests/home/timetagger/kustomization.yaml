@@ -28,7 +28,7 @@ helmCharts:
                   claimName: timetagger-pvc
 
 resources:
-  - sealed-secrets.yml
-  - pvc.yml
+  - sealed-secrets.yaml
+  - pvc.yaml
 
 namespace: home
