@@ -1,5 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
+spec:  
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      pod.name: main
+      app.kubernetes.io/name: timetagger
+      app.kubernetes.io/instance: timetagger
 metadata:
   name: timetagger
   namespace: home
