@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: timetagger-config
-  namespace: default
+  namespace: home
 spec:
   accessModes:
     - ReadWriteOnce
