@@ -41,7 +41,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /root/_timetagger
-              readOnly: false
 
           env:
             - name: "TZ"
