@@ -17,6 +17,9 @@ spec:
         - name: timetaggertest
           image: ghcr.io/almarklein/timetagger:v24.07.1-nonroot@sha256:bfbc2d9a8445529c3d3e16c9be7eb670535f6a53c32b668053a91bcfcd7e8f5b
           imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "sleep 999999"]
+
           ports:
             - name: main
               containerPort: 10286
@@ -25,6 +28,11 @@ spec:
             - name: data
               mountPath: /opt/_timetagger
               readOnly: false
+#          initContainers:
+#            - command:
+#             - sh
+#             - -c
+#             - chown -R 33:33 /var/www/html/wp-content/
           env:
             - name: "TZ"
               value: "UTC"
