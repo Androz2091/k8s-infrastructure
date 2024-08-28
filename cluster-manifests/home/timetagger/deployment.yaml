@@ -17,13 +17,13 @@ spec:
         - command:
           - sh
           - -c
-          - chown -R 1000:1000 /root && ls /root/_timetagger && df
+          - chown -R 1000:1000 /opt/_timetagger && ls /opt/_timetagger && df
           image: busybox
           imagePullPolicy: Always
           name: init-container
           resources: {}
           volumeMounts:
-            - mountPath: /root/_timetagger
+            - mountPath: /opt/_timetagger
               name: data
 
       containers:
@@ -40,13 +40,13 @@ spec:
 
           volumeMounts:
             - name: data
-              mountPath: /root/_timetagger
+              mountPath: /opt/_timetagger
 
           env:
             - name: "TIMETAGGER_BIND"
               value: "0.0.0.0:10286"
             - name: "TIMETAGGER_DATADIR"
-              value: "/root/_timetagger"
+              value: "/opt/_timetagger"
             - name: "TIMETAGGER_CREDENTIALS"
               valueFrom:
                 secretKeyRef:
