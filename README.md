@@ -45,12 +45,12 @@ This namespace is for all the services hosted for me as a freelancer.
 
 ### Home
 
-* Vaultwarden
-* TimeTagger
+* Vaultwarden ✅
+* TimeTagger ✅
 * Immich
 * Monica
 * Mealie
-* FileBrowser
+* FileBrowser ✅
 
 ### Dumpus
 
