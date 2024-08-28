@@ -42,7 +42,7 @@ spec:
             - name: "S6_READ_ONLY_ROOT"
               value: "1"
             - name: "TIMETAGGER_BIND"
-                value: "0.0.0.0:10286"
+              value: "0.0.0.0:10286"
             - name: "TIMETAGGR_DATADIR"
               value: "/root/_timetagger"
             - name: "TIMETAGGER_CREDENTIALS"
