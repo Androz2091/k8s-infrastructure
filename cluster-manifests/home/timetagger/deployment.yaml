@@ -17,8 +17,8 @@ spec:
         - name: timetaggertest
           image: ghcr.io/almarklein/timetagger:v24.07.1-nonroot@sha256:bfbc2d9a8445529c3d3e16c9be7eb670535f6a53c32b668053a91bcfcd7e8f5b
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh"]
-          args: ["-c", "sleep 999999"]
+          #command: ["/bin/sh"]
+          #args: ["-c", "sleep 999999"]
 
           ports:
             - name: main
@@ -26,13 +26,11 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: data
-              mountPath: /opt/_timetagger
+              mountPath: /root/_timetagger
               readOnly: false
-#          initContainers:
-#            - command:
-#             - sh
-#             - -c
-#             - chown -R 33:33 /var/www/html/wp-content/
+          initContainers:
+            - command:
+              - chown -R 1000:1000 /root/_timetagger
           env:
             - name: "TZ"
               value: "UTC"
@@ -47,7 +45,7 @@ spec:
             - name: "TIMETAGGER_BIND"
               value: "0.0.0.0:10286"
             - name: "TIMETAGGER_DATADIR"
-              value: "/opt/_timetagger"
+              value: "/root/_timetagger"
             - name: "TIMETAGGER_CREDENTIALS"
               valueFrom:
                 secretKeyRef:
