@@ -17,14 +17,14 @@ spec:
         - command:
           - sh
           - -c
-          - chown -R 1000:1000 /opt/_timetagger && ls /opt/_timetagger && df
+          - chown -R 1000:1000 /opt/_timetagger
           image: busybox
           imagePullPolicy: Always
           name: init-container
           resources: {}
           volumeMounts:
             - mountPath: /opt/_timetagger
-              name: data
+              name: timetagger-data-v
 
       containers:
         - name: timetagger
@@ -39,7 +39,7 @@ spec:
               protocol: TCP
 
           volumeMounts:
-            - name: data
+            - name: timetagger-data-v
               mountPath: /opt/_timetagger
 
           env:
@@ -53,6 +53,6 @@ spec:
                   name: timetagger-secret
                   key: TIMETAGGER_CREDENTIALS
       volumes:
-        - name: data
+        - name: timetagger-data-v
           persistentVolumeClaim:
-            claimName: timetagger-data
+            claimName: timetagger-data-pvc

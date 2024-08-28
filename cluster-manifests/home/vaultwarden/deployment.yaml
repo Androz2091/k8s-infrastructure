@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+  namespace: home
+  labels:
+    app: vaultwarden
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vaultwarden
+  template:
+    metadata:
+      labels:
+        app: vaultwarden
+    spec:
+      containers:
+        - name: vaultwarden
+          image: vaultwarden/server
+          imagePullPolicy: IfNotPresent
+          # command: ["/bin/bash"]
+          # args: ["-c", "sleep 999999"]
+
+          # env:
+          #   - name: ROCKET_PORT
+          #     value: "4000"
+
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: vaultwarden-data-v
+              mountPath: /vw-data/
+
+      volumes:
+        - name: vaultwarden-data-v
+          persistentVolumeClaim:
+            claimName: vaultwarden-data-pvc
