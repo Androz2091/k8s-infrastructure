@@ -23,7 +23,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: data
-              mountPath: /root/_timetagger
+              mountPath: /opt/_timetagger
               readOnly: false
           env:
             - name: "TZ"
@@ -39,7 +39,7 @@ spec:
             - name: "TIMETAGGER_BIND"
               value: "0.0.0.0:10286"
             - name: "TIMETAGGER_DATADIR"
-              value: "/root/_timetagger"
+              value: "/opt/_timetagger"
             - name: "TIMETAGGER_CREDENTIALS"
               valueFrom:
                 secretKeyRef:
