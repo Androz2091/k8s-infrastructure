@@ -4,6 +4,11 @@ metadata:
   name: timetagger
   namespace: home
 spec:
+  selector:
+    matchLabels:
+      pod.name: main
+      app.kubernetes.io/name: timetagger
+      app.kubernetes.io/instance: timetagger
   metadata:
     name: timetagger
     namespace: home
