@@ -24,6 +24,5 @@ helmCharts:
 
 resources:
   - sealed-secrets.yaml
-  - pvc.yaml
 
 namespace: home
