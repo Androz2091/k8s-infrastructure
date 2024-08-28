@@ -43,7 +43,7 @@ spec:
               value: "1"
             - name: "TIMETAGGER_BIND"
               value: "0.0.0.0:10286"
-            - name: "TIMETAGGR_DATADIR"
+            - name: "TIMETAGGER_DATADIR"
               value: "/root/_timetagger"
             - name: "TIMETAGGER_CREDENTIALS"
               valueFrom:
