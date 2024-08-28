@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filebrowser
+  namespace: home
+  labels:
+    app: filebrowser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filebrowser
+  template:
+    metadata:
+      labels:
+        app: filebrowser
+    spec:
+      containers:
+        - name: filebrowser
+          image: hurlenko/filebrowser
+          imagePullPolicy: IfNotPresent
+          # command: ["/bin/bash"]
+          # args: ["-c", "sleep 999999"]
+
+          # env:
+          #   - name: ROCKET_PORT
+          #     value: "4000"
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: filebrowser-data-v
+              mountPath: /data
+            - name: filebrowser-config-v
+              mountPath: /config
+
+      volumes:
+        - name: filebrowser-data-v
+          persistentVolumeClaim:
+            claimName: filebrowser-data-pvc
+        - name: filebrowser-config-v
+          persistentVolumeClaim:
+            claimName: filebrowser-config-pvc
