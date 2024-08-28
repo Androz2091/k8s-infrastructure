@@ -3,11 +3,14 @@ kind: Service
 metadata:
   name: timetagger
   namespace: home
+  labels:
+    app: timetagger
 spec:
   type: ClusterIP
-  publishNotReadyAddresses: false
   ports:
-    - name: main
-      port: 10286
-      protocol: TCP
-      targetPort: 10286
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 10286
+  selector:
+    app: timetagger
