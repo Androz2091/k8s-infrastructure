@@ -17,7 +17,7 @@ spec:
         - command:
           - sh
           - -c
-          - chown -R 1000:1000 /root/_timetagger && /root
+          - chown -R 1000:1000 /root/_timetagger && ls /root
           image: busybox
           imagePullPolicy: Always
           name: init-container
