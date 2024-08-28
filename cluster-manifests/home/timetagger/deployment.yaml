@@ -13,6 +13,9 @@ spec:
       labels:
         app: timetagger
     spec:
+      initContainers:
+        - command:
+          - chown -R 1000:1000 /root/_timetagger
       containers:
         - name: timetaggertest
           image: ghcr.io/almarklein/timetagger:v24.07.1-nonroot@sha256:bfbc2d9a8445529c3d3e16c9be7eb670535f6a53c32b668053a91bcfcd7e8f5b
@@ -28,9 +31,6 @@ spec:
             - name: data
               mountPath: /root/_timetagger
               readOnly: false
-          initContainers:
-            - command:
-              - chown -R 1000:1000 /root/_timetagger
           env:
             - name: "TZ"
               value: "UTC"
