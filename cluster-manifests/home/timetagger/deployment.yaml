@@ -22,8 +22,8 @@ spec:
               containerPort: 10286
               protocol: TCP
           volumeMounts:
-            - name: config
-              mountPath: /opt/_timetagger
+            - name: data
+              mountPath: /root/_timetagger
               readOnly: false
           env:
             - name: "TZ"
@@ -46,6 +46,6 @@ spec:
                   name: timetagger-secret
                   key: TIMETAGGER_CREDENTIALS
       volumes:
-        - name: config
+        - name: data
           persistentVolumeClaim:
-            claimName: timetagger-config
+            claimName: timetagger-data
