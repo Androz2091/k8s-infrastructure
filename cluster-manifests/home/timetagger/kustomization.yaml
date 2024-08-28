@@ -20,7 +20,7 @@ helmCharts:
                   TIMETAGGER_LOG_LEVEL: info
                 envFrom:
                   - secretRef:
-                    name: timetagger-secret
+                      name: timetagger-secret
 
 resources:
   - sealed-secrets.yaml
