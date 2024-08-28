@@ -7,21 +7,16 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: timetagger
-      app.kubernetes.io/instance: timetagger
+      app: timetagger
   template:
     metadata:
       labels:
-        app: "timetagger-8.2.0"
-        app.kubernetes.io/instance: "timetagger"
-        app.kubernetes.io/name: "timetagger"
+        app: timetagger
     spec:
       containers:
         - name: timetaggertest
           image: ghcr.io/almarklein/timetagger:v24.07.1-nonroot@sha256:bfbc2d9a8445529c3d3e16c9be7eb670535f6a53c32b668053a91bcfcd7e8f5b
           imagePullPolicy: IfNotPresent
-          tty: false
-          stdin: false
           ports:
             - name: main
               containerPort: 10286
