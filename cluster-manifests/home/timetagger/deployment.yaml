@@ -17,7 +17,7 @@ spec:
         - command:
           - sh
           - -c
-          - chown -R 1000:1000 /root/_timetagger
+          - chown -R 1000:1000 /root/_timetagger && /root
           image: busybox
           imagePullPolicy: Always
           name: init-container
@@ -27,7 +27,7 @@ spec:
               name: data
 
       containers:
-        - name: timetaggertest
+        - name: timetagger
           image: ghcr.io/almarklein/timetagger:v24.07.1-nonroot@sha256:bfbc2d9a8445529c3d3e16c9be7eb670535f6a53c32b668053a91bcfcd7e8f5b
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
@@ -37,10 +37,12 @@ spec:
             - name: main
               containerPort: 10286
               protocol: TCP
+
           volumeMounts:
             - name: data
               mountPath: /root/_timetagger
               readOnly: false
+
           env:
             - name: "TZ"
               value: "UTC"
