@@ -53,4 +53,4 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: timetaggertest-config
+            claimName: timetagger-config
