@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: sushiflix
+  labels:
+    app: plex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      containers:
+        - name: plex
+          image: lscr.io/linuxserver/plex:latest
+          imagePullPolicy: IfNotPresent
+          # command: ["/bin/bash"]
+          # args: ["-c", "sleep 999999"]
+
+          # env:
+          #   - name: ROCKET_PORT
+          #     value: "4000"
+
+          ports:
+            - containerPort: 32400
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: servarr-data-v
+              mountPath: /data
+            - name: plex-config-v
+              mountPath: /config
+
+      volumes:
+        - name: servarr-data-v
+          persistentVolumeClaim:
+            claimName: servarr-data-pvc
+        - name: plex-config-v
+          persistentVolumeClaim:
+            claimName: plex-config-pvc
