@@ -1,5 +1,11 @@
 # k8s infrastructure
 
+### Changer le DNS
+
+### Se co à la db dans PgAdmin
+
+Ajouter `postgresql.db.svc.cluster.local`
+
 ## Namespaces
 
 ### Managed

@@ -1,0 +1,52 @@
+kind: AppProject
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: sushiflix
+  namespace: argocd
+spec:
+  sourceRepos:
+    - "*"
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: "sushiflix"
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceBlacklist: []
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sushiflix
+  labels:
+    name: sushiflix
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sushiflix-cluster-manifests
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+      revision: HEAD
+      directories:
+      - path: cluster-manifests/sushiflix/*
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: "sushiflix"
+      source:
+        repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: sushiflix
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true

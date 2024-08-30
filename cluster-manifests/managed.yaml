@@ -1,0 +1,52 @@
+kind: AppProject
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: managed
+  namespace: argocd
+spec:
+  sourceRepos:
+    - "*"
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: "managed"
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceBlacklist: []
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: managed
+  labels:
+    name: managed
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: managed-cluster-manifests
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+      revision: HEAD
+      directories:
+      - path: cluster-manifests/managed/*
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: "managed"
+      source:
+        repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: managed
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
