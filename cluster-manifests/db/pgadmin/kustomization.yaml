@@ -8,8 +8,11 @@ helmCharts:
       env:
         email: smnlefort@gmail.com
       envVarsExtra:
-        - name: pgadmin-secrets
-          key: password
+        - name: password
+          valueFrom:
+            secretKeyRef:
+              name: pgadmin-secrets
+              key: password
 
 namespace: db
 
