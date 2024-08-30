@@ -7,13 +7,7 @@ helmCharts:
     valuesInline:
       env:
         email: smnlefort@gmail.com
-        password: test
-      # envVarsExtra:
-      #   - name: password
-      #     valueFrom:
-      #       secretKeyRef:
-      #         name: pgadmin-secrets
-      #         key: password
+        password: this-must-be-changed # updated in the UI at first login
 
 namespace: db
 
