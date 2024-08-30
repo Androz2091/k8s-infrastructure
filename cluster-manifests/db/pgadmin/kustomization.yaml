@@ -1,8 +1,8 @@
 helmCharts:
   - name: pgadmin4
-    releaseName: pgadmin4
+    releaseName: pgadmin
     namespace: db
-    version: 1.13.6
+    version: 1.28.0
     repo: https://helm.runix.net
     valuesInline:
       env:
