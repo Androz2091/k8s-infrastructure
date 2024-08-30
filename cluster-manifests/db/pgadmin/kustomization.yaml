@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       env:
         email: smnlefort@gmail.com
-      envVarsFromSecrets:
+      envVarsExtra:
         - name: pgadmin-secrets
           key: password
 
