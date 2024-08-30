@@ -1,0 +1,52 @@
+kind: AppProject
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: db
+  namespace: argocd
+spec:
+  sourceRepos:
+    - "*"
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: "db"
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceBlacklist: []
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: db
+  labels:
+    name: db
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: db-cluster-manifests
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+      revision: HEAD
+      directories:
+      - path: cluster-manifests/db/*
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: "db"
+      source:
+        repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: db
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true

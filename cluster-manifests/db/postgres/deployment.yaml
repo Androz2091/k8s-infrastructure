@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  namespace: db
+  labels:
+    app: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: postgresql
+              topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: postgresql
+          image: postgres:15.1
+          ports:
+            - name: postgresql
+              containerPort: 5432
+          env:
+            - name: "PGDATA"
+              value: "/var/lib/postgresql/data/pgdata"
+            - name: "POSTGRES_USER"
+              value: "postgres"
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  key: postgres-password
+                  name: postgresql-secrets
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: postgresql-v
+          resources: {}
+        #
+      volumes:
+        - name: postgresql-v
+          persistentVolumeClaim:
+            claimName: postgresql-pvc
