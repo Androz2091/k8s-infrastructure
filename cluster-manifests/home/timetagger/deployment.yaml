@@ -50,7 +50,7 @@ spec:
             - name: "TIMETAGGER_CREDENTIALS"
               valueFrom:
                 secretKeyRef:
-                  name: timetagger-secret
+                  name: timetagger-secrets
                   key: TIMETAGGER_CREDENTIALS
       volumes:
         - name: timetagger-data-v
