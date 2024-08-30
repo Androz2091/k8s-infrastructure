@@ -1,0 +1,19 @@
+helmCharts:
+  - name: pgadmin
+    releaseName: pgadmin
+    namespace: db
+    version: 1.28.0
+    repo: https://helm.runix.net
+    valuesInline:
+      env:
+        email: smnlefort@gmail.com
+      envVarsFromSecrets:
+        - name: pgadmin-secrets
+          key: password
+
+namespace: db
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
