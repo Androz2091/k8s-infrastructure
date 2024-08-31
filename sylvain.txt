@@ -1,0 +1,13 @@
+le pullSecrets pour Harbor doit être cluster-wide non ?
+onechart demande ça :
+
+imagePullSecrets:
+ - regcred
+
+————-
+
+Onechart force à nommer un "port" pour changer le targetPort
+
+———
+
+est-ce que j'ai encore besoin de metallb

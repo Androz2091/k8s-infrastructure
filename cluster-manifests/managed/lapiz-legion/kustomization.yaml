@@ -9,7 +9,9 @@ helmCharts:
         repository: harbor.androz2091.fr/fiverr-discord-bots/lapiz-legion
         tag: 8e348674
       secretName: lapiz-legion-secrets
-
+      ports:
+        - name: 3000
+          port: 80
 
 namespace: managed
 
