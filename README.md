@@ -1,5 +1,9 @@
 # k8s infrastructure
 
+Useful commands:
+
+* `kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml`
+
 ### Changer le DNS
 
 ### Se co à la db dans PgAdmin
