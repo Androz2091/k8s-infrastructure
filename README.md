@@ -9,7 +9,7 @@ Table of contents:
 * [Setup](#setup)
 * [Wiki](#wiki)
 
-## Apps
+## 🚀 Apps
 
 ### Namespace DB
 
@@ -72,7 +72,9 @@ This namespace is for all media services.
 * Tautulli
 * Overseerr
 
-## Wiki
+## 📜 Wiki
+
+See https://wiki2.agepoly.ch/.
 
 ### Create a new sealed secret
 
@@ -95,7 +97,7 @@ Encrypt the secret.
 
 * `kubeseal --scope namespace-wide --cert https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml`
 
-## Setup
+## ⚒️ Setup
 
 ### Create the k8s cluster
 
