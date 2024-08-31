@@ -171,6 +171,12 @@ Start Caddy (execute this command in the directory where the `Caddyfile` is loca
 * `sudo apt-get update`
 * `sudo apt-get install helm`
 
+### Install Sealed Secrets
+
+* `helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets`
+* `helm repo update`
+* `helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1`
+
 ### Install ArgoCD
 
 * `kubectl create namespace argocd`
