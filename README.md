@@ -1,5 +1,100 @@
 # K8S infrastructure
 
+## Introduction
+
+This repository contains the infrastructure configuration for my Kubernetes cluster.
+
+Table of contents:
+* [Apps](#apps)
+* [Setup](#setup)
+* [Wiki](#wiki)
+
+## Apps
+
+### Namespace DB
+
+* PostgreSQL
+* PgAdmin4
+
+### Namespace Managed
+
+This namespace is for all the services hosted for my customers (mainly Discord bots but also websites, APIs, etc.).
+
+### Namespace Pro
+
+This namespace is for all the services hosted for me as a freelancer.
+
+* Umami
+* HasteServer
+* Blog
+* DDPE
+* Diswho
+* Instaddict
+
+### Namespace ManageInvite
+
+* ManageInvite API
+* ManageInvite Dashboard
+* ManageInvite Bot
+
+### Namespace Home
+
+* Vaultwarden ✅
+* TimeTagger ✅
+* Immich
+* Monica
+* Mealie
+* FileBrowser ✅
+
+### Namespace Dumpus
+
+⚠️ requires extra network isolation for security reasons ⚠️  
+how to do so...?
+
+* Dumpus API
+* some Dumpus workers (can we make it auto scale?)
+
+### Namespace Nextcloud
+
+This namespace is for all the services related to Nextcloud.
+
+### Namespace Sushiflix
+
+This namespace is for all media services.
+
+* Plex
+* Radarr
+* Sonarr
+* Bazarr
+* Jackett
+* Qbittorrent
+* Sabnzbd
+* Tautulli
+* Overseerr
+
+## Wiki
+
+### Create a new sealed secret
+
+Create a new secret (the simplest way is to use `stringData`).
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-app-secret
+  namespace: {NAMESPACE_NAME} # IMPORTANT
+type: Opaque
+stringData:
+  username: martin007
+  password: mOnSuper1M0t2pass
+  code-secret: "1234 5678 9101"
+```
+
+Encrypt the secret.
+
+* `kubeseal --scope namespace-wide --cert https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml`
+
 ## Setup
 
 ### Create the k8s cluster
@@ -114,8 +209,6 @@ forward . 1.1.1.1 8.8.8.8 {
 
 ### 
 
-Useful commands:
-
 * `kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml`
 
 ### Changer le DNS
@@ -124,85 +217,3 @@ Useful commands:
 
 Ajouter `postgresql.db.svc.cluster.local`
 
-## Namespaces
-
-### DB
-
-* PostgreSQL
-* PgAdmin4
-
-### Managed
-
-This namespace is for all the services hosted for my customers (mainly Discord bots but also websites, APIs, etc.).
-
-* 10 Mans Discord Bot
-* Androz Development Bot
-* Blockfella Discord Bot
-* Discordsopli Discord Bot
-* CustomGPT Discord Bot
-* Evolution Markets Discord Bot
-* Fractal Markets Discord Bot
-* KOLC Discord Bot
-* Kryptview Discord Bot
-* Kryptview Community Discord Bot
-* Lapiz Legion Discord Bot
-* Music Cat Discord Bot
-* Netflix Discord Bot
-* Pokercode Discord Bot
-* Pokercode Quiz Discord Bot
-* SimpleTrading Community Discord Bot
-* TPFisher Discord Bot
-* WhatIsLife Discord Bot
-* Wheel Discord Bot
-
-### Pro
-
-This namespace is for all the services hosted for me as a freelancer.
-
-* Umami
-* HasteServer
-* Blog
-* DDPE
-* Diswho
-* Instaddict
-
-### ManageInvite
-
-* ManageInvite API
-* ManageInvite Dashboard
-* ManageInvite Bot
-
-### Home
-
-* Vaultwarden ✅
-* TimeTagger ✅
-* Immich
-* Monica
-* Mealie
-* FileBrowser ✅
-
-### Dumpus
-
-⚠️ requires extra network isolation for security reasons ⚠️  
-how to do so...?
-
-* Dumpus API
-* some Dumpus workers (can we make it auto scale?)
-
-### Nextcloud
-
-This namespace is for all the services related to Nextcloud.
-
-### Sushiflix
-
-This namespace is for all media services.
-
-* Plex
-* Radarr
-* Sonarr
-* Bazarr
-* Jackett
-* Qbittorrent
-* Sabnzbd
-* Tautulli
-* Overseerr
