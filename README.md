@@ -97,6 +97,18 @@ Encrypt the secret.
 
 * `kubeseal --scope namespace-wide --cert https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml`
 
+### Port forward (to a service or a pod)
+
+* `kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port`
+
+### Preview manifests created by Helm charts 
+
+* `helm template my-app repo-url/app -f values.yaml`
+
+Same applies for `kustomization.yaml` files:
+
+* `kubectl kustomize --enable-helm .`
+
 ## ⚒️ Setup
 
 ### Create the k8s cluster
