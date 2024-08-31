@@ -11,7 +11,4 @@ helmCharts:
 
 namespace: db
 
-resources:
-  - sealed-secrets.yaml
-
 patches: []
