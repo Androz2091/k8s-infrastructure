@@ -5,9 +5,9 @@
 This repository contains the infrastructure configuration for my Kubernetes cluster.
 
 Table of contents:
-* [Apps](#apps)
-* [Setup](#setup)
-* [Wiki](#wiki)
+* [🚀 Apps](#-Apps)
+* [📜 Wiki](#-Wiki)
+* [⚒️ Setup](#-Setup)
 
 ## 🚀 Apps
 
