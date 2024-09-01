@@ -115,7 +115,7 @@ Same applies for `kustomization.yaml` files:
 
 ```sh
 apt update && sudo apt upgrade -y
-apt-get install -y software-properties-common curl
+apt-get install -y software-properties-common curl jq
 ```
 
 Turn off swap.
@@ -252,6 +252,23 @@ helm repo update
 helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1
 ```
 
+Install the CLI.
+
+```sh
+# Fetch the latest sealed-secrets version using GitHub API
+KUBESEAL_VERSION=$(curl -s https://api.github.com/repos/bitnami-labs/sealed-secrets/tags | jq -r '.[0].name' | cut -c 2-)
+
+# Check if the version was fetched successfully
+if [ -z "$KUBESEAL_VERSION" ]; then
+    echo "Failed to fetch the latest KUBESEAL_VERSION"
+    exit 1
+fi
+
+curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION}/kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz"
+tar -xvzf kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz kubeseal
+sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+```
+
 Export the public key.
 
 ```sh
@@ -303,8 +320,17 @@ kubectl apply -f https://raw.githubusercontent.com/Androz2091/k8s-infrastructure
 
 ### Use k8s cluster DNS on the host
 
+Disable `systemd-resolved` if it's running.
+
+```sh
+sudo systemctl disable systemd-resolved.service
+sudo systemctl stop systemd-resolved.service
+mv /etc/resolv.conf /etc/resolv.conf.bak
+```
+
 * update `/etc/resolv.conf` as follows:
 ```sh
+nameserver 8.8.8.8
 nameserver 10.96.0.10
 ```
 
