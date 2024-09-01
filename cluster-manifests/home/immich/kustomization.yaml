@@ -1,0 +1,10 @@
+helmCharts:
+  - name: immich
+    releaseName: immich
+    namespace: home
+    version: 0.7.2
+    repo: https://immich-app.github.io/immich-charts
+
+namespace: home
+
+patches: []

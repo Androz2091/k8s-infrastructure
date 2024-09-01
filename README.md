@@ -1,3 +1,21 @@
+
+
+apt-get update
+apt-get install -y apt-transport-https ca-certificates curl
+
+# Google Cloud public signing key
+mkdir /etc/apt/keyrings
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+
+# Kubernetes apt repo
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+
+apt-get update
+apt-get install -y kubelet kubeadm kubectl
+
+# prevent the package from being automatically installed, upgraded or removed.
+apt-mark hold kubelet kubeadm kubectl
+
 # K8S infrastructure
 
 ## Introduction
@@ -135,7 +153,7 @@ Install CRI-O and kubeadm.
 
 todo ask sylvain
 
-* `modprobe br_netfilter`
+* `modprobe br_netfilter` (si rien c'est ok)
 * `sysctl -w net.ipv4.ip_forward=1`
 * `kubeadm init`
 
@@ -177,6 +195,10 @@ Start Caddy (execute this command in the directory where the `Caddyfile` is loca
 * `helm repo update`
 * `helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1`
 
+Export the public key.
+
+* `kubeseal --fetch-cert --controller-name=sealed-secrets --controller-namespace=kube-system > sealed-secrets.crt`
+
 ### Install ArgoCD
 
 * `kubectl create namespace argocd`
@@ -184,7 +206,8 @@ Start Caddy (execute this command in the directory where the `Caddyfile` is loca
 * `helm repo update`
 * `helm install argocd argo/argo-cd --namespace argocd --create-namespace --values https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/argocd-values.yaml --version 7.0.0`
 
-todo sylvain is this needed?
+CLI de argo.
+
 * `sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 sudo chmod +x /usr/local/bin/argocd`
 
 Get ArgoCD password.
@@ -200,6 +223,8 @@ Get ArgoCD password.
 (optional) forward the Longhorn UI to the host.
 
 `kubectl -n longhorn-system port-forward svc/longhorn-frontend 8080:80`
+
+todo /var/lib/longhorn
 
 ### Execute bootstrap application
 
