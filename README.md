@@ -299,6 +299,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 ### Install Longhorn
 
 ```sh
+apt-get install open-iscsi -y
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
 helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.7.0
