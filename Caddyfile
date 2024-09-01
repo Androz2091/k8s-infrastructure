@@ -2,30 +2,7 @@ argocd.androz2091.fr {
     reverse_proxy http://argocd-server.argocd.svc.cluster.local:80
 }
 
-tagger2.androz2091.fr {
+tagger.androz2091.fr {
     reverse_proxy http://timetagger.home.svc.cluster.local:80
 }
 
-filebrowser.androz2091.fr {
-    reverse_proxy http://filebrowser.home.svc.cluster.local:80
-}
-
-vault2.androz2091.fr {
-    reverse_proxy http://vaultwarden.home.svc.cluster.local:80
-}
-
-harbor.androz2091.fr {
-    reverse_proxy http://harbor.workflows.svc.cluster.local:80
-}
-
-pgadmin.androz2091.fr {
-    reverse_proxy http://pgadmin-pgadmin4.db.svc.cluster.local:80
-}
-
-plex2.androz2091.fr {
-    reverse_proxy http://plex.sushiflix.svc.cluster.local:80
-}
-
-radarr2.androz2091.fr {
-    reverse_proxy http://radarr.sushiflix.svc.cluster.local:80
-}
