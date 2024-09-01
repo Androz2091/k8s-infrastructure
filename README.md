@@ -1,3 +1,6 @@
+todo sylvain:
+- version de k8s
+
 # K8S infrastructure
 
 ## Introduction
@@ -124,7 +127,7 @@ systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, c
 Install CRI-O.
 
 ```sh
-export VERSION=1.28
+export VERSION=1.30
 export OS=Debian_12
 
 echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list
