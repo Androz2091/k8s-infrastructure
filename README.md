@@ -269,11 +269,34 @@ tar -xvzf kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz kubeseal
 sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 ```
 
-Export the public key.
+Create a public and private key.
 
 ```sh
-kubeseal --fetch-cert --controller-name=sealed-secrets --controller-namespace=kube-system > sealed-secrets.crt
+export PRIVATEKEY="mytls.key"
+export PUBLICKEY="mytls.crt"
+export NAMESPACE="kube-system"
+export SECRETNAME="sealed-secrets-customkeys"
 ```
+
+⚠️ You may want to change the number of days for the expiration date.
+```sh
+openssl req -x509 -days 365 -nodes -newkey rsa:4096 -keyout "$PRIVATEKEY" -out "$PUBLICKEY" -subj "/CN=sealed-secret/O=sealed-secret"
+```
+
+Create the secret.
+
+```sh
+kubectl -n "$NAMESPACE" create secret tls "$SECRETNAME" --cert="$PUBLICKEY" --key="$PRIVATEKEY"
+kubectl -n "$NAMESPACE" label secret "$SECRETNAME" sealedsecrets.bitnami.com/sealed-secrets-key=active
+```
+
+Delete the sealed-secrets controller pod to refresh the keys.
+
+```sh
+kubectl -n "$NAMESPACE" delete pod -l name=sealed-secrets-controller
+```
+
+See [bitnami-labs/sealed-secrets](https://github.com/bitnami-labs/sealed-secrets/blob/main/docs/bring-your-own-certificates.md#generate-a-new-rsa-key-pair-certificates).
 
 ### Install ArgoCD
 
