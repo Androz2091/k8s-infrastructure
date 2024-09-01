@@ -1,6 +1,3 @@
-todo sylvain:
-- version de k8s
-
 # K8S infrastructure
 
 ## Introduction
