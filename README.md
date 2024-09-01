@@ -202,76 +202,104 @@ kubeadm init
 
 Configure kubectl CLI to connect to the cluster.
 
-* `export KUBECONFIG=/etc/kubernetes/admin.conf`
+```sh
+export KUBECONFIG=/etc/kubernetes/admin.conf
+```
 
 Allow the current (single) node to be a worker node.
 
-* `kubectl taint nodes --all node-role.kubernetes.io/control-plane-`
+```sh
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+```
 
 ### Install a CNI plugin
 
-* `kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml`
+```sh
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+```
 
 ### Install Caddy
 
-* `sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl`
-* `curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg`
-* `curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list`
-* `sudo apt update`
-* `sudo apt install caddy`
+```sh
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update
+sudo apt install caddy
+```
 
 Start Caddy (execute this command in the directory where the `Caddyfile` is located).
 
-* `sudo caddy start`
+```sh
+sudo caddy start
+```
 
 ### Install Helm
 
-* `curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -`
-* `sudo apt-get install apt-transport-https --yes`
-* `echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list`
-* `sudo apt-get update`
-* `sudo apt-get install helm`
+```sh
+curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+sudo apt-get install apt-transport-https --yes
+echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+sudo apt-get update
+sudo apt-get install helm
+```
 
 ### Install Sealed Secrets
 
-* `helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets`
-* `helm repo update`
-* `helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1`
+```sh
+helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo update
+helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1
+```
 
 Export the public key.
 
-* `kubeseal --fetch-cert --controller-name=sealed-secrets --controller-namespace=kube-system > sealed-secrets.crt`
+```sh
+kubeseal --fetch-cert --controller-name=sealed-secrets --controller-namespace=kube-system > sealed-secrets.crt
+```
 
 ### Install ArgoCD
 
-* `kubectl create namespace argocd`
-* `helm repo add argo https://argoproj.github.io/argo-helm`
-* `helm repo update`
-* `helm install argocd argo/argo-cd --namespace argocd --create-namespace --values https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/argocd-values.yaml --version 7.0.0`
+```sh
+kubectl create namespace argocd
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+helm install argocd argo/argo-cd --namespace argocd --create-namespace --values https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/argocd-values.yaml --version 7.0.0
+```
 
 CLI de argo.
 
-* `sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 sudo chmod +x /usr/local/bin/argocd`
+```sh
+sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 sudo chmod +x /usr/local/bin/argocd
+```
 
 Get ArgoCD password.
 
-* `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo`
+```sh
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
 
 ### Install Longhorn
 
-* `helm repo add longhorn https://charts.longhorn.io`
-* `helm repo update`
-* `helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.7.0`
+```sh
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.7.0
+```
 
 (optional) forward the Longhorn UI to the host.
 
-`kubectl -n longhorn-system port-forward svc/longhorn-frontend 8080:80`
+```sh
+kubectl -n longhorn-system port-forward svc/longhorn-frontend 8080:80
+```
 
 todo /var/lib/longhorn
 
 ### Execute bootstrap application
 
-* `kubectl apply -f https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/bootstrap-app.yaml`
+```sh
+kubectl apply -f https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/bootstrap-app.yaml
+```
 
 ### Use k8s cluster DNS on the host
 
@@ -283,7 +311,9 @@ nameserver 10.96.0.10
 Now we also need to update the cluster DNS so it does not loop back to the host.
 
 * dump the current CoreDNS config:
-`kubectl -n kube-system get configmap coredns -o yaml > coredns_patched_dns.yaml`
+```sh
+kubectl -n kube-system get configmap coredns -o yaml > coredns_patched_dns.yaml
+```
 
 * edit the `coredns_patched_dns.yaml` file and add the following line to the `Corefile`:
 ```sh
@@ -293,11 +323,15 @@ forward . 1.1.1.1 8.8.8.8 {
 ```
 
 * then apply the changes by running:
-`kubectl apply -f coredns_patched_dns.yaml`
+```sh
+kubectl apply -f coredns_patched_dns.yaml
+```
 
 ### 
 
-* `kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml`
+```sh
+kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml
+```
 
 ### Changer le DNS
 
