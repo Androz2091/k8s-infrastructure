@@ -124,6 +124,7 @@ apt-get install -y software-properties-common curl
 Turn off swap.
 
 ```sh
+swapoff -a
 systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
 ```
 
