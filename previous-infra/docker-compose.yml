@@ -1,0 +1,97 @@
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: library-plex
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - VERSION=docker
+    volumes:
+      - /home/debian/library/config/plex:/config
+      - /home/debian/library/data:/data
+    restart: unless-stopped
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: library-sabnzbd
+    env_file:
+      - .env
+    volumes:
+      - /home/debian/library/config/sabnzbd:/config
+      - /home/debian/library/data/usenet:/data/usenet
+    ports:
+      - 8081:8080
+    restart: unless-stopped
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: library-sonarr
+    env_file:
+      - .env
+    volumes:
+      - /home/debian/library/config/sonarr:/config
+      - /home/debian/library/data:/data
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: library-radarr
+    env_file:
+      - .env
+    volumes:
+      - /home/debian/library/config/radarr:/config
+      - /home/debian/library/data:/data
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: library-bazarr
+    env_file:
+      - .env
+    volumes:
+      - /home/debian/library/config/bazarr:/config
+      - /home/debian/library/data/media:/data/media
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+  overseerr:
+    image: sctx/overseerr:latest
+    container_name: library-overseerr
+    env_file:
+      - .env
+    ports:
+      - 5055:5055
+    volumes:
+      - /home/debian/library/config/overseerr:/app/config
+    restart: unless-stopped
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: library-jackett
+    volumes:
+      - /home/debian/library/config/jackett:/config
+      - /home/debian/library/data:/data
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - WEBUI_PORT=8080
+    volumes:
+      - /home/debian/library/config/qbt:/config
+      - /home/debian/library/data:/data
+    ports:
+      - 8090:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+  tautulli:
+    image: ghcr.io/tautulli/tautulli
+    container_name: tautulli
+    restart: unless-stopped
+    volumes:
+      - /home/debian/library/config/tautulli:/config
+    ports:
+      - 8181:8181
