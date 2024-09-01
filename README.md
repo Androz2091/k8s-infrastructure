@@ -1,21 +1,3 @@
-
-
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl
-
-# Google Cloud public signing key
-mkdir /etc/apt/keyrings
-curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-
-# Kubernetes apt repo
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
-
-apt-get update
-apt-get install -y kubelet kubeadm kubectl
-
-# prevent the package from being automatically installed, upgraded or removed.
-apt-mark hold kubelet kubeadm kubectl
-
 # K8S infrastructure
 
 ## Introduction
@@ -135,27 +117,78 @@ Same applies for `kustomization.yaml` files:
 
 Turn off swap.
 
-* `sudo swapoff -a`
-* `sudo sed -i '/ swap / s/^/#/' /etc/fstab`
+```sh
+systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
+```
 
-Install CRI-O and kubeadm.
+Install CRI-O.
 
-* `export KUBERNETES_VERSION=v1.30`
-* `export CRIO_VERSION=v1.30`
-* `apt-get install -y software-properties-common curl`
-* `curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg`
-* `echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list`
-* `curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg`
-* `echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/ /" | tee /etc/apt/sources.list.d/cri-o.list`
-* `sudo apt-get update`
-* `sudo apt-get install -y cri-o kubelet kubeadm kubectl`
-* `sudo systemctl start crio.service`
+```sh
+export VERSION=1.28
+export OS=Debian_12
 
-todo ask sylvain
+echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list
+apt update
+apt install -y -t buster-backports libseccomp2 || apt update -y -t buster-backports libseccomp2
 
-* `modprobe br_netfilter` (si rien c'est ok)
-* `sysctl -w net.ipv4.ip_forward=1`
-* `kubeadm init`
+echo "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+echo "deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+
+mkdir -p /usr/share/keyrings
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
+
+apt-get update
+apt-get install -y cri-o cri-o-runc
+```
+
+Forwarding IPv4 and letting iptables see bridged traffic.
+
+```sh
+cat <<EOF | tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+modprobe overlay
+modprobe br_netfilter
+
+# sysctl params required by setup, params persist across reboots
+cat <<EOF | tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+
+# Apply sysctl params without reboot
+sysctl --system
+
+# Checks
+lsmod | grep br_netfilter
+lsmod | grep overlay
+
+systemctl enable --now crio
+```
+
+Install kubeadm, kubelet and kubectl.
+
+```sh
+apt-get update
+apt-get install -y apt-transport-https ca-certificates curl
+
+# Google Cloud public signing key
+mkdir /etc/apt/keyrings
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+
+# Kubernetes apt repo
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+
+apt-get update
+apt-get install -y kubelet kubeadm kubectl
+
+# prevent the package from being automatically installed, upgraded or removed.
+apt-mark hold kubelet kubeadm kubectl
+```
 
 Configure kubectl CLI to connect to the cluster.
 
