@@ -8,8 +8,7 @@ helmCharts:
       immich:
         persistence:
           library:
-            existingClaim:
-              name: immich-library-pvc
+            existingClaim: immich-library-pvc
 
 namespace: home
 
