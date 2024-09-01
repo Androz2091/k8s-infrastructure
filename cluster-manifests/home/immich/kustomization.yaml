@@ -4,7 +4,16 @@ helmCharts:
     namespace: home
     version: 0.7.2
     repo: https://immich-app.github.io/immich-charts
+    valuesInline:
+      immich:
+      persistence:
+        library:
+          existingClaim:
+            name: immich-library-pvc
 
 namespace: home
+
+resources:
+  - pvc.yaml
 
 patches: []
