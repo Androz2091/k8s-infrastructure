@@ -6,10 +6,10 @@ helmCharts:
     repo: https://immich-app.github.io/immich-charts
     valuesInline:
       immich:
-      persistence:
-        library:
-          existingClaim:
-            name: immich-library-pvc
+        persistence:
+          library:
+            existingClaim:
+              name: immich-library-pvc
 
 namespace: home
 
