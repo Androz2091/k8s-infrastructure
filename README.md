@@ -197,7 +197,7 @@ systemctl enable --now crio
 Create the cluster.
 
 ```sh
-kubeadm init
+kubeadm init --pod-network-cidr=10.244.0.0/16
 ```
 
 Configure kubectl CLI to connect to the cluster.
