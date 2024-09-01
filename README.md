@@ -116,7 +116,10 @@ Same applies for `kustomization.yaml` files:
 
 ### Create the k8s cluster
 
-* `sudo apt update && sudo apt upgrade -y`
+```sh
+apt update && sudo apt upgrade -y
+apt-get install -y software-properties-common curl
+```
 
 Turn off swap.
 
@@ -124,25 +127,45 @@ Turn off swap.
 systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
 ```
 
-Install CRI-O.
+Install CRI-O and Kubernetes. See [cri-o/packaging instructions.](https://github.com/cri-o/packaging/blob/main/README.md#distributions-using-deb-packages).
 
 ```sh
-export VERSION=1.30
-export OS=Debian_12
+KUBERNETES_VERSION=v1.31
+CRIO_VERSION=v1.30
+```
 
-echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list
-apt update
-apt install -y -t buster-backports libseccomp2 || apt update -y -t buster-backports libseccomp2
+Add the Kubernetes repository.
 
-echo "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-echo "deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+```sh
+curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key |
+    gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-mkdir -p /usr/share/keyrings
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" |
+    tee /etc/apt/sources.list.d/kubernetes.list
+```
 
+Add the CRI-O repository.
+
+```sh
+curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key |
+    gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/ /" |
+    tee /etc/apt/sources.list.d/cri-o.list
+```
+
+Install the packages.
+
+```sh
 apt-get update
-apt-get install -y cri-o cri-o-runc
+apt-get install -y cri-o kubelet kubeadm kubectl
+apt-mark hold cri-o kubelet kubeadm kubectl
+```
+
+Start the cluster
+
+```sh
+systemctl start crio.service
 ```
 
 Forwarding IPv4 and letting iptables see bridged traffic.
@@ -173,24 +196,10 @@ lsmod | grep overlay
 systemctl enable --now crio
 ```
 
-Install kubeadm, kubelet and kubectl.
+Create the cluster.
 
 ```sh
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl
-
-# Google Cloud public signing key
-mkdir /etc/apt/keyrings
-curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-
-# Kubernetes apt repo
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
-
-apt-get update
-apt-get install -y kubelet kubeadm kubectl
-
-# prevent the package from being automatically installed, upgraded or removed.
-apt-mark hold kubelet kubeadm kubectl
+kubeadm init
 ```
 
 Configure kubectl CLI to connect to the cluster.
