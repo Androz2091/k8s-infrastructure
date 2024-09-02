@@ -37,3 +37,7 @@ sabnzbd.androz2091.fr {
 qbt.androz2091.fr {
     reverse_proxy http://qbittorrent.sushiflix.svc.cluster.local:80
 }
+
+kolc-adminjs.androz2091.fr {
+    reverse_proxy http://kolc-adminjs.managed.svc.cluster.local:80
+}
