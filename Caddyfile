@@ -33,3 +33,7 @@ vault.androz2091.fr {
 sabnzbd.androz2091.fr {
     reverse_proxy http://sabnzbd.sushiflix.svc.cluster.local:80
 }
+
+qbt.androz2091.fr {
+    reverse_proxy http://qbittorrent.sushiflix.svc.cluster.local:80
+}
