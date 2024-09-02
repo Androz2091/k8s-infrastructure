@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorent
+  labels:
+    app: qbittorent
+spec:
+  ports:
+    - name: webui
+      port: 8080
+      targetPort: 8080
+      nodePort: 30900
+    - name: bittorrent-tcp
+      port: 6881
+      targetPort: 6881
+      protocol: TCP
+    - name: bittorrent-udp
+      port: 6881
+      targetPort: 6881
+      protocol: UDP
+  selector:
+    app: qbittorent
+  type: ClusterIP

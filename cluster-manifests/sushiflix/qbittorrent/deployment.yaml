@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorent
+  namespace: sushiflix
+  labels:
+    app: qbittorent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qbittorent
+  template:
+    metadata:
+      labels:
+        app: qbittorent
+    spec:
+      containers:
+        - name: qbittorent
+          image: lscr.io/linuxserver/qbittorent:latest
+          imagePullPolicy: IfNotPresent
+          # command: ["/bin/bash"]
+          # args: ["-c", "sleep 999999"]
+
+          # env:
+          #   - name: ROCKET_PORT
+          #     value: "4000"
+
+          env:
+            - name: WEBUI_PORT
+              value: "8080"
+          ports:
+            - containerPort: 8080
+              name: webui
+            - containerPort: 6881
+              name: bittorrent-tcp
+              protocol: TCP
+            - containerPort: 6881
+              name: bittorrent-udp
+              protocol: UDP
+
+          resources: {}
+
+          volumeMounts:
+            - name: servarr-data-v
+              mountPath: /data
+            - name: qbittorrent-config-v
+              mountPath: /config
+
+      volumes:
+        - name: servarr-data-v
+          persistentVolumeClaim:
+            claimName: servarr-data-pvc
+        - name: qbittorrent-config-v
+          persistentVolumeClaim:
+            claimName: qbittorrent-config-pvc

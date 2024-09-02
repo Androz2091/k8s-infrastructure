@@ -123,6 +123,10 @@ Same applies for `kustomization.yaml` files:
 kubectl kustomize --enable-helm .
 ```
 
+### Setup Sushiflix
+
+The Plex server has to be accessed locally to be claimed. Use port forwarding to access it first. Then we need to specify the custom domain name in the server network settings (advanced), and specify `plex.androz2091.fr`. Otherwise it will try to load data from `server-ip:32400` or even `cluster-ip:32400` which is not securely accessible.
+
 ## ⚒️ Setup
 
 ### Create the k8s cluster
@@ -397,7 +401,7 @@ kubectl apply -f coredns_patched_dns.yaml
 kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml
 ```
 
-### Changer le DNS
+##
 
 ### Se co à la db dans PgAdmin
 
