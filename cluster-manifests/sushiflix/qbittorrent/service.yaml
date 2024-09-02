@@ -6,18 +6,17 @@ metadata:
     app: qbittorent
 spec:
   ports:
-    ports:
-      - name: webui
-        port: 80
-        targetPort: 8080
-      - name: bittorrent-tcp
-        port: 6881
-        targetPort: 6881
-        protocol: TCP
-      - name: bittorrent-udp
-        port: 6881
-        targetPort: 6881
-        protocol: UDP
+  - name: webui
+    port: 80
+    targetPort: 8080
+  - name: bittorrent-tcp
+    port: 6881
+    targetPort: 6881
+    protocol: TCP
+  - name: bittorrent-udp
+    port: 6881
+    targetPort: 6881
+    protocol: UDP
   selector:
     app: qbittorent
   type: ClusterIP
