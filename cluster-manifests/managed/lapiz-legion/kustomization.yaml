@@ -12,6 +12,8 @@ helmCharts:
       ports:
         - name: 3000
           port: 80
+      imagePullSecrets:
+        - regcred
 
 namespace: managed
 
