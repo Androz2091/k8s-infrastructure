@@ -12,6 +12,7 @@ helmCharts:
       ports:
       - svcPort: 80
         name: http
+        containerPort: 3000
       imagePullSecrets:
         - regcred
 
