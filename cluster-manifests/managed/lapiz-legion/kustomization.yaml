@@ -1,6 +1,6 @@
 helmCharts:
-  - name: lapiz-legion-discord-bot
-    releaseName: onechart
+  - name: onechart
+    releaseName: lapiz-legion-discord-bot
     namespace: managed
     version: 0.70.0
     repo: https://chart.onechart.dev
