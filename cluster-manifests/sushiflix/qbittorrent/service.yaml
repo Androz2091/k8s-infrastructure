@@ -6,10 +6,10 @@ metadata:
     app: qbittorent
 spec:
   ports:
+    ports:
     - name: webui
-      port: 8080
+      port: 80
       targetPort: 8080
-      nodePort: 30900
     - name: bittorrent-tcp
       port: 6881
       targetPort: 6881
