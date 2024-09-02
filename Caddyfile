@@ -29,3 +29,7 @@ cloud.androz2091.fr, filebrowser.androz2091.fr {
 vault.androz2091.fr {
     reverse_proxy http://vaultwarden.home.svc.cluster.local:80
 }
+
+sabnzbd.androz2091.fr {
+    reverse_proxy http://sabnzbd.sushiflix.svc.cluster.local:80
+}
