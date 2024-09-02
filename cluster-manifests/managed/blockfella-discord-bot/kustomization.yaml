@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/blockfella
-        tag: a3f88d26
+        tag: c9956639
       secretName: blockfella-discord-bot-secrets
       ports:
       - svcPort: 80
