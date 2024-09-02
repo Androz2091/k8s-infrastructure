@@ -29,19 +29,19 @@ spec:
           volumeMounts:
             - name: servarr-data-v
               mountPath: /data
-    
-      env:
-        - name: PUID
-          value: 1000
-        - name: PGID
-          value: 1000
-        - name: TZ
-          value: "Europe/Paris"
 
       containers:
         - name: sabnzbd
           image: lscr.io/linuxserver/sabnzbd:latest
           imagePullPolicy: IfNotPresent
+
+          env:
+            - name: PUID
+              value: 1000
+            - name: PGID
+              value: 1000
+            - name: TZ
+              value: "Europe/Paris"
 
           ports:
             - containerPort: 8080
