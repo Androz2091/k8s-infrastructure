@@ -10,8 +10,8 @@ helmCharts:
         tag: 8e348674
       secretName: lapiz-legion-secrets
       ports:
-      - svcPort: 80
-        name: 3000
+      - svcPort: "80"
+        name: "3000"
       imagePullSecrets:
         - regcred
 

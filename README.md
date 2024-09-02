@@ -406,4 +406,3 @@ kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < sec
 ### Se co à la db dans PgAdmin
 
 Ajouter `postgresql.db.svc.cluster.local`
-
