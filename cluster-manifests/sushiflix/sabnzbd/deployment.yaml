@@ -15,16 +15,33 @@ spec:
       labels:
         app: sabnzbd
     spec:
+
+      # todo ask sylvain shared pvc permissions
+      initContainers:
+        - command:
+          - sh
+          - -c
+          - chown -R 1000:1000 /data
+          image: busybox
+          imagePullPolicy: Always
+          name: init-container
+          resources: {}
+          volumeMounts:
+            - name: servarr-data-v
+              mountPath: /data
+    
+      env:
+        - name: PUID
+          value: 1000
+        - name: PGID
+          value: 1000
+        - name: TZ
+          value: "Europe/Paris"
+
       containers:
         - name: sabnzbd
           image: lscr.io/linuxserver/sabnzbd:latest
           imagePullPolicy: IfNotPresent
-          # command: ["/bin/bash"]
-          # args: ["-c", "sleep 999999"]
-
-          # env:
-          #   - name: ROCKET_PORT
-          #     value: "4000"
 
           ports:
             - containerPort: 8080
