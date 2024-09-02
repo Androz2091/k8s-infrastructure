@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vaultwarden
-  namespace: home
+  name: sabnzbd
+  namespace: sushiflix
   labels:
-    app: vaultwarden
+    app: sabnzbd
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vaultwarden
+      app: sabnzbd
   template:
     metadata:
       labels:
-        app: vaultwarden
+        app: sabnzbd
     spec:
       containers:
-        - name: vaultwarden
-          image: vaultwarden/server
+        - name: sabnzbd
+          image: lscr.io/linuxserver/sabnzbd:latest
           imagePullPolicy: IfNotPresent
           # command: ["/bin/bash"]
           # args: ["-c", "sleep 999999"]
@@ -27,18 +27,22 @@ spec:
           #     value: "4000"
 
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
               protocol: TCP
 
           resources: {}
 
           volumeMounts:
-            - name: vaultwarden-data-v
-              mountPath: /vw-data/
+            - name: servarr-data-v
+              mountPath: /data
+            - name: sabnzbd-config-v
+              mountPath: /config
 
-#reclaim policy
       volumes:
-        - name: vaultwarden-data-v
+        - name: servarr-data-v
           persistentVolumeClaim:
-            claimName: vaultwarden-data-pvc
+            claimName: servarr-data-pvc
+        - name: sabnzbd-config-v
+          persistentVolumeClaim:
+            claimName: sabnzbd-config-pvc
