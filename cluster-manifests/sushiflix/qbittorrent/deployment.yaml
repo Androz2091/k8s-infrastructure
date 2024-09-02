@@ -27,6 +27,12 @@ spec:
           #     value: "4000"
 
           env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Paris"
             - name: WEBUI_PORT
               value: "8080"
           ports:
