@@ -39,5 +39,5 @@ qbt.androz2091.fr {
 }
 
 kolc-adminjs.androz2091.fr {
-    reverse_proxy http://kolc-adminjs.managed.svc.cluster.local:80
+    reverse_proxy http://kolc-discord-bot.managed.svc.cluster.local:80
 }
