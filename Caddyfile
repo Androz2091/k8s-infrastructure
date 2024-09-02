@@ -41,3 +41,7 @@ qbt.androz2091.fr {
 kolc-adminjs.androz2091.fr {
     reverse_proxy http://kolc-discord-bot.managed.svc.cluster.local:80
 }
+
+evolution-markets-adminjs.androz2091.fr {
+    reverse_proxy http://evolution-markets-discord-bot.managed.svc.cluster.local:80
+}
