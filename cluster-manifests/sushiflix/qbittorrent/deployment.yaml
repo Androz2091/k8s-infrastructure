@@ -19,12 +19,6 @@ spec:
         - name: qbittorrent
           image: lscr.io/linuxserver/qbittorrent:latest
           imagePullPolicy: IfNotPresent
-          # command: ["/bin/bash"]
-          # args: ["-c", "sleep 999999"]
-
-          # env:
-          #   - name: ROCKET_PORT
-          #     value: "4000"
 
           env:
             - name: PUID
