@@ -10,7 +10,7 @@ pgadmin.androz2091.fr {
     reverse_proxy http://pgadmin-pgadmin4.db.svc.cluster.local:80
 }
 
-plex.androz2091.fr {
+plex.androz2091.fr:32400, plex.androz2091.fr {
     reverse_proxy http://plex.sushiflix.svc.cluster.local:80
 }
 
