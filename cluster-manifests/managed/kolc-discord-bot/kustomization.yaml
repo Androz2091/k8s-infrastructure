@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/kolc
-        tag: latest
+        tag: 68e33b5a
       secretName: kolc-discord-bot-secrets
       ports:
       - svcPort: 80
