@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/evolution-markets
-        tag: a16d1f87
+        tag: 6b28aed9
       secretName: evolution-markets-discord-bot-secrets
       ports:
       - svcPort: 80
