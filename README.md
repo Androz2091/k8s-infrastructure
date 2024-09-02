@@ -95,19 +95,33 @@ stringData:
 
 Encrypt the secret.
 
-* `kubeseal --scope namespace-wide --cert https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml`
+```sh
+kubeseal --scope namespace-wide --cert https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml
+```
 
 ### Port forward (to a service or a pod)
 
-* `kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port`
+```sh
+kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port`
+```
+
+### Enter a pod
+
+```sh
+kubectl -n somenamespace exec --stdin --tty somepod -- /bin/bash
+```
 
 ### Preview manifests created by Helm charts 
 
-* `helm template my-app repo-url/app -f values.yaml`
+```sh
+helm template my-app repo-url/app -f values.yaml
+```
 
 Same applies for `kustomization.yaml` files:
 
-* `kubectl kustomize --enable-helm .`
+```sh
+kubectl kustomize --enable-helm .
+```
 
 ## ⚒️ Setup
 
