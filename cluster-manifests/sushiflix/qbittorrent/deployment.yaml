@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: qbittorent
+  name: qbittorrent
   namespace: sushiflix
   labels:
-    app: qbittorent
+    app: qbittorrent
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: qbittorent
+      app: qbittorrent
   template:
     metadata:
       labels:
-        app: qbittorent
+        app: qbittorrent
     spec:
       containers:
-        - name: qbittorent
-          image: lscr.io/linuxserver/qbittorent:latest
+        - name: qbittorrent
+          image: lscr.io/linuxserver/qbittorrent:latest
           imagePullPolicy: IfNotPresent
           # command: ["/bin/bash"]
           # args: ["-c", "sleep 999999"]
