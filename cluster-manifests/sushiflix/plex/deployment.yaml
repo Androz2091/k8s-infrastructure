@@ -19,12 +19,14 @@ spec:
         - name: plex
           image: lscr.io/linuxserver/plex:latest
           imagePullPolicy: IfNotPresent
-          # command: ["/bin/bash"]
-          # args: ["-c", "sleep 999999"]
 
-          # env:
-          #   - name: ROCKET_PORT
-          #     value: "4000"
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Paris"
 
           ports:
             - containerPort: 32400
