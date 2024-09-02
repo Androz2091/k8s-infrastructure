@@ -1,6 +1,6 @@
 helmCharts:
   - name: onechart
-    releaseName: 10mans-discord-bot
+    releaseName: ten-mans-discord-bot
     namespace: managed
     version: 0.70.0
     repo: https://chart.onechart.dev
@@ -8,7 +8,7 @@ helmCharts:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/10mans
         tag: 3b1fe7c9
-      secretName: 10mans-discord-bot-secrets
+      secretName: ten-mans-discord-bot-secrets
       ports:
       - svcPort: 80
         name: http
