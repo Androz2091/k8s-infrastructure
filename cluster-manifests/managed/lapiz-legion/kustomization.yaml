@@ -14,7 +14,7 @@ helmCharts:
         name: http
         containerPort: 3000
       imagePullSecrets:
-        - regcred
+        - name: regcred
 
 namespace: managed
 
