@@ -16,12 +16,12 @@ helmCharts:
       imagePullSecrets:
       - regcred
       resources:
-      limits:
-        cpu: "2000m"
-        memory: "2000Mi"
-      requests:
-        cpu: "200m"
-        memory: "500Mi"
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "200m"
+          memory: "500Mi"
 
 namespace: managed
 
