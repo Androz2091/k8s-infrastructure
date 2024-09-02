@@ -45,3 +45,7 @@ kolc-adminjs.androz2091.fr {
 evolution-markets-adminjs.androz2091.fr {
     reverse_proxy http://evolution-markets-discord-bot.managed.svc.cluster.local:80
 }
+
+10mans-adminjs.androz2091.fr {
+    reverse_proxy http://ten-mans-discord-bot.managed.svc.cluster.local:80
+}
