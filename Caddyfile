@@ -65,3 +65,7 @@ analytics.androz2091.fr {
 haste.androz2091.fr {
     reverse_proxy http://haste-server.pro.svc.cluster.local:80
 }
+
+monica.androz2091.fr {
+    reverse_proxy http://monica.pro.svc.cluster.local:80
+}
