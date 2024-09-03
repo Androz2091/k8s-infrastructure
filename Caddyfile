@@ -61,3 +61,7 @@ diswho.androz2091.fr {
 analytics.androz2091.fr {
     reverse_proxy http://umami-analytics.pro.svc.cluster.local:3000
 }
+
+haste.androz2091.fr {
+    reverse_proxy http://haste-server.pro.svc.cluster.local:80
+}
