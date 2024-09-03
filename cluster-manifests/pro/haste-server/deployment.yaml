@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haste-server
+  namespace: home
+  labels:
+    app: haste-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haste-server
+  template:
+    metadata:
+      labels:
+        app: haste-server
+    spec:
+      containers:
+        - name: haste-server
+          image: androz2091/haste-server:sha-120305d
+          imagePullPolicy: IfNotPresent
+          # command: ["/bin/bash"]
+          # args: ["-c", "sleep 999999"]
+
+          env:
+            - name: STORAGE_TYPE
+              value: "postgres"
+            - name: STORAGE_HOST
+              value: "postgresql.db.svc.cluster.local"
+            - name: STORAGE_PORT
+              value: "5432"
+            - name: STORAGE_USER
+              value: "postgres"
+            - name: STORAGE_DB
+              value: "haste-server"
+            - name: STORAGE_PASSWORD  
+              valueFrom:
+                secretKeyRef:
+                  name: haste-server-secrets
+                  key: DB_PASSWORD
+
+          ports:
+            - containerPort: 7777
+              name: http
+              protocol: TCP
+
+          resources: {}
