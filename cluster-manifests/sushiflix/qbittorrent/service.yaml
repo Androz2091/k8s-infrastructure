@@ -10,15 +10,24 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8080
-    nodePort: 30090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-udp
+  labels:
+    app: qbittorrent
+spec:
+  ports:
   - name: bittorrent-tcp
     protocol: TCP
     port: 6881
     targetPort: 6881
-    nodePort: 30081
+    nodePort: 30081  # Numéro du port exposé sur le nœud
   - name: bittorrent-udp
     protocol: UDP
     port: 6881
     targetPort: 6881
-    nodePort: 30082
+    nodePort: 30082  # Numéro du port exposé sur le nœud
   type: NodePort
