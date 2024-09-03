@@ -15,6 +15,10 @@ helmCharts:
         containerPort: 3000
       imagePullSecrets:
       - regcred
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
 
 namespace: managed
 
