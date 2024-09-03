@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monica
+  namespace: home
+  labels:
+    app: monica
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monica
+  template:
+    metadata:
+      labels:
+        app: monica
+    spec:
+      containers:
+        - name: monica
+          image: monica:5.0.0-beta.4-fpm
+          imagePullPolicy: IfNotPresent
+          
+          envFrom:
+            - secretRef:
+                name: monica-secrets
+
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+
+          resources: {}
