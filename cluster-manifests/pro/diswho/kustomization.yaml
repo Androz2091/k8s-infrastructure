@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/diswho
-        tag: sha-75dd28c
+        tag: sha-48810bf
       secretName: diswho-secrets
       ports:
       - svcPort: 80
