@@ -1,0 +1,22 @@
+helmCharts:
+  - name: onechart
+    releaseName: diswho
+    namespace: managed
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/diswho
+        tag: latest
+      secretName: diswho-secrets
+      ports:
+      - svcPort: 80
+        name: http
+        containerPort: 3050
+
+namespace: managed
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
