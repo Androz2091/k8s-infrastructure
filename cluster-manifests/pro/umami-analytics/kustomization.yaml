@@ -6,6 +6,8 @@ helmCharts:
     repo: https://christianhuth.github.io/helm-charts
     valuesInline:
       database:
+        postgresql:
+          enabled: false
         existingSecret: umami-analytics-secrets
         databaseUrlKey: DATABASE_URL
 
