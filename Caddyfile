@@ -57,3 +57,7 @@ pokercode-quiz-adminjs.androz2091.fr {
 diswho.androz2091.fr {
     reverse_proxy http://diswho.pro.svc.cluster.local:80
 }
+
+analytics.androz2091.fr {
+    reverse_proxy http://umami-analytics.pro.svc.cluster.local:80
+}
