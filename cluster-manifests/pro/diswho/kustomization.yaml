@@ -13,6 +13,13 @@ helmCharts:
       - svcPort: 80
         name: http
         containerPort: 3050
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "200m"
+          memory: "500Mi"
 
 namespace: pro
 
