@@ -5,9 +5,9 @@ helmCharts:
     version: 3.3.1
     repo: https://christianhuth.github.io/helm-charts
     valuesInline:
+      postgresql:
+        enabled: false
       database:
-        postgresql:
-          enabled: false
         existingSecret: umami-analytics-secrets
         databaseUrlKey: DATABASE_URL
 
