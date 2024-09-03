@@ -7,9 +7,10 @@ metadata:
 spec:
   ports:
   - name: webui
-    protocol: TCP
     port: 80
     targetPort: 8080
+  selector:
+    app: qbittorrent
   type: ClusterIP
 ---
 apiVersion: v1
@@ -24,10 +25,12 @@ spec:
     protocol: TCP
     port: 6881
     targetPort: 6881
-    nodePort: 30081  # Numéro du port exposé sur le nœud
+    nodePort: 30081
   - name: bittorrent-udp
     protocol: UDP
     port: 6881
     targetPort: 6881
-    nodePort: 30082  # Numéro du port exposé sur le nœud
+    nodePort: 30082
+  selector:
+    app: qbittorrent
   type: NodePort
