@@ -4,3 +4,6 @@ mieux stocker les fichiers de conf en dehors des pvc pour une réinstallation + 
 
 améliorer la CI github (en utilisant le nom du repo)
 
+alertes quand les PVC sont pleines
+
+harbor --> faire des images + petites et modifier la rétention ?
