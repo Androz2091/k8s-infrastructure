@@ -25,19 +25,11 @@ spec:
           env:
             - name: STORAGE_TYPE
               value: "postgres"
-            - name: STORAGE_HOST
-              value: "postgresql.db.svc.cluster.local"
-            - name: STORAGE_PORT
-              value: "5432"
-            - name: STORAGE_USER
-              value: "postgres"
-            - name: STORAGE_DB
-              value: "haste-server"
-            - name: STORAGE_PASSWORD  
+            - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: haste-server-secrets
-                  key: DB_PASSWORD
+                  key: DATABASE_URL
 
           ports:
             - containerPort: 7777
