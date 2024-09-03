@@ -401,8 +401,24 @@ kubectl apply -f coredns_patched_dns.yaml
 kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml
 ```
 
-##
+### Create a secret to pull from Harbor
 
-### Se co à la db dans PgAdmin
+Do not forget the `\` before the `$` in the username.
 
-Ajouter `postgresql.db.svc.cluster.local`
+```sh
+kubectl -n managed create secret docker-registry regcred --docker-server=harbor.androz2091.fr --docker-username="robot\$name" --docker-password="secret_token"
+```
+
+### Configure longhorn backups (blackblaze)
+
+From the Longhorn UI, go to `Settings` > `Backup Target` and add a new target with the following settings:
+
+```sh
+s3://<bucket_name>@s3.us-west-004.backblazeb2.com/<path>
+```
+
+Create a new secret with the credentials.
+
+```sh
+kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access_key> --from-literal=AWS_SECRET_ACCESS_KEY=<secret_key> -n longhorn-system
+```
