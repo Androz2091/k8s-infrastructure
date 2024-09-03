@@ -4,6 +4,8 @@ helmCharts:
     namespace: monitoring
     version: 62.3.1
     repo: https://prometheus-community.github.io/helm-charts
+    valuesInline:
+      namespaceOverride: monitoring
 
 namespace: monitoring
 
