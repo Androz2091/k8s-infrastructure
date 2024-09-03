@@ -1,13 +1,26 @@
-le pullSecrets pour Harbor doit être cluster-wide non ?
-onechart demande ça :
+comprendre les pvcs 
 
-imagePullSecrets:
- - regcred
+mieux stocker les fichiers de conf en dehors des pvc pour une réinstallation + rapide
 
-————-
+améliorer la CI github (en utilisant le nom du repo)
 
-Onechart force à nommer un "port" pour changer le targetPort
+alertes quand les PVC sont pleines
 
-———
+harbor --> faire des images + petites et modifier la rétention ?
 
-est-ce que j'ai encore besoin de metallb
+faire fonctionner le seeding qbt
+
+configurer les backups automatiques de toutes les PVC (comment exclure la PVC des films ?)
+setup la policicy default
+
+setup prometheus et grafana
+avoir les logs sur Telegram quand un pod redémarre, quand une PVC arrive au bout de son stockage
+
+définir des tags sur toutes les images du serveur pour remplacer les latest
+
+setup :
+- sonarr
+- tautulli
+- manageinvite
+- immich
+- overseerr
