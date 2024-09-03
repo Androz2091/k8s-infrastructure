@@ -53,3 +53,7 @@ evolution-markets-adminjs.androz2091.fr {
 pokercode-quiz-adminjs.androz2091.fr {
     reverse_proxy http://pokercode-quiz-discord-bot.managed.svc.cluster.local:80
 }
+
+diswho.androz2091.fr {
+    reverse_proxy http://diswho.pro.svc.cluster.local:80
+}
