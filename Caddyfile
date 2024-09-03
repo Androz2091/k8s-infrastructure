@@ -49,3 +49,7 @@ evolution-markets-adminjs.androz2091.fr {
 10mans-adminjs.androz2091.fr {
     reverse_proxy http://ten-mans-discord-bot.managed.svc.cluster.local:80
 }
+
+pokercode-quiz-adminjs.androz2091.fr {
+    reverse_proxy http://pokercode-quiz-discord-bot.managed.svc.cluster.local:80
+}
