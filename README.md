@@ -420,5 +420,10 @@ s3://<bucket_name>@s3.us-west-004.backblazeb2.com/<path>
 Create a new secret with the credentials.
 
 ```sh
-kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access_key> --from-literal=AWS_SECRET_ACCESS_KEY=<secret_key> -n longhorn-system
+kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access_key> --from-literal=AWS_SECRET_ACCESS_KEY=<secret_key> --from-literal=AWS_ENDPOINTS=s3.us-west-004.backblazeb2.com -n longhorn-system
 ```
+
+### Expand a Longhorn volume
+
+Use port forwarding to access the Longhorn UI. ⚠️ Delete all pods using the volume.  
+Then expand it.
