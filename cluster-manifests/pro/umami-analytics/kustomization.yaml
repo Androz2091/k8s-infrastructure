@@ -1,0 +1,17 @@
+helmCharts:
+  - name: umami
+    releaseName: umami-analytics
+    namespace: pro
+    version: 3.3.1
+    repo: https://christianhuth.github.io/helm-charts
+    valuesInline:
+      database:
+        existingSecret: umami-analytics-secrets
+        databaseUrlKey: DATABASE_URL
+
+namespace: pro
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
