@@ -1,0 +1,52 @@
+kind: AppProject
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  sourceRepos:
+    - "*"
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: "monitoring"
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceBlacklist: []
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: monitoring-cluster-manifests
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+      revision: HEAD
+      directories:
+      - path: cluster-manifests/monitoring/*
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: "monitoring"
+      source:
+        repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: monitoring
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
