@@ -5,6 +5,8 @@ helmCharts:
     version: 3.3.1
     repo: https://christianhuth.github.io/helm-charts
     valuesInline:
+      service:
+        port: 80
       postgresql:
         enabled: false
       database:
