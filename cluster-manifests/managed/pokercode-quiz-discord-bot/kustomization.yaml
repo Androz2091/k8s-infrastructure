@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/pokercode-quiz
-        tag: fa32cd30
+        tag: 7a7138fa
       secretName: pokercode-quiz-discord-bot-secrets
       ports:
       - svcPort: 80
