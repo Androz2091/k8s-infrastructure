@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: haste-server
-          image: androz2091/haste-server:sha-120305d
+          image: androz2091/haste-server:sha-288b88e
           imagePullPolicy: IfNotPresent
           # command: ["/bin/bash"]
           # args: ["-c", "sleep 999999"]
