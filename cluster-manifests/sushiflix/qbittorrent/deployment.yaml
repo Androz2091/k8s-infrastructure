@@ -31,12 +31,8 @@ spec:
               value: "8080"
           ports:
             - containerPort: 8080
-              name: webui
             - containerPort: 6881
-              name: bittorrent-tcp
-              protocol: TCP
             - containerPort: 6881
-              name: bittorrent-udp
               protocol: UDP
 
           resources: {}
