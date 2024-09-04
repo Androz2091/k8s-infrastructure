@@ -430,6 +430,16 @@ kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access
 A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.  
 A **backup** is a snapshot that is stored outside of the cluster. It's stored in the backup target (here backblaze).
 
+#### Disable backups for a specific volume
+
+By default longhorn backups all volumes. Sometimes, for movies or other non-critical data, we don't want to backup the volume. In that case, you should add these labels to the volume:
+
+```sh
+labels:
+    recurring-job-group.longhorn.io/nobackup: enabled
+    recurring-job.longhorn.io/source: enabled
+```
+
 ### Expand a Longhorn volume
 
 Use port forwarding to access the Longhorn UI. ⚠️ Delete all pods using the volume.  
