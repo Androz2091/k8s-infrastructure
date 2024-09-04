@@ -9,28 +9,30 @@ helmCharts:
         persistence:
           library:
             existingClaim: immich-library-pvc
-      env:
-        - name: DB_HOSTNAME
-          value: postgresql.db.svc.cluster.local
-        - name: DB_USERNAME
-          value: postgres
-        - name: DB_DATABASE_NAME
-          value: immich
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: immich-secrets
-              key: DB_PASSWORD
-      postgresql:
-        enabled: false
       redis:
         enabled: true
         architecture: standalone
         auth:
           enabled: false
-      envFrom:
-        - secretRef:
-            name: immich-secrets
+
+      postgresql:
+        enabled: true
+        image:
+          repository: tensorchord/pgvecto-rs
+          tag: pg14-v0.2.0
+        global:
+          postgresql:
+            auth:
+              username: immich
+              database: immich
+              password: immich
+        primary:
+          initdb:
+            scripts:
+              create-extensions.sql: |
+                CREATE EXTENSION cube;
+                CREATE EXTENSION earthdistance;
+                CREATE EXTENSION vectors;
 
 namespace: home
 
