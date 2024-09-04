@@ -7,6 +7,17 @@ helmCharts:
     repo: https://prometheus-community.github.io/helm-charts
     valuesInline:
       namespaceOverride: monitoring
+      kubeControllerManager:
+        enabled: false
+      kubeProxy:
+        # see https://stackoverflow.com/questions/73031228/getting-kubecontrollermanager-kubeproxy-kubescheduler-down-alert-in-kube-prome
+        enabled: false
+        service:
+          enabled: true
+          port: 10249
+          targetPort: 10249
+      kubeScheduler:
+        enabled: false
       alertmanager:
         alertmanagerSpec:
           replicas: 3
