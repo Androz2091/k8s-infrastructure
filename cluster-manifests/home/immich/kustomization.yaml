@@ -9,6 +9,8 @@ helmCharts:
         persistence:
           library:
             existingClaim: immich-library-pvc
+      postgresql:
+        enabled: false
       redis:
         enabled: true
         architecture: standalone
