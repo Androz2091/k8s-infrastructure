@@ -8,8 +8,28 @@ helmCharts:
     valuesInline:
       namespaceOverride: monitoring
       alertmanager:
+        global:
+          resolve_timeout: 5m
+        route:
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 3h
+          receiver: telegram
+          # routes:
+          # - match_re:
+          #     severity: ^(oncall|critical)$
+          #   receiver: telegram-oncall
         alertmanagerSpec:
           replicas: 3
+        config:
+          receivers:
+            - name: telegram
+              webhook_configs:
+              - url: 'http://alertgram.monitoring.svc.cluster.local:8080/alerts'
+                send_resolved: true
+            # - name: telegram-oncall
+            #   webhook_configs:
+            #   - url: 'http://alertgram:8080/alerts?chat-id=-1001111111111'
 
 namespace: monitoring
 
