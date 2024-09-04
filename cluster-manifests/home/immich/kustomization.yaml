@@ -38,6 +38,5 @@ namespace: home
 
 resources:
   - pvc.yaml
-  - sealed-secrets.yaml
 
 patches: []
