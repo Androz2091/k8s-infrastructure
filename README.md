@@ -11,7 +11,7 @@ Table of contents:
 
 ### 🦙 Sylvain
 
-Even with all this documentation, your only option may be to ask Sylvain for help. Your best hope is probably to find him at AGEPOLY late enough in the evening so that he's not 100% busy, but also just before he starts playing babyfoot.
+Even with all this documentation, your only possible solution to fix a deployment issue may be to ask Sylvain for help. Your best hope is probably to find him at AGEPOLY late enough in the evening so that he's not 100% busy, but also just before he starts playing babyfoot.
 
 ## 🚀 Apps
 
