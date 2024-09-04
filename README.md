@@ -2,12 +2,16 @@
 
 ## Introduction
 
-This repository contains the infrastructure configuration for my Kubernetes cluster.
+This repository contains the infrastructure configuration for my Kubernetes cluster, including all the manifests and documentation.
 
 Table of contents:
 * [🚀 Apps](#-Apps)
 * [📜 Wiki](#-Wiki)
 * [⚒️ Setup](#-Setup)
+
+### 🦙 Sylvain
+
+Even with all this documentation, your only option may be to ask Sylvain for help. Your best hope is probably to find him at AGEPOLY late enough in the evening so that he's not 100% busy, but also just before he starts playing babyfoot.
 
 ## 🚀 Apps
 
@@ -422,6 +426,9 @@ Create a new secret with the credentials.
 ```sh
 kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access_key> --from-literal=AWS_SECRET_ACCESS_KEY=<secret_key> --from-literal=AWS_ENDPOINTS=s3.us-west-004.backblazeb2.com -n longhorn-system
 ```
+
+A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.  
+A **backup** is a snapshot that is stored outside of the cluster. It's stored in the backup target (here backblaze).
 
 ### Expand a Longhorn volume
 

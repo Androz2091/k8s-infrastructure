@@ -18,9 +18,13 @@ avoir les logs sur Telegram quand un pod redémarre, quand une PVC arrive au bou
 
 définir des tags sur toutes les images du serveur pour remplacer les latest
 
+backup tout sauf quelques volumes ?
+
 setup :
 - sonarr
 - tautulli
 - manageinvite
 - immich
 - overseerr
+
+apply des values depuis un common avec un kustomization
