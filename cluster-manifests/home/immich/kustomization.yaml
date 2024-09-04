@@ -9,6 +9,8 @@ helmCharts:
         persistence:
           library:
             existingClaim: immich-library-pvc
+      redis:
+        enabled: true
       envFrom:
         - secretRef:
             name: immich-secrets
