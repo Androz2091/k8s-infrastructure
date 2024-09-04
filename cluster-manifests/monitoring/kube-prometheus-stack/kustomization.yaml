@@ -23,6 +23,7 @@ helmCharts:
             #     severity: ^(oncall|critical)$
             #   receiver: telegram-oncall
           receivers:
+          - name: 'null'
           - name: telegram
             webhook_configs:
             - url: 'http://alertgram.monitoring.svc.cluster.local:8080/alerts'
