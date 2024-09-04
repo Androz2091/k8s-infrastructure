@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: alertgram
+  namespace: monitoring
+  labels:
+    app: alertgram
+    prometheus: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: alertgram
+  endpoints:
+    - port: metrics
+      honorLabels: false

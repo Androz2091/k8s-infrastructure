@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: alertgram
+  namespace: monitoring
+  labels:
+    app: alertgram
+spec:
+  selector:
+    app: alertgram
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+    - name: metrics
+      port: 8081
