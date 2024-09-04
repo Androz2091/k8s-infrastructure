@@ -34,6 +34,10 @@ helmCharts:
                 CREATE EXTENSION earthdistance;
                 CREATE EXTENSION vectors;
 
+      env:
+        DB_HOSTNAME: immich-postgresql.home.svc.cluster.local
+        REDIS_HOSTNAME: immich-redis-master.home.svc.cluster.local
+
 namespace: home
 
 resources:
