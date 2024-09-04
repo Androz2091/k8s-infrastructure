@@ -10,13 +10,13 @@ helmCharts:
           library:
             existingClaim: immich-library-pvc
       env:
-        - key: DB_HOSTNAME
+        - name: DB_HOSTNAME
           value: postgresql.db.svc.cluster.local
-        - key: DB_USERNAME
+        - name: DB_USERNAME
           value: postgres
-        - key: DB_DATABASE_NAME
+        - name: DB_DATABASE_NAME
           value: immich
-        - key: DB_PASSWORD
+        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: immich-secrets
