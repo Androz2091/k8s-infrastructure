@@ -26,5 +26,6 @@ setup :
 - manageinvite
 - immich
 - overseerr
+- paperless
 
 apply des values depuis un common avec un kustomization

@@ -4,7 +4,8 @@ metadata:
   name: postgresql-pvc
   namespace: db
   labels:
-    recurring-job-group.longhorn.io/data: enabled
+    # recurring-job-group.longhorn.io/data: enabled
+    recurring-job.longhorn.io/source: enabled
 spec:
   storageClassName: longhorn
   accessModes:
