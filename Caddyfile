@@ -71,5 +71,5 @@ prometheus-grafana.androz2091.fr {
 }
 
 photos.androz2091.fr {
-    reverse_proxy http://immich-server.home.svc.cluster.local:80
+    reverse_proxy http://immich-server.home.svc.cluster.local:3001
 }
