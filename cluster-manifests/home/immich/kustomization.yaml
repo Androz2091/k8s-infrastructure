@@ -11,6 +11,9 @@ helmCharts:
             existingClaim: immich-library-pvc
       redis:
         enabled: true
+        architecture: standalone
+        auth:
+          enabled: false
       envFrom:
         - secretRef:
             name: immich-secrets
