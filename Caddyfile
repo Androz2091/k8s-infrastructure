@@ -69,3 +69,7 @@ haste.androz2091.fr {
 prometheus-grafana.androz2091.fr {
     reverse_proxy http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
 }
+
+immichan.androz2091.fr {
+    reverse_proxy http://immich-server.home.svc.cluster.local:80
+}
