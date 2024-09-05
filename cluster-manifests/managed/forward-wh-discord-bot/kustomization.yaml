@@ -12,8 +12,9 @@ helmCharts:
       fileSecrets:
       - name: forward-wh-discord-bot-config
         path: /opt/app/
-        secrets:
-          config.json: forward-wh-discord-bot-secrets
+        filesToMount:
+          - name: config.json
+            source: AgCwXSgs8Uo/9tf8T1hk03F7KONkVugIKlaYmXVqcDFWLeRAHVIZmL7Iqq0F9TFfSRKvApvJqo2UQmcyuUL6l15Fx2QEMe2gh1kvesQwl9VI2iQHtRXe9DRFM3f/cBttnATu+jKts9trEqxSggDosBmrH0UGLDaxON/+i6F1LEAWuuXJWUHd31Tz61nOT/+lwM+lpsXQ/QPynxPHJaC6IdOrlNexj/a7AntnzMlffc2+3VXq7TStodafrc4ZkGy4sD9vzxLbAewGJGLTq18/XI9IooJqP4I2wfiuTXNtG000D/F2J1Pp56mYe4Y0BZW7bTIZ101LgsIbYUl/Vm1SD/Banxl4JBe3/Kg1upsjMENuDNZGsOJcKXft3SollFqdUhayF06cHiL85qCGTiPoAf/trTTmGO2NL+riUTu+1RF/Fb9K4loDky/+qU6/tuzMuDFV2nszhM2C9QFyFkbZaKhDyk+kcQvO4DHsjEWynnp3lpXXhmF1EYETcDTN04sIFaM25G5Bl4qroFefJwVyRmAlAVj7StUj1AXdZZ8ijrRFpPPJXbnljt0Znri64RAXHSog9SquQxPLxWkyxsuuW29PtEanKp7LluExcdxx1yXy4uyFsdclcH3NcAtcIXV6JrPUWWjfnN8Qm+YuYU6Gpj7hra7FYmWONS5MZ4gaB09lUh2gaDojE7xxiHRYayI9PYE=
       resources:
         limits:
           cpu: "2000m"
