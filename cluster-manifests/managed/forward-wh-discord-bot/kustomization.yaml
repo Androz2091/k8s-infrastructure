@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/forward-wh-discord-bot
-        tag: sha-abda818
+        tag: sha-e1e6521
       secretName: forward-wh-discord-bot-secrets
       fileSecrets:
       - name: forward-wh-discord-bot-config
