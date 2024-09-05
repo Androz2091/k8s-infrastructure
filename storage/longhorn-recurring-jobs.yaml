@@ -1,25 +1,12 @@
 apiVersion: longhorn.io/v1beta1
 kind: RecurringJob
 metadata:
-  name: snapshot-database
+  name: snapshot-data-config
   namespace: longhorn-system
 spec:
   cron: "0 0 * * *"
   task: "backup"
   groups:
-  - longhorn-restore-database
-  retain: 2
-  concurrency: 2
----
-apiVersion: longhorn.io/v1beta1
-kind: RecurringJob
-metadata:
-  name: snapshot-database
-  namespace: longhorn-system
-spec:
-  cron: "0 0 * * *"
-  task: "backup"
-  groups:
-  - database
+  - default
   retain: 2
   concurrency: 2
