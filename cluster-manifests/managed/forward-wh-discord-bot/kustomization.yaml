@@ -9,15 +9,15 @@ helmCharts:
         repository: androz2091/forward-wh-discord-bot
         tag: sha-abda818
       secretName: forward-wh-discord-bot-secrets
-      resources:
-        limits:
-          cpu: "2000m"
-          memory: "2000Mi"
       fileSecrets:
       - name: forward-wh-discord-bot-config
         path: /opt/app/
         secrets:
           config.json: forward-wh-discord-bot-secrets
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
 
 namespace: managed
 
