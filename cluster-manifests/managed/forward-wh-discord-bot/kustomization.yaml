@@ -8,7 +8,6 @@ helmCharts:
       image:
         repository: androz2091/forward-wh-discord-bot
         tag: sha-e1e6521
-      secretName: forward-wh-discord-bot-secrets
       sealedFileSecrets:
       - name: forward-wh-discord-bot-config
         path: /opt/app/
