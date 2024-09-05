@@ -4,7 +4,7 @@ metadata:
   name: snapshot-data-config
   namespace: longhorn-system
 spec:
-  cron: "0 0 * * *"
+  cron: "5 * * * *"
   task: "backup"
   groups:
   - default

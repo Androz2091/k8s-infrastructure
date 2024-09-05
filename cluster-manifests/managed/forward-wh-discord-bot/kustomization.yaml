@@ -1,0 +1,27 @@
+helmCharts:
+  - name: onechart
+    releaseName: forward-wh-discord-bot
+    namespace: managed
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/forward-wh-discord-bot
+        tag: sha-abda818
+      secretName: forward-wh-discord-bot-secrets
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+      fileSecrets:
+      - name: forward-wh-discord-bot-config
+        path: /opt/app/
+        secrets:
+          config.json: forward-wh-discord-bot-secrets
+
+namespace: managed
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
