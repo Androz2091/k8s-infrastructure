@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/manage-invite-dash-redirects
-        tag: sha-322425e
+        tag: sha-4a041f5
       resources:
         limits:
           cpu: "5000m"
