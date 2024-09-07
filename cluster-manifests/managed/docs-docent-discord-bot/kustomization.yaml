@@ -1,0 +1,22 @@
+helmCharts:
+  - name: onechart
+    releaseName: docs-docent-discord-bot
+    namespace: managed
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/customgpt-discord-bot
+        tag: sha-9cce4a1
+      secretName: docs-docent-discord-bot-secrets
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+
+namespace: managed
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
