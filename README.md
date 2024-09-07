@@ -399,10 +399,24 @@ forward . 1.1.1.1 8.8.8.8 {
 kubectl apply -f coredns_patched_dns.yaml
 ```
 
-### 
+### Seal a secret
+
+From a `secrets.yaml` file:
 
 ```sh
 kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml
+```
+
+Raw from a file:
+
+```sh
+kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt --raw --from-file=config.json
+```
+
+### Unseal a secret
+
+```sh
+kubeseal --recovery-unseal --recovery-private-key ~/private.key -o yaml < sealed-secrets.yaml
 ```
 
 ### Create a secret to pull from Harbor
