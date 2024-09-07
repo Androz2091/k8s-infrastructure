@@ -19,5 +19,3 @@ setup :
 - paperless
 
 apply des values depuis un common avec un kustomization
-
-j'ai fait une expand de pg via longhorn ui, mais sur argo je peux plus changer la valeur de la pvc (voir sync failed)
