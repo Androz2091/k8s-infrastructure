@@ -1,3 +1,5 @@
 **/*/secrets.yaml
 **/*/config.json
+**/*/google-creds.json
+
 previous-infra/previous-envs/*
