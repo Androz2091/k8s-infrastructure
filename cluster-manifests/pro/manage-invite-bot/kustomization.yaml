@@ -32,7 +32,7 @@ helmCharts:
           memory: "5000Mi"
       ports:
       - svcPort: 3200
-        name: http
+        name: internalcomm
         containerPort: 3200
       - svcPort: 80
         name: http
