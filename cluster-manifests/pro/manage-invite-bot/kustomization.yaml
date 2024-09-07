@@ -1,4 +1,9 @@
 helmCharts:
+  - name: redis-manage-invite
+    releaseName: manage-invite-api
+    namespace: pro
+    version: 20.0.5
+    repo: https://charts.bitnami.com/bitnami
   - name: onechart
     releaseName: manage-invite-api
     namespace: pro
@@ -7,7 +12,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/manage-invite-api
-        tag: sha-0ba7680
+        tag: sha-87aa97f
       secretName: manage-invite-api-secrets
       ports:
       # ipc communcations (for the ManageInvite API)
