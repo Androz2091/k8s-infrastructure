@@ -15,3 +15,18 @@ spec:
   selector:
     app: manage-invite-api
   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: manage-invite-dash-redirects
+  labels:
+    app: manage-invite-dash-redirects
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 3100
+  selector:
+    app: manage-invite-dash-redirects
+  type: ClusterIP

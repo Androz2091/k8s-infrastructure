@@ -73,3 +73,11 @@ prometheus-grafana.androz2091.fr {
 photos.androz2091.fr {
     reverse_proxy http://immich-server.home.svc.cluster.local:3001
 }
+
+api.manage-invite.xyz {
+    reverse_proxy http://manage-invite-api.pro.svc.cluster.local:80
+}
+
+dash.manage-invite.xyz {
+    reverse_proxy http://manage-invite-dash.pro.svc.cluster.local:80
+}

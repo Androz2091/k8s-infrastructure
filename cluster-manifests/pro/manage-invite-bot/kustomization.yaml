@@ -1,5 +1,18 @@
 helmCharts:
   - name: onechart
+    releaseName: manage-invite-dash-redirects
+    namespace: pro
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/manage-invite-dash-redirects
+        tag: sha-322425e
+      resources:
+        limits:
+          cpu: "5000m"
+          memory: "5000Mi"
+  - name: onechart
     releaseName: manage-invite-api
     namespace: pro
     version: 0.70.0
