@@ -45,7 +45,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/manage-invite-bot
-        tag: sha-0ba7680
+        tag: sha-b49c882
       sealedFileSecrets:
       - name: config
         path: /opt/app/config.js
