@@ -1,0 +1,52 @@
+helmCharts:
+  - name: onechart
+    releaseName: manage-invite-api
+    namespace: manage-invite
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/manage-invite-api
+        tag: sha-0ba7680
+      secretName: manage-invite-api-secrets
+      ports:
+      # ipc communcations (for the ManageInvite API)
+      - svcPort: 3200
+        name: http
+        containerPort: 3200
+      resources:
+        limits:
+          cpu: "5000m"
+          memory: "5000Mi"
+  - name: onechart
+    releaseName: manage-invite-bot
+    namespace: manage-invite
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/manage-invite-bot
+        tag: sha-0ba7680
+      sealedFileSecrets:
+      - name: config
+        path: /opt/app/config.js
+        subPath: config.js
+        filesToMount:
+          - name: config.js
+            source: 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
+      ports:
+      # ipc communcations (for the ManageInvite API)
+      - svcPort: 3200
+        name: http
+        containerPort: 3200
+      resources:
+        limits:
+          cpu: "5000m"
+          memory: "5000Mi"
+
+namespace: manage-invite
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
