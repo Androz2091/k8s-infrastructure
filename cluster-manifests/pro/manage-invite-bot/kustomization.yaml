@@ -7,6 +7,9 @@ helmCharts:
     valuesInline:
       replica:
         replicaCount: 0
+      auth:
+        existingSecret: manage-invite-redis-secrets
+        existingSecretPasswordKey: redis-password
   - name: onechart
     releaseName: manage-invite-api
     namespace: pro
