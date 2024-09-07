@@ -20,11 +20,6 @@ helmCharts:
         repository: androz2091/manage-invite-api
         tag: sha-87aa97f
       secretName: manage-invite-api-secrets
-      ports:
-      # ipc communcations (for the ManageInvite API)
-      - svcPort: 3200
-        name: http
-        containerPort: 3200
       resources:
         limits:
           cpu: "5000m"

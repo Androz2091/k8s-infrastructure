@@ -8,7 +8,10 @@ spec:
   ports:
   - port: 3200
     protocol: TCP
-    targetPort: http
+    targetPort: 3200
+  - port: 80
+    protocol: TCP
+    targetPort: 3300
   selector:
     app: manage-invite-api
   type: ClusterIP
