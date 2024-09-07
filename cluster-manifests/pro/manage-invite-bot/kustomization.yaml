@@ -1,7 +1,7 @@
 helmCharts:
   - name: onechart
     releaseName: manage-invite-api
-    namespace: manage-invite
+    namespace: pro
     version: 0.70.0
     repo: https://chart.onechart.dev
     valuesInline:
@@ -20,7 +20,7 @@ helmCharts:
           memory: "5000Mi"
   - name: onechart
     releaseName: manage-invite-bot
-    namespace: manage-invite
+    namespace: pro
     version: 0.70.0
     repo: https://chart.onechart.dev
     valuesInline:
@@ -44,7 +44,7 @@ helmCharts:
           cpu: "5000m"
           memory: "5000Mi"
 
-namespace: manage-invite
+namespace: pro
 
 resources:
   - sealed-secrets.yaml
