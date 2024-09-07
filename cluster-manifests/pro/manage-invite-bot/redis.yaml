@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manage-invite-redis
+  namespace: pro
+  labels:
+    app: manage-invite-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: manage-invite-redis
+  template:
+    metadata:
+      labels:
+        app: manage-invite-redis
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: manage-invite-redis
+              topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: redis
+          image: bitnami/redis:6.2.14
+          ports:
+            - name: redis
+              containerPort: 6379
+          env:
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  key: redis-password
+                  name: manage-invite-redis-secrets
+          resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: manage-invite-redis
+  namespace: pro
+  labels:
+    app: manage-invite-redis
+spec:
+  ports:
+    - port: 6379
+      protocol: TCP
+      targetPort: 6379
+  selector:
+    app: manage-invite-redis
+  type: ClusterIP

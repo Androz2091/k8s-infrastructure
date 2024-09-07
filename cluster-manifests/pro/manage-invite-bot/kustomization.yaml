@@ -1,15 +1,4 @@
 helmCharts:
-  - name: redis
-    releaseName: manage-invite-redis
-    namespace: pro
-    version: 20.0.5
-    repo: https://charts.bitnami.com/bitnami
-    valuesInline:
-      replica:
-        replicaCount: 0
-      auth:
-        existingSecret: manage-invite-redis-secrets
-        existingSecretPasswordKey: redis-password
   - name: onechart
     releaseName: manage-invite-api
     namespace: pro
@@ -54,5 +43,6 @@ namespace: pro
 
 resources:
   - sealed-secrets.yaml
+  - redis.yaml
 
 patches: []
