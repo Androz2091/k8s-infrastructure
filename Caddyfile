@@ -79,5 +79,5 @@ api.manage-invite.xyz {
 }
 
 dash.manage-invite.xyz {
-    reverse_proxy http://manage-invite-dash.pro.svc.cluster.local:80
+    reverse_proxy http://manage-invite-dash-redirects.pro.svc.cluster.local:80
 }
