@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/what-is-life
-        tag: dc35d45b
+        tag: 25fc053b
       secretName: what-is-life-discord-bot-secrets
       imagePullSecrets:
       - regcred
