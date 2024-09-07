@@ -17,7 +17,7 @@ helmCharts:
       - regcred
       resources:
         limits:
-          cpu: "2000m"
+          cpu: "5000m"
           memory: "2000Mi"
 
 namespace: managed
