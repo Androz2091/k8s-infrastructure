@@ -127,6 +127,43 @@ Same applies for `kustomization.yaml` files:
 kubectl kustomize --enable-helm .
 ```
 
+#### Disable backups for a specific volume
+
+By default longhorn backups all volumes. Sometimes, for movies or other non-critical data, we don't want to backup the volume. In that case, you should add these labels to the volume:
+
+```sh
+labels:
+    recurring-job-group.longhorn.io/nobackup: enabled
+    recurring-job.longhorn.io/source: enabled
+```
+
+### Expand a Longhorn volume
+
+Use port forwarding to access the Longhorn UI. ⚠️ Delete all pods using the volume.  
+Then expand it.
+
+### Seal a secret
+
+From a `secrets.yaml` file:
+
+```sh
+kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml
+```
+
+Raw from a file:
+
+```sh
+kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt --raw --from-file=config.json
+```
+
+⚠️ Onechart does not support `--scope namespace-wide` yet, make sure to use `cluster-wide` instead when using `sealedFileSecrets`.
+
+### Unseal a secret
+
+```sh
+kubeseal --recovery-unseal --recovery-private-key ~/private.key -o yaml < sealed-secrets.yaml
+```
+
 ### Setup Sushiflix
 
 The Plex server has to be accessed locally to be claimed. Use port forwarding to access it first. Then we need to specify the custom domain name in the server network settings (advanced), and specify `plex.androz2091.fr`. Otherwise it will try to load data from `server-ip:32400` or even `cluster-ip:32400` which is not securely accessible.
@@ -399,28 +436,6 @@ forward . 1.1.1.1 8.8.8.8 {
 kubectl apply -f coredns_patched_dns.yaml
 ```
 
-### Seal a secret
-
-From a `secrets.yaml` file:
-
-```sh
-kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt -o yaml < secrets.yaml > sealed-secrets.yaml
-```
-
-Raw from a file:
-
-```sh
-kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt --raw --from-file=config.json
-```
-
-⚠️ Onechart does not support `--scope namespace-wide` yet, make sure to use `cluster-wide` instead when using `sealedFileSecrets`.
-
-### Unseal a secret
-
-```sh
-kubeseal --recovery-unseal --recovery-private-key ~/private.key -o yaml < sealed-secrets.yaml
-```
-
 ### Create a secret to pull from Harbor
 
 Do not forget the `\` before the `$` in the username.
@@ -445,18 +460,3 @@ kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access
 
 A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.  
 A **backup** is a snapshot that is stored outside of the cluster. It's stored in the backup target (here backblaze).
-
-#### Disable backups for a specific volume
-
-By default longhorn backups all volumes. Sometimes, for movies or other non-critical data, we don't want to backup the volume. In that case, you should add these labels to the volume:
-
-```sh
-labels:
-    recurring-job-group.longhorn.io/nobackup: enabled
-    recurring-job.longhorn.io/source: enabled
-```
-
-### Expand a Longhorn volume
-
-Use port forwarding to access the Longhorn UI. ⚠️ Delete all pods using the volume.  
-Then expand it.
