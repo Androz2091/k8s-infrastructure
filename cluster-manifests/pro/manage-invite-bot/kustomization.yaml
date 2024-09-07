@@ -1,6 +1,6 @@
 helmCharts:
-  - name: redis-manage-invite
-    releaseName: manage-invite-api
+  - name: redis
+    releaseName: manage-invite-redis
     namespace: pro
     version: 20.0.5
     repo: https://charts.bitnami.com/bitnami
