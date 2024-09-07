@@ -139,8 +139,7 @@ labels:
 
 ### Expand a Longhorn volume
 
-Use port forwarding to access the Longhorn UI. ⚠️ Delete all pods using the volume.  
-Then expand it.
+Use port forwarding to access the Longhorn UI. ⚠️ First, sync the new PVC with Argo before expanding on Longhorn UI (or you will get a sync failed - `Forbidden: field can not be less than previous value`). Then delete all deployments using the volume. Then expand it via Longhorn UI.
 
 ### Seal a secret
 
