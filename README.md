@@ -413,6 +413,8 @@ Raw from a file:
 kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt --raw --from-file=config.json
 ```
 
+⚠️ Onechart does not support `--scope namespace-wide` yet, make sure to use `cluster-wide` instead when using `sealedFileSecrets`.
+
 ### Unseal a secret
 
 ```sh
