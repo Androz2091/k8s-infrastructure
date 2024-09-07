@@ -30,6 +30,13 @@ helmCharts:
         limits:
           cpu: "5000m"
           memory: "5000Mi"
+      ports:
+      - svcPort: 3200
+        name: http
+        containerPort: 3200
+      - svcPort: 80
+        name: http
+        containerPort: 3300
   - name: onechart
     releaseName: manage-invite-bot
     namespace: pro
@@ -46,11 +53,6 @@ helmCharts:
         filesToMount:
           - name: config.js
             source: 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
-      ports:
-      # ipc communcations (for the ManageInvite API)
-      - svcPort: 3200
-        name: http
-        containerPort: 3200
       resources:
         limits:
           cpu: "5000m"
