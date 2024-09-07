@@ -4,21 +4,11 @@ mieux stocker les fichiers de conf en dehors des pvc pour une réinstallation + 
 
 améliorer la CI github (en utilisant le nom du repo)
 
-alertes quand les PVC sont pleines
-
 harbor --> faire des images + petites et modifier la rétention ?
 
 faire fonctionner le seeding qbt
 
-configurer les backups automatiques de toutes les PVC (comment exclure la PVC des films ?)
-setup la policicy default
-
-setup prometheus et grafana
-avoir les logs sur Telegram quand un pod redémarre, quand une PVC arrive au bout de son stockage
-
 définir des tags sur toutes les images du serveur pour remplacer les latest
-
-backup tout sauf quelques volumes ?
 
 setup :
 - sonarr
@@ -29,3 +19,5 @@ setup :
 - paperless
 
 apply des values depuis un common avec un kustomization
+
+j'ai fait une expand de pg via longhorn ui, mais sur argo je peux plus changer la valeur de la pvc (voir sync failed)
