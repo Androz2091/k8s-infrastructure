@@ -75,6 +75,11 @@ photos.androz2091.fr {
 }
 
 api.manage-invite.xyz {
+    reverse_proxy /socket.io/* http://manage-invite-api.pro.svc.cluster.local:80 {
+        transport http {
+            compression off
+        }
+    }
     reverse_proxy http://manage-invite-api.pro.svc.cluster.local:80
 }
 
