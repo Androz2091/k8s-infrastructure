@@ -24,7 +24,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/manage-invite-api
-        tag: sha-87aa97f
+        tag: sha-051563c
       secretName: manage-invite-api-secrets
       resources:
         limits:
@@ -45,7 +45,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/manage-invite-bot
-        tag: sha-f208447
+        tag: sha-f2fb527
       sealedFileSecrets:
       - name: config
         path: /opt/app/config.js
