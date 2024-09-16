@@ -5,6 +5,8 @@ helmCharts:
     version: 0.7.2
     repo: https://immich-app.github.io/immich-charts
     valuesInline:
+      image:
+        tag: v1.115.0
       immich:
         persistence:
           library:
