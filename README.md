@@ -13,6 +13,19 @@ Table of contents:
 
 Even with all this documentation, your only possible solution to fix a deployment issue may be to ask Sylvain for help. Your best hope is probably to find him at AGEPOLY late enough in the evening so that he's not 100% busy, but also just before he starts playing babyfoot. This requires a good sense of timing.
 
+### 🚧 One day...
+
+Because nothing should ever be perfect, here is a list of things that need to be done:
+* make sure all the services are using a tagged image (and not `latest`), it's not the case yet especially for `sushiflix`.
+* understand how to make Qbittorrent seeding working (maybe the wrong port is exposed?).
+* use more config maps instead of config PVCs.
+* setup a Paperless instance.
+* setup a Sonarr instance.
+* setup a Overseerr instance.
+* understand how to apply values from a `common.yaml` file to several `kustomization.yaml` files.
+* make sure Harbor retention policy is configured properly.
+* understand why Plex logs are so large.
+
 ## 🚀 Apps
 
 ### Namespace DB
