@@ -15,16 +15,18 @@ Even with all this documentation, your only possible solution to fix a deploymen
 
 ### 🚧 One day...
 
-Because nothing should ever be perfect, here is a list of things that need to be done:
+Because nothing should ever be perfect, here is a list of things that need to be done. Sorted by priority.
+
+* understand why Longhorn backups are sometimes hanging for days (until the pod is killed).
+* understand why Plex logs are so large.
+* make sure Harbor retention policy is configured properly.
 * make sure all the services are using a tagged image (and not `latest`), it's not the case yet especially for `sushiflix`.
 * understand how to make Qbittorrent seeding working (maybe the wrong port is exposed?).
-* use more config maps instead of config PVCs.
 * setup a Paperless instance.
 * setup a Sonarr instance.
 * setup a Overseerr instance.
 * understand how to apply values from a `common.yaml` file to several `kustomization.yaml` files.
-* make sure Harbor retention policy is configured properly.
-* understand why Plex logs are so large.
+* use more config maps instead of config PVCs.
 
 ## 🚀 Apps
 
