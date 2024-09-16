@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tautulli
+  namespace: sushiflix
+  labels:
+    app: tautulli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tautulli
+  template:
+    metadata:
+      labels:
+        app: tautulli
+    spec:
+      containers:
+        - name: tautulli
+          image: lscr.io/linuxserver/tautulli:latest
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Paris"
+
+          ports:
+            - containerPort: 8181
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: tautulli-config-v
+              mountPath: /config
+
+      volumes:
+        - name: tautulli-config-v
+          persistentVolumeClaim:
+            claimName: tautulli-config-pvc
