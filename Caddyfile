@@ -22,7 +22,7 @@ harbor.androz2091.fr {
     reverse_proxy http://harbor.workflows.svc.cluster.local:80
 }
 
-cloud.androz2091.fr, filebrowser.androz2091.fr {
+cloud.androz2091.fr {
     reverse_proxy http://filebrowser.home.svc.cluster.local:80
 }
 
