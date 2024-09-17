@@ -35,10 +35,6 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 * PostgreSQL
 * PgAdmin4
 
-### Namespace Managed
-
-This namespace is for all the services hosted for my customers (mainly Discord bots but also websites, APIs, etc.).
-
 ### Namespace Pro
 
 This namespace is for all the services hosted for me as a freelancer.
@@ -58,24 +54,16 @@ This namespace is for all the services hosted for me as a freelancer.
 
 ### Namespace Home
 
-* Vaultwarden ✅
-* TimeTagger ✅
+* Vaultwarden
+* TimeTagger
 * Immich
 * Monica
 * Mealie
-* FileBrowser ✅
+* FileBrowser
 
-### Namespace Dumpus
+### Namespace Managed
 
-⚠️ requires extra network isolation for security reasons ⚠️  
-how to do so...?
-
-* Dumpus API
-* some Dumpus workers (can we make it auto scale?)
-
-### Namespace Nextcloud
-
-This namespace is for all the services related to Nextcloud.
+This namespace is for all the services hosted for my customers (mainly Discord bots but also websites, APIs, etc.).
 
 ### Namespace Sushiflix
 
@@ -92,8 +80,6 @@ This namespace is for all media services.
 * Overseerr
 
 ## 📜 Wiki
-
-See https://wiki2.agepoly.ch/.
 
 ### Create a new sealed secret
 
