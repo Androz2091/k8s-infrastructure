@@ -35,7 +35,9 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 * **Home**: This namespace is for all the services hosted for my personal use such as Vaultwarden, TimeTagger, Immich, Monica, Mealie, FileBrowser.
 * **Managed**: This namespace is for all the services hosted for my clients.
 * **Sushiflix**: This namespace is for all media services such as Plex, Radarr, Sonarr, Bazarr, Jackett, Qbittorrent, Sabnzbd, Tautulli, Overseerr.
-**DB**: This namespace is for all the databases such as PostgreSQL, PgAdmin4.
+* **DB**: This namespace is for all the databases such as PostgreSQL, PgAdmin4.
+* **Workflows**: This namespace is for all the workflows such as Harbor.
+* **Monitoring**: This namespace is for all the monitoring services such as Grafana, Prometheus, Alertgram.
 
 ## 📜 Wiki
 
