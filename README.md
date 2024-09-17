@@ -15,7 +15,7 @@ Even with all this documentation, your only possible solution to fix a deploymen
 
 ### 🚧 One day...
 
-Because nothing should ever be perfect, here is a list of things that need to be done. Sorted by priority.
+Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
 * understand why Longhorn backups are sometimes hanging for days (until the pod is killed).
 * understand why Plex logs are so large.
