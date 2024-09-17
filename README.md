@@ -30,54 +30,12 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 
 ## 🚀 Apps
 
-### Namespace DB
-
-* PostgreSQL
-* PgAdmin4
-
-### Namespace Pro
-
-This namespace is for all the services hosted for me as a freelancer.
-
-* Umami
-* HasteServer
-* Blog
-* DDPE
-* Diswho
-* Instaddict
-
-### Namespace ManageInvite
-
-* ManageInvite API
-* ManageInvite Dashboard
-* ManageInvite Bot
-
-### Namespace Home
-
-* Vaultwarden
-* TimeTagger
-* Immich
-* Monica
-* Mealie
-* FileBrowser
-
-### Namespace Managed
-
-This namespace is for all the services hosted for my customers (mainly Discord bots but also websites, APIs, etc.).
-
-### Namespace Sushiflix
-
-This namespace is for all media services.
-
-* Plex
-* Radarr
-* Sonarr
-* Bazarr
-* Jackett
-* Qbittorrent
-* Sabnzbd
-* Tautulli
-* Overseerr
+* **Pro**: This namespace is for all the services hosted for me as a freelancer, such as Umami, HasteServer, Blog, DDPE, Diswho, Instaddict.
+* **ManageInvite**: This namespace is for all the services hosted for my ManageInvite project (API, Dashboard, Discord bot).
+* **Home**: This namespace is for all the services hosted for my personal use such as Vaultwarden, TimeTagger, Immich, Monica, Mealie, FileBrowser.
+* **Managed**: This namespace is for all the services hosted for my clients.
+* **Sushiflix**: This namespace is for all media services such as Plex, Radarr, Sonarr, Bazarr, Jackett, Qbittorrent, Sabnzbd, Tautulli, Overseerr.
+**DB**: This namespace is for all the databases such as PostgreSQL, PgAdmin4.
 
 ## 📜 Wiki
 
