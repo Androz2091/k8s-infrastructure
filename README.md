@@ -18,11 +18,6 @@ Even with all this documentation, your only possible solution to fix a deploymen
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
 * understand why Longhorn backups are sometimes hanging for days (until the pod is killed).
-* understand why sometimes requests are terminated by a SSL error (1/5 requests for some services):
-```sh
-poca@localhost:~ (1) $ curl https://tautulli.androz2091.fr
-curl: (35) OpenSSL/1.1.1l-fips: error:14094438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error
-```
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
 * make sure all the services are using a tagged image (and not `latest`), it's not the case yet especially for `sushiflix`.
@@ -425,3 +420,15 @@ kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access
 
 A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.  
 A **backup** is a snapshot that is stored outside of the cluster. It's stored in the backup target (here backblaze).
+
+### Troubleshooting
+
+#### OpenSSL error
+
+Understand why sometimes requests are terminated by a SSL error (1/5 requests for some services):
+```sh
+poca@localhost:~ (1) $ curl https://tautulli.androz2091.fr
+curl: (35) OpenSSL/1.1.1l-fips: error:14094438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error
+```
+
+Double check the `Caddyfile` and make sure that all the DNS are configured to the correct IP (sometimes when a SSL certificate fails to create/renew, such errors can occur **for all domains**).
