@@ -17,6 +17,7 @@ Even with all this documentation, your only possible solution to fix a deploymen
 
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
+* setup pgbackrest for critical databases backups.
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
 * make sure all the services are using a tagged image (and not `latest`), it's not the case yet especially for `sushiflix`.
