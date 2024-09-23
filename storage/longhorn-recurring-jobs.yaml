@@ -1,12 +1,25 @@
 apiVersion: longhorn.io/v1beta1
 kind: RecurringJob
 metadata:
-  name: snapshot-data-config
+  name: offsite-daily-data-config
   namespace: longhorn-system
 spec:
-  cron: "5 * * * *"
+  cron: "0 3 * * *" # every day at 3am, send data to S3 bucket
   task: "backup"
   groups:
   - default
-  retain: 2
+  retain: 30 # keep them for 30 days
+  concurrency: 1 # upload them one by one to avoid overloading the network
+---
+apiVersion: longhorn.io/v1beta1
+kind: RecurringJob
+metadata:
+  name: snapshot-classic-data-config
+  namespace: longhorn-system
+spec:
+  cron: "0,30 * * * *" # every 30 minutes, take a snapshot
+  task: "snapshot"
+  groups:
+  - default
+  retain: 48 # keep them for 24 hours
   concurrency: 2

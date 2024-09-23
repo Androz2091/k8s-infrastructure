@@ -17,7 +17,6 @@ Even with all this documentation, your only possible solution to fix a deploymen
 
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
-* understand why Longhorn backups are sometimes hanging for days (until the pod is killed).
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
 * make sure all the services are using a tagged image (and not `latest`), it's not the case yet especially for `sushiflix`.
@@ -38,6 +37,7 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 * **DB**: This namespace is for all the databases such as PostgreSQL, PgAdmin4.
 * **Workflows**: This namespace is for all the workflows such as Harbor.
 * **Monitoring**: This namespace is for all the monitoring services such as Grafana, Prometheus, Alertgram.
+* **Backups**: One snapshot of each volume is taken every 30 minutes, and a backup is sent to a S3 bucket every night. The retention policy is 7 days for snapshots and 30 days for off-site backups. Movies and TV shows are not backed up, considered as non-critical data.
 
 ## 📜 Wiki
 
