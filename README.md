@@ -21,7 +21,6 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
 * make sure all the services are using a tagged image (and not `latest`), it's not the case yet especially for `sushiflix`.
-* understand how to make Qbittorrent seeding working (maybe the wrong port is exposed?).
 * setup a Paperless instance.
 * setup a Sonarr instance.
 * setup a Overseerr instance.
