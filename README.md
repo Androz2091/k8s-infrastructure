@@ -17,10 +17,10 @@ Even with all this documentation, your only possible solution to fix a deploymen
 
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
+* understand why the longhorn backups are not working properly (https://github.com/longhorn/longhorn/issues/6182).
 * setup pgbackrest for critical databases backups.
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
-* make sure all the services are using a tagged image (and not `latest`), it's not the case yet especially for `sushiflix`.
 * setup a Paperless instance.
 * setup a Sonarr instance.
 * setup a Overseerr instance.
