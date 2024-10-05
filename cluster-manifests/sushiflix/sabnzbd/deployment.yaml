@@ -32,7 +32,7 @@ spec:
 
       containers:
         - name: sabnzbd
-          image: lscr.io/linuxserver/sabnzbd:latest
+          image: lscr.io/linuxserver/sabnzbd:4.3.3
           imagePullPolicy: IfNotPresent
 
           env:
