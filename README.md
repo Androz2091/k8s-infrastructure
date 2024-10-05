@@ -24,6 +24,7 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 * setup a Paperless instance.
 * setup a Sonarr instance.
 * setup a Overseerr instance.
+* remove all Cloudflare dependencies.
 * understand how to apply values from a `common.yaml` file to several `kustomization.yaml` files.
 * use more config maps instead of config PVCs.
 
