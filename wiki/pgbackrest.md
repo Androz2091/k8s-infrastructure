@@ -4,6 +4,11 @@ Un stanza est utilisé par PgBackRest pour désigner une configuration de sauveg
 
 Dans pg, un checkpoint est une opération qui force l'écriture des données modifiées de la mémoire (cache) sur le disque. Cela garantit que toutes les modifications apportées à la base de données sont correctement enregistrées et que, en cas de panne, le système peut redémarrer avec un état cohérent.
 
+⚠️ On utilise `pgbackrest` avec `type=incr` mais `retention-diff` pas `incr` !
+
+une incr est basée sur une différentielle ou une full
+une diff est basée sur une full
+
 Les sauvegardes avec pgbackrest ne sont pas déclenchées par pgbackrest lui-même (cron)
 
 Un seul fichier de conf:
@@ -69,3 +74,26 @@ On veut toujours garder le WAL APRÈS la dernière sauvegarde complète sinon ç
 - \+ moins de maintenance
 - \- plus complexe à configurer
 - \- how do we access the volumes? (pas le même namespace)
+
+cipher
+
+compress-type (spécifique pour le WAL possible)
+
+file bundling (sur s3)
+
+block incremental
+
+il est possible de restaurer une unique bdd (mais les autres devront être drop)
+
+Point-in-Time Recovery (PITR) allows the WAL to be played from a backup to a specified lsn, time, transaction id, or recovery point. For common recovery scenarios time-based recovery is arguably the most useful.
+
+full day 0
+incr day 1
+incr day 2
+incr day 3
+
+le WAL est tjrs stocké jusqu'au day 0 et pgbackrest va automatiquement choisir de repartir de la backup 2 si on décide de restaurer entre la 2 et la 3
+
+archive-push-queue-max !attention!
+
+archive-get pour accélérer la restauration (k8s managed?)
