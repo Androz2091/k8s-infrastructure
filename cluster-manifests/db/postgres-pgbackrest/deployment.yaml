@@ -25,7 +25,7 @@ spec:
 
       containers:
         - name: postgresql-pgbackrest
-          image: androz2091/postgresql-pgbackrest:sha-3ce1b10
+          image: androz2091/postgresql-pgbackrest:sha-6245501
           ports:
             - name: postgresql
               containerPort: 5432
