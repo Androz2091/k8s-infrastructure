@@ -31,7 +31,7 @@ spec:
               containerPort: 5432
           envFrom:
             - secretRef:
-              name: postgresql-pgbackrest-secrets
+                name: postgresql-pgbackrest-secrets
           volumeMounts:
             - mountPath: /var/lib/postgresql/data/
               name: postgresql-pgbackrest-v
