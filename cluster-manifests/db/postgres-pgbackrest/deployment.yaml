@@ -25,54 +25,13 @@ spec:
 
       containers:
         - name: postgresql-pgbackrest
-          image: androz2091/postgresql-pgbackrest:sha-fae18e8
+          image: androz2091/postgresql-pgbackrest:sha-e3cba35
           ports:
             - name: postgresql
               containerPort: 5432
-          env:
-            - name: "PGDATA"
-              value: "/var/lib/postgresql/data/pgdata"
-            - name: "POSTGRES_USER"
-              value: "postgres"
-            - name: "POSTGRES_PASSWORD"
-              valueFrom:
-                secretKeyRef:
-                  key: postgres-password
-                  name: postgresql-pgbackrest-secrets
-            - name: PG_BACKREST_REPO_LOCAL_PATH
-              value: "/var/lib/pgbackrest"
-            - name: PG_BACKREST_REPO_LOCAL_RETENTION_FULL
-              value: "2"
-            - name: PG_BACKREST_REPO_LOCAL_RETENTION_INCR
-              value: "7"
-
-            - name: PG_BACKREST_REPO_S3_ENABLED
-              value: "false"
-            # - name: PG_BACKREST_REPO_S3_TYPE
-            #   value: "s3"
-            # - name: PG_BACKREST_REPO_S3_BUCKET
-            #   value: "my-pgbackrest-bucket"
-            # - name: PG_BACKREST_REPO_S3_ENDPOINT
-            #   value: ""
-            # - name: PG_BACKREST_REPO_S3_REGION
-            #   value: ""
-            # - name: PG_BACKREST_REPO_S3_KEY
-            #   value: "my-access-key"
-            # - name: PG_BACKREST_REPO_S3_KEY_SECRET
-            #   value: "my-secret-key"
-            # - name: PG_BACKREST_REPO_S3_VERIFY_TLS
-            #   value: "y"
-            # - name: PG_BACKREST_REPO_S3_RETENTION_FULL
-            #   value: "2"
-            # - name: PG_BACKREST_REPO_S3_RETENTION_INCR
-            #   value: "7"
-            # - name: PG_BACKREST_REPO_S3_PATH
-            #   value: "/backups"
-
-            - name: PG_BACKREST_CRON_INCR_SCHEDULE
-              value: "0 0 * * *" # every day at midnight
-            - name: PG_BACKREST_CRON_FULL_SCHEDULE
-              value: "0 0 * * 0" # every sunday at midnight
+          envFrom:
+            - secretRef:
+              name: postgresql-pgbackrest-secrets
           volumeMounts:
             - mountPath: /var/lib/postgresql/data/
               name: postgresql-pgbackrest-v
