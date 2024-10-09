@@ -32,6 +32,8 @@ spec:
           env:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+            - name: FORCE_STANZA_CREATE
+              value: "true"
           envFrom:
             - secretRef:
                 name: postgresql-pgbackrest-secrets
