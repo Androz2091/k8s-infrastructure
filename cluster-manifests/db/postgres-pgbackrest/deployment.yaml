@@ -25,10 +25,13 @@ spec:
 
       containers:
         - name: postgresql-pgbackrest
-          image: androz2091/postgresql-pgbackrest:sha-9f45b59
+          image: androz2091/postgresql-pgbackrest:sha-cd3a21b
           ports:
             - name: postgresql
               containerPort: 5432
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           envFrom:
             - secretRef:
                 name: postgresql-pgbackrest-secrets
