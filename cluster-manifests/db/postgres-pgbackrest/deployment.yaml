@@ -25,15 +25,13 @@ spec:
 
       containers:
         - name: postgresql-pgbackrest
-          image: androz2091/postgresql-pgbackrest:sha-cc1738c
+          image: androz2091/postgresql-pgbackrest:sha-275390e
           ports:
             - name: postgresql
               containerPort: 5432
           env:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
-            - name: FORCE_STANZA_CREATE
-              value: "true"
           envFrom:
             - secretRef:
                 name: postgresql-pgbackrest-secrets
