@@ -62,6 +62,10 @@ diswho.androz2091.fr {
     reverse_proxy http://diswho.pro.svc.cluster.local:80
 }
 
+ddpe.androz2091.fr {
+    reverse_proxy http://discord-data-package-explorer.pro.svc.cluster.local:80
+}
+
 analytics.androz2091.fr {
     reverse_proxy http://umami-analytics.pro.svc.cluster.local:3000
 }

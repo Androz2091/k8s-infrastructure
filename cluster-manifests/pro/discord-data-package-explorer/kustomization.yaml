@@ -1,0 +1,25 @@
+helmCharts:
+  - name: onechart
+    releaseName: diswho
+    namespace: pro
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/discord-data-package-explorer
+        tag: sha-0f2ae0b
+      ports:
+      - svcPort: 80
+        name: http
+        containerPort: 80
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "200m"
+          memory: "500Mi"
+
+namespace: pro
+
+patches: []
