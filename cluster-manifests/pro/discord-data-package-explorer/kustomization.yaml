@@ -1,6 +1,6 @@
 helmCharts:
   - name: onechart
-    releaseName: diswho
+    releaseName: discord-data-package-explorer
     namespace: pro
     version: 0.70.0
     repo: https://chart.onechart.dev
