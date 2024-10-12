@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql-test
+  namespace: db
+  labels:
+    app: postgresql-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql-test
+  template:
+    metadata:
+      labels:
+        app: postgresql-test
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: postgresql-test
+              topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: postgresql-test
+          image: postgres:16-bookworm
+          ports:
+            - name: postgresql-test
+              containerPort: 5432
+          env:
+            - name: "PGDATA"
+              value: "/var/lib/postgresql/data/pgdata"
+            - name: "POSTGRES_USER"
+              value: "postgres"
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  key: postgres-password
+                  name: postgresql-test-secrets
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: postgresql-test-v
+          resources: {}
+        #
+      volumes:
+        - name: postgresql-test-v
+          persistentVolumeClaim:
+            claimName: postgresql-test-pvc
