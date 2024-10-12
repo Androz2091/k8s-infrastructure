@@ -25,20 +25,16 @@ spec:
 
       containers:
         - name: postgresql-test
-          image: postgres:16-bookworm
+          image: androz2091/postgresql-pgbackrest:sha-6245501
           ports:
             - name: postgresql-test
               containerPort: 5432
           env:
-            - name: "PGDATA"
-              value: "/var/lib/postgresql/data/pgdata"
-            - name: "POSTGRES_USER"
-              value: "postgres"
-            - name: "POSTGRES_PASSWORD"
-              valueFrom:
-                secretKeyRef:
-                  key: postgres-password
-                  name: postgresql-test-secrets
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          envFrom:
+            - secretRef:
+                name: postgresql-test-secrets
           volumeMounts:
             - mountPath: /var/lib/postgresql/data/
               name: postgresql-test-v
