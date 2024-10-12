@@ -25,7 +25,7 @@ spec:
 
       containers:
         - name: postgresql-test
-          image: androz2091/postgresql-pgbackrest:sha-6245501
+          image: androz2091/postgresql-pgbackrest:sha-497e5b4
           ports:
             - name: postgresql-test
               containerPort: 5432
