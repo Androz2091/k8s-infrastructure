@@ -18,6 +18,7 @@ Even with all this documentation, your only possible solution to fix a deploymen
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
 * setup pgbackrest for critical databases backups.
+* setup loki/promtail for logs.
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
 * setup a Paperless instance.
