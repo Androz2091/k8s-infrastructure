@@ -67,7 +67,7 @@ ddpe.androz2091.fr {
 }
 
 slash-commands-gui.androz2091.fr {
-    reverse_proxy http://slash-commands-guide.pro.svc.cluster.local:80
+    reverse_proxy http://slash-commands-gui.pro.svc.cluster.local:80
 }
 
 analytics.androz2091.fr {
