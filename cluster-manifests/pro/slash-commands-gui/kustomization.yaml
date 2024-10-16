@@ -1,0 +1,25 @@
+helmCharts:
+  - name: onechart
+    releaseName: slash-commands-gui
+    namespace: pro
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/slash-commands-gui
+        tag: sha-2cf917f
+      ports:
+      - svcPort: 80
+        name: http
+        containerPort: 80
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "200m"
+          memory: "500Mi"
+
+namespace: pro
+
+patches: []
