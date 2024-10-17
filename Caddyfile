@@ -70,6 +70,10 @@ slash-commands-gui.androz2091.fr {
     reverse_proxy http://slash-commands-gui.pro.svc.cluster.local:80
 }
 
+androz2091.fr {
+    reverse_proxy http://androz2091-fr.pro.svc.cluster.local:80
+}
+
 analytics.androz2091.fr {
     reverse_proxy http://umami-analytics.pro.svc.cluster.local:3000
 }
