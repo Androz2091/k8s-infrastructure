@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/androz2091-fr
-        tag: sha-16148dd
+        tag: sha-9739a18
       ports:
       - svcPort: 80
         name: http
