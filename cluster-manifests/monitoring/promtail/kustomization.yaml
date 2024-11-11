@@ -1,0 +1,17 @@
+helmCharts:
+  - name: promtail
+    includeCRDs: true
+    releaseName: promtail
+    namespace: monitoring
+    version: 6.16.6
+    repo: https://grafana.github.io/helm-charts
+    valuesInline:
+      serviceMonitor:
+        enabled: true
+      config:
+        clients:
+          - url: http://loki.monitoring:80/loki/api/v1/push
+
+resources: []
+
+namespace: monitoring
