@@ -1,0 +1,108 @@
+helmCharts:
+  - name: loki
+    includeCRDs: true
+    releaseName: loki
+    namespace: monitoring
+    version: 6.19.0
+    repo: https://grafana.github.io/helm-charts
+    valuesInline:
+      deploymentMode: SingleBinary
+      loki:
+        auth_enabled: false
+        commonConfig:
+          replication_factor: 3
+        schemaConfig:
+          configs:
+          - from: "2024-09-02"
+            store: tsdb
+            index:
+              prefix: loki_index_
+              period: 24h
+            object_store: s3
+            schema: v13
+        storage:
+          bucketNames:
+            chunks: loki-chunks-androzk8s
+            ruler: loki-ruler-androzk8s
+            admin: loki-admin-androzk8s
+          type: "s3"
+          s3:
+            endpoint: s3.ca-east-tor.io.cloud.ovh.net
+            secretAccessKey: "${AWS_ACCESS_KEY_ID}"
+            accessKeyId: "${AWS_ACCESS_KEY_ID}"
+            s3ForcePathStyle: true
+            insecure: true
+        compactor:
+          retention_enabled: true
+          delete_request_store: s3
+          retention_delete_delay: 5m
+        limits_config:
+          retention_period: 744h
+
+      singleBinary:
+        replicas: 3
+        persistence:
+          size: 3Gi
+          storageClass: ssd-local
+        podLabels:
+          "sidecar.istio.io/inject": "true"
+        podAnnotations:
+          "proxy.istio.io/config": '{ "holdApplicationUntilProxyStarts": true }'
+      backend:
+        replicas: 0
+      read:
+        replicas: 0
+      write:
+        replicas: 0
+
+      monitoring:
+        selfMonitoring:
+          enabled: false
+          grafanaAgent:
+            installOperator: false
+        lokiCanary:
+          enabled: false
+
+      gateway:
+        enabled: false
+
+      test:
+        enabled: false
+
+      lokiCanary:
+        enabled: false
+
+resources:
+  - sealed-secrets.yaml
+
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: loki
+        namespace: monitoring
+      spec:
+        template:
+          spec:
+            containers:
+            - name: loki
+              command:
+              - /bin/sh
+              - -c
+              - |
+                loki '-config.file=/etc/loki/config/config.yaml' \
+                -target=all \
+                -s3.access-key-id="${AWS_ACCESS_KEY_ID}" \
+                -s3.secret-access-key="${AWS_SECRET_ACCESS_KEY}"
+              env:
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    key: bucketAccessKeyId
+                    name: loki-secrets
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    key: bucketAccessKeySecret
+                    name: loki-secrets
