@@ -28,6 +28,7 @@ helmCharts:
           type: "s3"
           s3:
             endpoint: https://s3.ca-east-tor.io.cloud.ovh.net
+            region: ca-east-tor
             secretAccessKey: "${AWS_ACCESS_KEY_ID}"
             accessKeyId: "${AWS_ACCESS_KEY_ID}"
             s3ForcePathStyle: true
