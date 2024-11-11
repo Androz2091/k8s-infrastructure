@@ -27,7 +27,7 @@ helmCharts:
             admin: loki-admin-androzk8s
           type: "s3"
           s3:
-            endpoint: s3.ca-east-tor.io.cloud.ovh.net
+            endpoint: https://s3.ca-east-tor.io.cloud.ovh.net
             secretAccessKey: "${AWS_ACCESS_KEY_ID}"
             accessKeyId: "${AWS_ACCESS_KEY_ID}"
             s3ForcePathStyle: true
