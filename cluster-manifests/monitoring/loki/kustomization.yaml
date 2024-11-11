@@ -43,11 +43,11 @@ helmCharts:
         replicas: 3
         persistence:
           size: 3Gi
-          storageClass: ssd-local
-        podLabels:
-          "sidecar.istio.io/inject": "true"
-        podAnnotations:
-          "proxy.istio.io/config": '{ "holdApplicationUntilProxyStarts": true }'
+          storageClass: longhorn
+        # podLabels:
+        #   "sidecar.istio.io/inject": "true"
+        # podAnnotations:
+        #   "proxy.istio.io/config": '{ "holdApplicationUntilProxyStarts": true }'
       backend:
         replicas: 0
       read:
