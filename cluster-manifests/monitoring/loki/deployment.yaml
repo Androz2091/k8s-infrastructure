@@ -98,6 +98,7 @@ data:
         bucketnames: ${S3_BUCKET_NAME}
         access_key_id: ${AWS_ACCESS_KEY_ID}
         secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+        region: ca-east-tor
       boltdb_shipper:
         active_index_directory: /data/loki/boltdb-shipper-active
         cache_location: /data/loki/boltdb-shipper-cache
