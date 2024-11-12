@@ -18,6 +18,7 @@ spec:
           image: grafana/loki:3.1.2
           args:
             - "-config.file=/etc/loki/loki-config.yaml"
+            - "-config.expand-env=true"
           ports:
             - name: http
               containerPort: 3100
