@@ -16,6 +16,8 @@ spec:
       containers:
         - name: loki
           image: grafana/loki:3.1.2
+          args:
+            - "-config.file=/etc/loki/loki-config.yaml"
           ports:
             - name: http
               containerPort: 3100
@@ -51,6 +53,9 @@ spec:
             name: loki-config
         - name: loki-data
           emptyDir: {}
+
+resources:
+  -
 ---
 apiVersion: v1
 kind: ConfigMap
