@@ -80,7 +80,6 @@ data:
       max_chunk_age: 1h
       chunk_target_size: 1048576
       chunk_retain_period: 30s
-      max_transfer_retries: 0
 
     schema_config:
       configs:
@@ -94,17 +93,16 @@ data:
 
     storage_config:
       aws:
-        s3: s3://${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}@${S3_ENDPOINT}/${S3_BUCKET_NAME}
+        endpoint: ${S3_ENDPOINT}
+        bucketnames: ${S3_BUCKET_NAME}
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
       boltdb_shipper:
         active_index_directory: /data/loki/boltdb-shipper-active
         cache_location: /data/loki/boltdb-shipper-cache
-        shared_store: s3
 
     limits_config:
       retention_period: 168h
-
-    chunk_store_config:
-      max_look_back_period: 0
 
     table_manager:
       retention_deletes_enabled: true
