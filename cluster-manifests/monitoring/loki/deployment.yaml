@@ -55,8 +55,6 @@ spec:
         - name: loki-data
           emptyDir: {}
 
-resources:
-  -
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -68,6 +66,9 @@ data:
 
     server:
       http_listen_port: 3100
+
+    common:
+      path_prefix: /data/loki
 
     ingester:
       lifecycler:
@@ -103,7 +104,13 @@ data:
 
     limits_config:
       retention_period: 168h
+      allow_structured_metadata: false
+
+    chunk_store_config: {}
 
     table_manager:
       retention_deletes_enabled: true
       retention_period: 168h
+
+    compactor:
+      working_directory: /data/loki/compactor
