@@ -83,7 +83,7 @@ data:
 
     schema_config:
       configs:
-        - from: 2020-01-011
+        - from: 2020-01-01
           store: boltdb-shipper
           object_store: s3
           schema: v11
