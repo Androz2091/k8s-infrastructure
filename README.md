@@ -18,7 +18,6 @@ Even with all this documentation, your only possible solution to fix a deploymen
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
 * setup pgbackrest for critical databases backups.
-* setup loki/promtail for logs.
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
 * setup a Paperless instance.
@@ -37,7 +36,7 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 * **Sushiflix**: This namespace is for all media services such as Plex, Radarr, Sonarr, Bazarr, Jackett, Qbittorrent, Sabnzbd, Tautulli, Overseerr.
 * **DB**: This namespace is for all the databases such as PostgreSQL, PgAdmin4.
 * **Workflows**: This namespace is for all the workflows such as Harbor.
-* **Monitoring**: This namespace is for all the monitoring services such as Grafana, Prometheus, Alertgram.
+* **Monitoring**: This namespace is for all the monitoring services such as Grafana, Prometheus, Alertgram, Promtail and Loki.
 * **Backups**: One snapshot of each volume is taken every 30 minutes, and a backup is sent to a S3 bucket every night. The retention policy is 7 days for snapshots and 30 days for off-site backups. Movies and TV shows are not backed up, considered as non-critical data.
 
 ## 📜 Wiki
@@ -77,7 +76,7 @@ kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port`
 kubectl -n somenamespace exec --stdin --tty somepod -- /bin/bash
 ```
 
-### Preview manifests created by Helm charts 
+### Preview manifests created by Helm charts
 
 ```sh
 helm template my-app repo-url/app -f values.yaml
@@ -128,6 +127,12 @@ kubeseal --recovery-unseal --recovery-private-key ~/private.key -o yaml < sealed
 ### Setup Sushiflix
 
 The Plex server has to be accessed locally to be claimed. Use port forwarding to access it first. Then we need to specify the custom domain name in the server network settings (advanced), and specify `plex.androz2091.fr`. Otherwise it will try to load data from `server-ip:32400` or even `cluster-ip:32400` which is not securely accessible.
+
+### View logs
+
+Logs are collected by Promtail/Loki and can be access via the dashboard available at [grafana/loki-dashboard.json](./grafana/loki-dashboard.json).
+
+⚠️ Onechart labels all its apps with `onechart` so we have to differentiate them using the `instance` label. For instance, please select `App > pro/onechart` and `Instance > manage-invite-bot` to view ManageInvite's logs.
 
 ## ⚒️ Setup
 
@@ -386,7 +391,7 @@ kubectl -n kube-system get configmap coredns -o yaml > coredns_patched_dns.yaml
 ```
 
 * edit the `coredns_patched_dns.yaml` file and add the following line to the `Corefile`:
-```sh
+```
 forward . 1.1.1.1 8.8.8.8 {
 	max_concurrent 1000
 }
@@ -419,7 +424,7 @@ Create a new secret with the credentials.
 kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access_key> --from-literal=AWS_SECRET_ACCESS_KEY=<secret_key> --from-literal=AWS_ENDPOINTS=s3.us-west-004.backblazeb2.com -n longhorn-system
 ```
 
-A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.  
+A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.
 A **backup** is a snapshot that is stored outside of the cluster. It's stored in the backup target (here backblaze).
 
 ### Troubleshooting
