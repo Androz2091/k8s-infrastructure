@@ -70,7 +70,7 @@ slash-commands-gui.androz2091.fr {
     reverse_proxy http://slash-commands-gui.pro.svc.cluster.local:80
 }
 
-androz2091.fr, simonlefort.fr {
+androz2091.fr, simonlefort.fr, simonlefort.ch {
     reverse_proxy http://androz2091-fr.pro.svc.cluster.local:80
 }
 
