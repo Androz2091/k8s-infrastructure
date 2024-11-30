@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stirling-pdf
+  namespace: pro
+  labels:
+    app: stirling-pdf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stirling-pdf
+  template:
+    metadata:
+      labels:
+        app: stirling-pdf
+    spec:
+      containers:
+        - name: stirling-pdf
+          image: stirlingtools/stirling-pdf:0.35.0
+          imagePullPolicy: IfNotPresent
+          # command: ["/bin/bash"]
+          # args: ["-c", "sleep 999999"]
+
+          env:
+            - name: INSTALL_BOOK_AND_ADVANCED_HTML_OPS
+              value: "false"
+            - name: SECURITY_ENABLELOGIN
+              value: "true"
+            - name: SECURITY_INITIALLOGIN_USERNAME
+              value: "admin"
+            - name: SECURITY_INITIALLOGIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: stirling-pdf-secrets
+                  key: SECURITY_INITIALLOGIN_PASSWORD
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          resources: {}
