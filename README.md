@@ -17,7 +17,6 @@ Even with all this documentation, your only possible solution to fix a deploymen
 
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
-* fix the SSL error with caddy
 * fix `tail: inotify cannot be used, reverting to polling: Too many open files` on the host
 * setup pgbackrest for critical databases backups.
 * understand why Plex logs are so large.
@@ -439,3 +438,5 @@ curl: (35) OpenSSL/1.1.1l-fips: error:14094438:SSL routines:ssl3_read_bytes:tlsv
 ```
 
 Double check the `Caddyfile` and make sure that all the DNS are configured to the correct IP (sometimes when a SSL certificate fails to create/renew, such errors can occur **for all domains**).
+
+Also... double check that `Caddy` is not started twice (see https://serverfault.com/questions/1167816/openssl-routinesssl3-read-bytestlsv1-alert-internal-error-with-kubernetes-and/1168625#1168625).
