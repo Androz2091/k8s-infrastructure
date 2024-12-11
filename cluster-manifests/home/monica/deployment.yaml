@@ -28,7 +28,7 @@ spec:
             - name: APP_ENV
               value: production
             - name: APP_DEBUG
-              value: false
+              value: "false"
           envFrom:
             - secretRef:
                 name: monica-secrets
