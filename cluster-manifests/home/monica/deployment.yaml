@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: monica
-          image: monica:5.0.0-beta.4-fpm
+          image: monica:5.0.0-beta.4-apache
           imagePullPolicy: IfNotPresent
 
           env:
