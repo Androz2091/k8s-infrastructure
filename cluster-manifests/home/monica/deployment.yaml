@@ -25,6 +25,10 @@ spec:
               value: pgsql
             - name: APP_URL
               value: https://monica.androz2091.fr
+            - name: ASSET_URL
+              value: https://monica.androz2091.fr
+            - name: APP_FORCE_URL
+              value: "true"
             - name: APP_ENV
               value: production
             - name: APP_DEBUG
