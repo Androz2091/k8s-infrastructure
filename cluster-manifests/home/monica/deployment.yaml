@@ -22,9 +22,13 @@ spec:
 
           env:
             - name: DB_CONNECTION
-              value: "pgsql"
+              value: pgsql
             - name: APP_URL
-              value: "https://monica.androz2091.fr"
+              value: https://monica.androz2091.fr
+            - name: APP_ENV
+              value: production
+            - name: APP_DEBUG
+              value: false
           envFrom:
             - secretRef:
                 name: monica-secrets
