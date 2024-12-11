@@ -82,6 +82,10 @@ haste.androz2091.fr {
     reverse_proxy http://haste-server.pro.svc.cluster.local:80
 }
 
+monica.androz2091.fr {
+    reverse_proxy http://monica.home.svc.cluster.local:80
+}
+
 pdf.androz2091.fr {
     reverse_proxy http://stirling-pdf.pro.svc.cluster.local:80
 }
