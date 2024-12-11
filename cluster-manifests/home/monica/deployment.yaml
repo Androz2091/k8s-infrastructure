@@ -34,7 +34,7 @@ spec:
                 name: monica-secrets
 
           ports:
-            - containerPort: 9000
+            - containerPort: 80
               name: http
               protocol: TCP
 
