@@ -20,6 +20,9 @@ spec:
           image: monica:5.0.0-beta.4-apache
           imagePullPolicy: IfNotPresent
 
+          env:
+            - name: DB_CONNECTION
+              value: "pgsql"
           envFrom:
             - secretRef:
                 name: monica-secrets
