@@ -14,10 +14,10 @@ helmCharts:
         containerPort: 8080
       resources:
         limits:
-          cpu: "2000m"
-          memory: "2000Mi"
+          cpu: "5000m"
+          memory: "5000Mi"
         requests:
-          cpu: "200m"
+          cpu: "500m"
           memory: "500Mi"
 
 namespace: pro
