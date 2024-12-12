@@ -110,3 +110,7 @@ api.manage-invite.xyz {
 dash.manage-invite.xyz {
     reverse_proxy http://manage-invite-dash-redirects.pro.svc.cluster.local:80
 }
+
+flepguessr-cs214.androz2091.fr {
+    reverse_proxy http://flepguessr-cs214.pro.svc.cluster.local:80
+}

@@ -1,0 +1,25 @@
+helmCharts:
+  - name: onechart
+    releaseName: flepguessr-cs214
+    namespace: pro
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/flepguessr-cs214:latest
+        tag: latest
+      ports:
+      - svcPort: 80
+        name: http
+        containerPort: 8080
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "200m"
+          memory: "500Mi"
+
+namespace: pro
+
+patches: []
