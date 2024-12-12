@@ -30,11 +30,6 @@ spec:
         image: androz2091/flepguessr-cs214:v0.0.1
         securityContext:
           privileged: true
-        resources:
-          limits:
-            nofile: 1048576
-          requests:
-            nofile: 1048576
 
           ports:
             - containerPort: 8080
