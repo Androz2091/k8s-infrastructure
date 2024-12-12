@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/flepguessr-cs214
-        tag: latest
+        tag: v0.0.1
       ports:
       - svcPort: 80
         name: http
