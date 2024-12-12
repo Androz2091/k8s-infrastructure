@@ -6,7 +6,7 @@ helmCharts:
     repo: https://chart.onechart.dev
     valuesInline:
       image:
-        repository: androz2091/flepguessr-cs214:latest
+        repository: androz2091/flepguessr-cs214
         tag: latest
       ports:
       - svcPort: 80
