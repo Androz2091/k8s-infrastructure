@@ -439,3 +439,21 @@ curl: (35) OpenSSL/1.1.1l-fips: error:14094438:SSL routines:ssl3_read_bytes:tlsv
 Double check the `Caddyfile` and make sure that all the DNS are configured to the correct IP (sometimes when a SSL certificate fails to create/renew, such errors can occur **for all domains**).
 
 Also... double check that `Caddy` is not started twice (see https://serverfault.com/questions/1167816/openssl-routinesssl3-read-bytestlsv1-alert-internal-error-with-kubernetes-and/1168625#1168625).
+
+### fsnotify watcher error
+
+When running `kubectl logs some-pod` I was getting `failed to create fsnotify watcher: too many open files`. The issue was solved by increasing the number of inotify max user instances. (see https://serverfault.com/questions/984066/too-many-open-files-centos7-already-tried-setting-higher-limits).
+
+```
+debian@ns561436:~$ cat /proc/sys/fs/inotify/max_user_watches
+524288
+debian@ns561436:~$ cat /proc/sys/fs/inotify/max_user_instances
+128
+```
+
+```
+sudo bash -c 'cat <<EOF> /etc/sysctl.d/fs_inotify.conf
+fs.inotify.max_user_instances = 1024
+fs.inotify.max_user_watches = 1048576
+EOF'
+```
