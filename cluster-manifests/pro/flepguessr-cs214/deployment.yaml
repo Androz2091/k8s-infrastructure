@@ -15,16 +15,6 @@ spec:
       labels:
         app: flepguessr-cs214
     spec:
-      initContainers:
-      - name: set-ulimit
-        image: busybox
-        command:
-        - sh
-        - -c
-        - |
-          echo 256 | sudo tee /proc/sys/fs/inotify/max_user_instances
-        securityContext:
-          privileged: true
       containers:
       - name: sbt-container
         image: androz2091/flepguessr-cs214:v0.0.1
