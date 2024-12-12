@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: flepguessr-cs214
+  labels:
+    app: flepguessr-cs214
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: flepguessr-cs214
+  type: ClusterIP

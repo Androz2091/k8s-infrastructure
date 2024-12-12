@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flepguessr-cs214
+  namespace: pro
+  labels:
+    app: flepguessr-cs214
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flepguessr-cs214
+  template:
+    metadata:
+      labels:
+        app: flepguessr-cs214
+    spec:
+      initContainers:
+      - name: set-ulimit
+        image: busybox
+        command:
+        - sh
+        - -c
+        - |
+          echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf && sysctl -p
+        securityContext:
+          privileged: true
+      containers:
+      - name: sbt-container
+        image: androz2091/flepguessr-cs214:v0.0.1
+        securityContext:
+          privileged: true
+        resources:
+          limits:
+            nofile: 1048576
+          requests:
+            nofile: 1048576
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          resources: {}
