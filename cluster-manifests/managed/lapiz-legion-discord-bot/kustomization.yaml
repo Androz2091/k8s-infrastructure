@@ -6,7 +6,7 @@ helmCharts:
     repo: https://chart.onechart.dev
     valuesInline:
       image:
-        repository: hharbor.androz2091.fr/fiverr-discord-bots/lapiz-legion
+        repository: harbor.androz2091.fr/fiverr-discord-bots/lapiz-legion
         tag: c440d66d
       secretName: lapiz-legion-discord-bot-secrets
       sealedFileSecrets:
