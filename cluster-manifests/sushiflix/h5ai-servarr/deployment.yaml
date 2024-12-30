@@ -48,13 +48,13 @@ spec:
           volumeMounts:
             - name: servarr-data-v
               mountPath: /h5ai
-            - name: h5ai-config-v
+            - name: h5ai-servarr-config-v
               mountPath: /config
 
       volumes:
         - name: servarr-data-v
           persistentVolumeClaim:
             claimName: servarr-data-pvc
-        - name: h5ai-config-v
+        - name: h5ai-servarr-config-v
           persistentVolumeClaim:
-            claimName: h5ai-config-pvc
+            claimName: h5ai-servarr-config-pvc

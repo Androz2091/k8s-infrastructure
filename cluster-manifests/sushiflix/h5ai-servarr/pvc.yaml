@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: h5ai-config-pvc
+  name: h5ai-servarr-config-pvc
 spec:
   accessModes:
     - ReadWriteOnce
