@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h5ai-servarr
+  namespace: sushiflix
+  labels:
+    app: h5ai-servarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h5ai-servarr
+  template:
+    metadata:
+      labels:
+        app: h5ai-servarr
+    spec:
+      containers:
+        - name: h5ai-servarr
+          image: awesometic/h5ai
+          tag: sha256:efa4514bd2099c521bc0d7974e93404d5f09fbbde161402bbcb0d1222259c133
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Paris"
+            - name: HTPASSWD
+              value: "true"
+            - name: HTPASSWD_USER
+              value: "read"
+            - name: HTPASSWD_PW
+              valueFrom:
+                secretKeyRef:
+                  name: h5ai-servarr-secrets
+                  key: HTPASSWD_PW
+
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: servarr-data-v
+              mountPath: /h5ai
+            - name: h5ai-config-v
+              mountPath: /config
+
+      volumes:
+        - name: servarr-data-v
+          persistentVolumeClaim:
+            claimName: servarr-data-pvc
+        - name: h5ai-config-v
+          persistentVolumeClaim:
+            claimName: h5ai-config-pvc
