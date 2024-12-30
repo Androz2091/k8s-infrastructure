@@ -23,6 +23,8 @@ spec:
           # args: ["-c", "sleep 999999"]
 
           env:
+            - name: DOCKER_ENABLE_SECURITY
+              value: "true"
             - name: INSTALL_BOOK_AND_ADVANCED_HTML_OPS
               value: "false"
             - name: SECURITY_ENABLELOGIN
