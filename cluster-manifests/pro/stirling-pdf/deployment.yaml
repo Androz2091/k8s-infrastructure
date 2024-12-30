@@ -28,7 +28,7 @@ spec:
             - name: SECURITY_ENABLELOGIN
               value: "true"
             - name: SECURITY_INITIALLOGIN_USERNAME
-              value: "admin"
+              value: "androz2091"
             - name: SECURITY_INITIALLOGIN_PASSWORD
               valueFrom:
                 secretKeyRef:
