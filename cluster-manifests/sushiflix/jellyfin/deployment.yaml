@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: sushiflix
+  labels:
+    app: jellyfin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      containers:
+        - name: jellyfin
+          image: docker.io/jellyfin/jellyfin:latest
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Paris"
+
+          ports:
+            - containerPort: 8096
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: servarr-data-v
+              mountPath: /media
+            - name: jellyfin-config-v
+              mountPath: /config
+
+      volumes:
+        - name: servarr-data-v
+          persistentVolumeClaim:
+            claimName: servarr-data-pvc
+        - name: jellyfin-config-v
+          persistentVolumeClaim:
+            claimName: jellyfin-config-pvc
