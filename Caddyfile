@@ -122,3 +122,7 @@ h5ai-servarr.androz2091.fr {
 lapiz-legion-adminjs.androz2091.fr {
     reverse_proxy http://lapiz-legion-discord-bot.managed.svc.cluster.local:80
 }
+
+jellyfin.androz2091.fr {
+    reverse_proxy http://jellyfin.sushiflix.svc.cluster.local:80
+}
