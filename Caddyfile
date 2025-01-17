@@ -71,6 +71,7 @@ slash-commands-gui.androz2091.fr {
 }
 
 androz2091.fr, simonlefort.fr, simonlefort.ch {
+    redir /discord https://discord.gg/hw87VUQ
     reverse_proxy http://androz2091-fr.pro.svc.cluster.local:80
 }
 
