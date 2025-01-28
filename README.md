@@ -17,6 +17,7 @@ Even with all this documentation, your only possible solution to fix a deploymen
 
 Because nothing is ever perfect, here is a list of things that need to be done. Sorted by priority.
 
+* host back MessageAuthorFr on AndrozDev to clean up roles handling
 * create a Forgejo instance and use [GitHub2Forgejo](https://github.com/RGBCube/GitHub2Forgejo/tree/master) to periodically mirror repositories.
 * setup pgbackrest for critical databases backups.
 * understand why Plex logs are so large.
