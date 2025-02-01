@@ -19,4 +19,7 @@ helmCharts:
 
 namespace: pro
 
+resources:
+  - sealed-secrets.yaml
+
 patches: []
