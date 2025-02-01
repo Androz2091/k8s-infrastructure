@@ -127,3 +127,7 @@ lapiz-legion-adminjs.androz2091.fr {
 jellyfin.androz2091.fr {
     reverse_proxy http://jellyfin.sushiflix.svc.cluster.local:80
 }
+
+overseerr.androz2091.fr {
+    reverse_proxy http://overseerr.sushiflix.svc.cluster.local:80
+}

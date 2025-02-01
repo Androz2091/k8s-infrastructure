@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overseerr
+  namespace: sushiflix
+  labels:
+    app: overseerr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: overseerr
+  template:
+    metadata:
+      labels:
+        app: overseerr
+    spec:
+      containers:
+        - name: overseerr
+          image: lscr.io/linuxserver/overseerr:1.33.2
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Paris"
+
+          ports:
+            - containerPort: 5055
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: servarr-data-v
+              mountPath: /media
+            - name: overseerr-config-v
+              mountPath: /config
+
+      volumes:
+        - name: servarr-data-v
+          persistentVolumeClaim:
+            claimName: servarr-data-pvc
+        - name: overseerr-config-v
+          persistentVolumeClaim:
+            claimName: overseerr-config-pvc
