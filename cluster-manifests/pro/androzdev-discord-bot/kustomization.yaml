@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/androzdev-bot
-        tag: sha-b2ccd65
+        tag: sha-b0ae247
       resources:
         limits:
           cpu: "2000m"
