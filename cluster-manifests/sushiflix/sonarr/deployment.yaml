@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: sushiflix
+  labels:
+    app: sonarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      containers:
+        - name: sonarr
+          image: lscr.io/linuxserver/radarr:4.0.12
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Paris"
+
+          ports:
+            - containerPort: 8989
+              name: http
+              protocol: TCP
+
+          resources: {}
+
+          volumeMounts:
+            - name: servarr-data-v
+              mountPath: /data
+            - name: sonarr-config-v
+              mountPath: /config
+
+      volumes:
+        - name: servarr-data-v
+          persistentVolumeClaim:
+            claimName: servarr-data-pvc
+        - name: sonarr-config-v
+          persistentVolumeClaim:
+            claimName: sonarr-config-pvc
