@@ -1,0 +1,21 @@
+helmCharts:
+  - name: onechart
+    releaseName: androzdev-discord-bot
+    namespace: pro
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/androzdev-bot
+        tag: sha-b2ccd65
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "200m"
+          memory: "500Mi"
+
+namespace: pro
+
+patches: []
