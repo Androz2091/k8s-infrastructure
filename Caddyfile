@@ -131,3 +131,7 @@ jellyfin.androz2091.fr {
 overseerr.androz2091.fr {
     reverse_proxy http://overseerr.sushiflix.svc.cluster.local:80
 }
+
+sonarr.androz2091.fr {
+    reverse_proxy http://sonarr.sushiflix.svc.cluster.local:80
+}
