@@ -19,8 +19,6 @@ spec:
         - name: webserver
           image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
           imagePullPolicy: IfNotPresent
-          command: ["/sbin/docker-entrypoint.sh"]
-          args: ["paperless", "webserver"]
           env:
             - name: USERMAP_UID
               value: "1000"
@@ -42,36 +40,6 @@ spec:
               mountPath: /usr/src/paperless/media
             - name: paperless-io
               mountPath: /consume
-            - name: paperless-io
-              mountPath: /export
-              subPath: export
-        - name: consumer
-          image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
-          imagePullPolicy: IfNotPresent
-          command: ["/sbin/docker-entrypoint.sh"]
-          args: ["document_consumer"]
-          env:
-            - name: USERMAP_UID
-              value: "1000"
-            - name: USERMAP_GID
-              value: "1000"
-            - name: PAPERLESS_CONSUMPTION_DIR
-              value: "/consume"
-            - name: PAPERLESS_TIME_ZONE
-              value: "EST"
-            - name: "PAPERLESS_URL"
-              value: "https://documents.androz2091.fr"
-          envFrom:
-            - secretRef:
-                name: paperless-secrets
-          volumeMounts:
-            - name: paperless-data
-              mountPath: /usr/src/paperless/data
-            - name: paperless-media
-              mountPath: /usr/src/paperless/media
-            - name: paperless-io
-              mountPath: /consume
-              subPath: consume
             - name: paperless-io
               mountPath: /export
               subPath: export
