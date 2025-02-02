@@ -30,6 +30,8 @@ spec:
               value: "https://documents.androz2091.fr"
             - name: PAPERLESS_TIME_ZONE
               value: "EST"
+            - name: PAPERLESS_PORT
+              value: "8000"
           envFrom:
             - secretRef:
                 name: paperless-secrets
