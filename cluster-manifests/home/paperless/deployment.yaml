@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: webserver
-          image: pitkley/paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
           imagePullPolicy: IfNotPresent
           command: ["/sbin/docker-entrypoint.sh"]
           args: ["gunicorn", "-b", "0.0.0.0:8000"]
@@ -47,7 +47,7 @@ spec:
               mountPath: /export
               subPath: export
         - name: consumer
-          image: pitkley/paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
           imagePullPolicy: IfNotPresent
           command: ["/sbin/docker-entrypoint.sh"]
           args: ["document_consumer"]
