@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-redis
+  namespace: home
+  labels:
+    app: paperless-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless-redis
+  template:
+    metadata:
+      labels:
+        app: paperless-redis
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: paperless-redis
+              topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: redis
+          image: bitnami/redis:6.2.14
+          ports:
+            - name: redis
+              containerPort: 6379
+          env:
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  key: redis-password
+                  name: paperless-redis-secrets
+          resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-redis
+  namespace: home
+  labels:
+    app: paperless-redis
+spec:
+  ports:
+    - port: 6379
+      protocol: TCP
+      targetPort: 6379
+  selector:
+    app: paperless-redis
+  type: ClusterIP

@@ -28,14 +28,13 @@ spec:
               value: "1746400004"
             - name: PAPERLESS_CONSUMPTION_DIR
               value: "/consume"
-            - name: PAPERLESS_PASSPHRASE
-              value: "CHANGEME"
-            - name: PAPERLESS_SECRET_KEY
-              value: "CHANGEME"
+            - name: "PAPERLESS_URL"
+              value: "https://documents.androz2091.fr"
             - name: PAPERLESS_TIME_ZONE
               value: "EST"
-            - name: PAPERLESS_OCR_LANGUAGES
-              value: ""
+          envFrom:
+            - secretRef:
+                name: paperless-secrets
           volumeMounts:
             - name: paperless-data
               mountPath: /usr/src/paperless/data
@@ -60,6 +59,8 @@ spec:
               value: "/consume"
             - name: PAPERLESS_TIME_ZONE
               value: "EST"
+            - name: "PAPERLESS_URL"
+              value: "https://documents.androz2091.fr"
           envFrom:
             - secretRef:
                 name: paperless-secrets
