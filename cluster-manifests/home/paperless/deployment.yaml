@@ -23,9 +23,9 @@ spec:
           args: ["gunicorn", "-b", "0.0.0.0:8000"]
           env:
             - name: USERMAP_UID
-              value: "1746400001"
+              value: "1000"
             - name: USERMAP_GID
-              value: "1746400004"
+              value: "1000"
             - name: PAPERLESS_CONSUMPTION_DIR
               value: "/consume"
             - name: "PAPERLESS_URL"
