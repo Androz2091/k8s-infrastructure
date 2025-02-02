@@ -20,7 +20,7 @@ spec:
           image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
           imagePullPolicy: IfNotPresent
           command: ["/sbin/docker-entrypoint.sh"]
-          args: ["gunicorn", "-b", "0.0.0.0:8000"]
+          args: ["paperless", "webserver"]
           env:
             - name: USERMAP_UID
               value: "1000"
