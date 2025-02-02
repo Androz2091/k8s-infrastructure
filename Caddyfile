@@ -135,3 +135,7 @@ overseerr.androz2091.fr {
 sonarr.androz2091.fr {
     reverse_proxy http://sonarr.sushiflix.svc.cluster.local:80
 }
+
+documents.androz2091.fr {
+    reverse_proxy http://paperless.home.svc.cluster.local:80
+}

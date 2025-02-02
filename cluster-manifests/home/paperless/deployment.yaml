@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: home
+  labels:
+    app: paperless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      containers:
+        - name: webserver
+          image: pitkley/paperless
+          imagePullPolicy: IfNotPresent
+          command: ["/sbin/docker-entrypoint.sh"]
+          args: ["gunicorn", "-b", "0.0.0.0:8000"]
+          env:
+            - name: USERMAP_UID
+              value: "1746400001"
+            - name: USERMAP_GID
+              value: "1746400004"
+            - name: PAPERLESS_CONSUMPTION_DIR
+              value: "/consume"
+            - name: PAPERLESS_PASSPHRASE
+              value: "CHANGEME"
+            - name: PAPERLESS_SECRET_KEY
+              value: "CHANGEME"
+            - name: PAPERLESS_TIME_ZONE
+              value: "EST"
+            - name: PAPERLESS_OCR_LANGUAGES
+              value: ""
+          volumeMounts:
+            - name: paperless-data
+              mountPath: /usr/src/paperless/data
+            - name: paperless-media
+              mountPath: /usr/src/paperless/media
+            - name: paperless-io
+              mountPath: /consume
+            - name: paperless-io
+              mountPath: /export
+              subPath: export
+        - name: consumer
+          image: pitkley/paperless
+          imagePullPolicy: IfNotPresent
+          command: ["/sbin/docker-entrypoint.sh"]
+          args: ["document_consumer"]
+          env:
+            - name: USERMAP_UID
+              value: "1000"
+            - name: USERMAP_GID
+              value: "1000"
+            - name: PAPERLESS_CONSUMPTION_DIR
+              value: "/consume"
+            - name: PAPERLESS_TIME_ZONE
+              value: "EST"
+          envFrom:
+            - secretRef:
+                name: paperless-secrets
+          volumeMounts:
+            - name: paperless-data
+              mountPath: /usr/src/paperless/data
+            - name: paperless-media
+              mountPath: /usr/src/paperless/media
+            - name: paperless-io
+              mountPath: /consume
+              subPath: consume
+            - name: paperless-io
+              mountPath: /export
+              subPath: export
+      volumes:
+        - name: paperless-data
+          persistentVolumeClaim:
+            claimName: paperless-data
+        - name: paperless-media
+          persistentVolumeClaim:
+            claimName: paperless-media
+        - name: paperless-io
+          persistentVolumeClaim:
+            claimName: paperless-io

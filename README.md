@@ -21,7 +21,6 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 * setup pgbackrest for critical databases backups.
 * understand why Plex logs are so large.
 * make sure Harbor retention policy is configured properly.
-* setup a Paperless instance.
 * understand how to apply values from a `common.yaml` file to several `kustomization.yaml` files.
 * use more config maps instead of config PVCs.
 

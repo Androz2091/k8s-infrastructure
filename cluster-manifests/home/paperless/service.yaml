@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: paperless
+spec:
+  selector:
+    app: paperless
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
