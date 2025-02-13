@@ -5,6 +5,7 @@ helmCharts:
     version: 0.9.0
     repo: https://immich-app.github.io/immich-charts
     valuesInline:
+      useDeprecatedPostgresChart: true
       image:
         tag: v1.126.1
       immich:
