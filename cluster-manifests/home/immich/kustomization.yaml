@@ -2,7 +2,7 @@ helmCharts:
   - name: immich
     releaseName: immich
     namespace: home
-    version: 0.9.0
+    version: 0.7.2
     repo: https://immich-app.github.io/immich-charts
     valuesInline:
       useDeprecatedPostgresChart: true
