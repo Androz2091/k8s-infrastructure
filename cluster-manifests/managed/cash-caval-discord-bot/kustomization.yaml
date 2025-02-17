@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/cash-caval-discord-bot
-        tag: d0622d55
+        tag: c002c019
       secretName: cash-caval-discord-bot-secrets
       ports:
       - svcPort: 80
