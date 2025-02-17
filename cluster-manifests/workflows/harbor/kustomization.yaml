@@ -6,6 +6,10 @@ helmCharts:
     repo: https://helm.goharbor.io
     valuesInline:
       externalURL: https://harbor.androz2091.fr
+      persistence:
+        persistentVolumeClaim:
+          registry:
+            size: 10Gi
       # jobservice:
       #   jobLoggers:
       #     - database # todo ask Sylvain about this
