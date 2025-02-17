@@ -1,0 +1,28 @@
+helmCharts:
+  - name: onechart
+    releaseName: cash-caval-discord-bot
+    namespace: managed
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: harbor.androz2091.fr/fiverr-discord-bots/cash-caval-discord-bot
+        tag: 3b1fe7c9
+      secretName: cash-caval-discord-bot-secrets
+      ports:
+      - svcPort: 80
+        name: http
+        containerPort: 3000
+      imagePullSecrets:
+      - regcred
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+
+namespace: managed
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
