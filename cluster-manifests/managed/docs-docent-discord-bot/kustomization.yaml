@@ -13,6 +13,8 @@ helmCharts:
         limits:
           cpu: "2000m"
           memory: "2000Mi"
+        requests:
+          cpu: "50m"
 
 namespace: managed
 
