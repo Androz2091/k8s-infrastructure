@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: monica
+  name: filebrowser
   namespace: home
   labels:
-    app: monica
+    app: filebrowser
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: monica
+      app: filebrowser
   template:
     metadata:
       labels:
-        app: monica
+        app: filebrowser
     spec:
       containers:
-        - name: monica
-          image: ghcr.io/monicahq/monica-next:main
+        - name: filebrowser
+          image: hurlenko/filebrowser:v2.31.2
           imagePullPolicy: IfNotPresent
           # command: ["/bin/bash"]
           # args: ["-c", "sleep 999999"]
