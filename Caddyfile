@@ -139,3 +139,7 @@ sonarr.androz2091.fr {
 documents.androz2091.fr {
     reverse_proxy http://paperless.home.svc.cluster.local:80
 }
+
+stratos-gaming-club-adminjs.androz2091.fr {
+    reverse_proxy http://stratos-gaming-club-discord-bot.managed.svc.cluster.local:80
+}
