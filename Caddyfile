@@ -144,3 +144,8 @@ stratos-gaming-club-adminjs.androz2091.fr {
     reverse_proxy http://stratos-gaming-club-discord-bot.managed.svc.cluster.local:80
     redir / /admin
 }
+
+clip-city-adminjs.androz2091.fr {
+    reverse_proxy http://clip-city-discord-bot.managed.svc.cluster.local:80
+    redir / /admin
+}
