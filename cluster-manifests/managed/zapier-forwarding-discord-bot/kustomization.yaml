@@ -1,0 +1,24 @@
+helmCharts:
+  - name: onechart
+    releaseName: zapier-forwarding-discord-bot
+    namespace: managed
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: androz2091/zapier-forwarding-discord-bot
+        tag: sha-abafe85
+      secretName: zapier-forwarding-discord-bot-secrets
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "50m"
+
+namespace: managed
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
