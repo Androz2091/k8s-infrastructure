@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/zapier-forwarding-discord-bot
-        tag: sha-fc48fe0
+        tag: sha-d8e9a85
       secretName: zapier-forwarding-discord-bot-secrets
       resources:
         limits:
