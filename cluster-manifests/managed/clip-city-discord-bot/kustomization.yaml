@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/clip-city-discord-bot
-        tag: dea6ce4c
+        tag: 7b0f3fdc
       secretName: clip-city-discord-bot-secrets
       ports:
       - svcPort: 80
