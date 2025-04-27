@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       useDeprecatedPostgresChart: true
       image:
-        tag: v1.126.1
+        tag: v1.132.1
       immich:
         persistence:
           library:
