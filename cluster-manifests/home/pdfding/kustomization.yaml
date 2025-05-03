@@ -1,0 +1,27 @@
+helmCharts:
+  - name: pdfding
+    releaseName: pdfding
+    namespace: home
+    version: 0.9.0
+    repo: https://charts.pdfding.com/pdfding/pdfding
+    valuesInline:
+      pdfding:
+        config:
+          hostName: pdfding.androz2091.fr
+          hostPort: 80
+          disableUserSignup:
+            enabled: true
+      persistence:
+        enabled: true
+        storageClassName: longhorn
+        dbSize: 500Mi
+        mediaSize: 10Gi
+      existingSecret:
+        name: pdfding-secrets
+
+namespace: home
+
+resources:
+- sealed-secrets.yaml
+
+patches: []
