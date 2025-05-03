@@ -7,10 +7,12 @@ helmCharts:
     valuesInline:
       pdfding:
         config:
+          accountEmailVerification:
+            enabled: false
           hostName: pdfding.androz2091.fr
           hostPort: 3000
           disableUserSignup:
-            enabled: true
+            enabled: false
       persistence:
         enabled: true
         storageClassName: longhorn
