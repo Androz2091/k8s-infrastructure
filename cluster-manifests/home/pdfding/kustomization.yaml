@@ -8,7 +8,7 @@ helmCharts:
       pdfding:
         config:
           hostName: pdfding.androz2091.fr
-          hostPort: 80
+          hostPort: 3000
           disableUserSignup:
             enabled: true
       persistence:
