@@ -155,5 +155,5 @@ theproptrade-adminjs.androz2091.fr {
 }
 
 pdfding.androz2091.fr {
-    reverse_proxy http://pdfding.home.svc.cluster.local:80
+    reverse_proxy http://pdfding.home.svc.cluster.local:3000
 }
