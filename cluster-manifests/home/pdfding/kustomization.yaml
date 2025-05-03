@@ -24,5 +24,8 @@ namespace: home
 resources:
 - sealed-secrets.yaml
 
-patchesStrategicMerge:
-  - patch-initcontainer.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: pdfding
+    path: patch-initcontainers.yaml
