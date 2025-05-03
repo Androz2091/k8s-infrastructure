@@ -3,7 +3,7 @@ helmCharts:
     releaseName: pdfding
     namespace: home
     version: 0.9.0
-    repo: https://charts.pdfding.com/pdfding/pdfding
+    repo: https://charts.pdfding.com
     valuesInline:
       pdfding:
         config:
