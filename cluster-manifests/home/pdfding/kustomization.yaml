@@ -12,7 +12,7 @@ helmCharts:
           hostName: pdfding.androz2091.fr
           hostPort: 3000
           disableUserSignup:
-            enabled: false
+            enabled: true
       persistence:
         enabled: true
         storageClassName: longhorn
