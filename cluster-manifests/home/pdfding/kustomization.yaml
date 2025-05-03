@@ -24,4 +24,5 @@ namespace: home
 resources:
 - sealed-secrets.yaml
 
-patches: []
+patches:
+  - patch-initcontainers.yaml
