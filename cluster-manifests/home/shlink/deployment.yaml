@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: shlink
-          image: shlink/shlink:4.4.6
+          image: shlinkio/shlink:4.4.6
           imagePullPolicy: IfNotPresent
           # command: ["/bin/bash"]
           # args: ["-c", "sleep 999999"]
