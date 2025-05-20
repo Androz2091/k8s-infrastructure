@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shlink
+  namespace: home
+  labels:
+    app: shlink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shlink
+  template:
+    metadata:
+      labels:
+        app: shlink
+    spec:
+      containers:
+        - name: shlink
+          image: shlink/shlink:4.4.6
+          imagePullPolicy: IfNotPresent
+          # command: ["/bin/bash"]
+          # args: ["-c", "sleep 999999"]
+
+          # env:
+          #   - name: ROCKET_PORT
+          #     value: "4000"
+
+          env:
+            - name: DEFAULT_DOMAIN
+              value: go.simonlefort.ch
+            - name: IS_HTTPS_ENABLED
+              value: "true"
+            - name: DB_DRIVER
+              value: "postgres"
+          envFrom:
+            - secretRef:
+                name: shlink-secrets
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          resources: {}

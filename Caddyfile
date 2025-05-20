@@ -153,3 +153,7 @@ clip-city-adminjs.androz2091.fr {
 theproptrade-adminjs.androz2091.fr {
     reverse_proxy http://theproptrade-giveaways-discord-bot.managed.svc.cluster.local:80
 }
+
+go.simonlefort.ch {
+    reverse_proxy http://
+}
