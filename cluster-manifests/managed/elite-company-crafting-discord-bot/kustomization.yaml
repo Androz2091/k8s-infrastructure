@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/elite-company-crafting
-        tag: f9f21ba7
+        tag: 4fc18c6f
       secretName: elite-company-crafting-discord-bot-secrets
       ports:
       - svcPort: 80

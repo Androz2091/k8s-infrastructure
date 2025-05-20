@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdfding
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /home/nonroot/pdfding/db /home/nonroot/pdfding/media
+          volumeMounts:
+            - name: db
+              mountPath: /home/nonroot/pdfding/db
+            - name: media
+              mountPath: /home/nonroot/pdfding/media

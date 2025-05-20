@@ -154,6 +154,11 @@ theproptrade-adminjs.androz2091.fr {
     reverse_proxy http://theproptrade-giveaways-discord-bot.managed.svc.cluster.local:80
 }
 
+pdfding.androz2091.fr {
+    reverse_proxy http://pdfding.home.svc.cluster.local:3000
+}
+
+
 go.simonlefort.ch {
-    reverse_proxy http://
+    reverse_proxy http://shlink.home.svc.cluster.local:80
 }
