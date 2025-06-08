@@ -64,7 +64,7 @@ helmCharts:
     repo: https://chart.onechart.dev
     valuesInline:
       image:
-        repository: androz2091/manage-invite-bot
+        repository: androz2091/manage-invite-support
         tag: sha-db804f8
       secretName: manage-invite-support-secrets
       resources:
