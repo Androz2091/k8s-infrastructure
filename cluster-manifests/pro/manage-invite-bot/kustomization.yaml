@@ -24,7 +24,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/manage-invite-api
-        tag: sha-bed5f44
+        tag: sha-d3baefa
       secretName: manage-invite-api-secrets
       resources:
         limits:
