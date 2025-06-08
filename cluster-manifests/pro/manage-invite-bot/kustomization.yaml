@@ -48,7 +48,7 @@ helmCharts:
         tag: sha-d30fa23
       sealedFileSecrets:
       - name: config
-        path: /opt/app/config.js
+        path: /app/config.js
         subPath: config.js
         filesToMount:
           - name: config.js
