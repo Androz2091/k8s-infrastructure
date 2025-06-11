@@ -161,3 +161,7 @@ pdfding.androz2091.fr {
 go.simonlefort.ch {
     reverse_proxy http://shlink.home.svc.cluster.local:80
 }
+
+techwithwomen-adminjs.androz2091.fr {
+    reverse_proxy http://tech-with-women-discord-bot.managed.svc.cluster.local:80
+}
