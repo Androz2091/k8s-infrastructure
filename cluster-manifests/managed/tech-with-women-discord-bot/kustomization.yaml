@@ -1,6 +1,6 @@
 helmCharts:
   - name: onechart
-    releaseName: elite-company-crafting-discord-bot
+    releaseName: tech-with-women-discord-bot
     namespace: managed
     version: 0.70.0
     repo: https://chart.onechart.dev
