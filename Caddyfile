@@ -165,3 +165,7 @@ go.simonlefort.ch {
 techwithwomen-adminjs.androz2091.fr {
     reverse_proxy http://tech-with-women-discord-bot.managed.svc.cluster.local:80
 }
+
+changedetection.androz2091.fr {
+    reverse_proxy http://changedetection.home.svc.cluster.local:80
+}
