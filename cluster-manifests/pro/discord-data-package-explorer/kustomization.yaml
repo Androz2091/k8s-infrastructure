@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/discord-data-package-explorer
-        tag: sha-0d9e3cf
+        tag: sha-c71ba27
       ports:
       - svcPort: 80
         name: http
