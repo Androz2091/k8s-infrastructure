@@ -16,4 +16,14 @@ namespace: pro
 resources:
   - sealed-secrets.yaml
 
-patches: []
+patches:
+  - target:
+      version: v1
+      kind: Deployment
+      name: umami-analytics
+      namespace: pro
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/containers/0/readinessProbe
+      - op: remove
+        path: /spec/template/spec/containers/0/livenessProbe
