@@ -16,7 +16,7 @@ namespace: pro
 resources:
   - sealed-secrets.yaml
 
-patches:
+patchesJson6902:
   - target:
       version: v1
       kind: Deployment
