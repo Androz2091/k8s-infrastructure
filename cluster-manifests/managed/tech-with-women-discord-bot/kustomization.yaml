@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/tech-with-women
-        tag: db9675cb
+        tag: 8852f012
       secretName: tech-with-women-discord-bot-secrets
       ports:
       - svcPort: 80
