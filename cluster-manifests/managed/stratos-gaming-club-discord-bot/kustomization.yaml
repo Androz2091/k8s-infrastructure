@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/stratos-gaming-club-discord-bot
-        tag: dbb20046
+        tag: ceb3c255
       secretName: stratos-gaming-club-discord-bot-secrets
       ports:
       - svcPort: 80
