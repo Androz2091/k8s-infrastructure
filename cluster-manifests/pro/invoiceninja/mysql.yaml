@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoiceninja-mysql
+  namespace: pro
+  labels:
+    app: invoiceninja-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invoiceninja-mysql
+  template:
+    metadata:
+      labels:
+        app: invoiceninja-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          imagePullPolicy: IfNotPresent
+          
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: "ninja"
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_USERNAME
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_PASSWORD
+
+          ports:
+            - containerPort: 3306
+              name: mysql
+              protocol: TCP
+
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+
+          resources: {}
+
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: invoiceninja-mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoiceninja-mysql
+  namespace: pro
+  labels:
+    app: invoiceninja-mysql
+spec:
+  ports:
+    - port: 3306
+      protocol: TCP
+      targetPort: mysql
+  selector:
+    app: invoiceninja-mysql
+  type: ClusterIP

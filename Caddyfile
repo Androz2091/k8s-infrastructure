@@ -165,3 +165,7 @@ techwithwomen-adminjs.androz2091.fr {
 changedetection.androz2091.fr {
     reverse_proxy http://changedetection.home.svc.cluster.local:80
 }
+
+ninja.androz2091.fr {
+    reverse_proxy http://invoiceninja.pro.svc.cluster.local:80
+}

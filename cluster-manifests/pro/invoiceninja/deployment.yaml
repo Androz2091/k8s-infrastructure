@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoiceninja
+  namespace: pro
+  labels:
+    app: invoiceninja
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invoiceninja
+  template:
+    metadata:
+      labels:
+        app: invoiceninja
+    spec:
+      containers:
+        - name: invoiceninja
+          image: invoiceninja/invoiceninja:latest
+          imagePullPolicy: IfNotPresent
+          
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: APP_DEBUG
+              value: "0"
+            - name: APP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: APP_URL
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: APP_KEY
+            - name: APP_CIPHER
+              value: "AES-256-CBC"
+            - name: DB_TYPE
+              value: "mysql"
+            - name: DB_STRICT
+              value: "false"
+            - name: DB_HOST
+              value: "invoiceninja-mysql"
+            - name: DB_DATABASE
+              value: "ninja"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_PASSWORD
+
+          ports:
+            - containerPort: 9000
+              name: http
+              protocol: TCP
+
+          volumeMounts:
+            - name: invoiceninja-public
+              mountPath: /var/app/public
+            - name: invoiceninja-storage
+              mountPath: /var/app/storage
+
+          resources: {}
+
+      volumes:
+        - name: invoiceninja-public
+          persistentVolumeClaim:
+            claimName: invoiceninja-public-pvc
+        - name: invoiceninja-storage
+          persistentVolumeClaim:
+            claimName: invoiceninja-storage-pvc
