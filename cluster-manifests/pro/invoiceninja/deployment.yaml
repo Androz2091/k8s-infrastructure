@@ -15,6 +15,24 @@ spec:
       labels:
         app: invoiceninja
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: invoiceninja/invoiceninja:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              chown -R www-data:www-data /var/app/public /var/app/storage
+              find /var/app/public -type d -exec chmod 755 {} \;
+              find /var/app/storage -type d -exec chmod 755 {} \;
+              find /var/app/public -type f -exec chmod 644 {} \;
+              find /var/app/storage -type f -exec chmod 644 {} \;
+          volumeMounts:
+            - name: invoiceninja-public
+              mountPath: /var/app/public
+            - name: invoiceninja-storage
+              mountPath: /var/app/storage
+          securityContext:
+            runAsUser: 0
       containers:
         - name: invoiceninja
           image: invoiceninja/invoiceninja:latest

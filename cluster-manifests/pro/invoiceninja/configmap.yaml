@@ -6,32 +6,40 @@ metadata:
 data:
   default.conf: |
     server {
-        listen 80;
-        server_name _;
-        
-        root /var/app/public;
-        index index.php;
-        
-        client_max_body_size 100M;
-        
-        location / {
-            try_files $uri $uri/ /index.php?$query_string;
-        }
-        
-        location ~ \.php$ {
-            fastcgi_pass 127.0.0.1:9000;
-            fastcgi_index index.php;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            include fastcgi_params;
-            fastcgi_param PATH_INFO $fastcgi_path_info;
-        }
-        
-        location ~ /\.ht {
-            deny all;
-        }
-        
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
+
+      listen 80;
+      server_name ninja.androz2091.fr;
+      root /var/app/public;
+      index index.php index.html index.htm;
+      client_max_body_size 20M;
+
+      gzip on;
+      gzip_types      application/javascript application/x-javascript text/javascript text/plain application/xml application/json;
+      gzip_proxied    no-cache no-store private expired auth;
+      gzip_min_length 1000;
+
+      # Allow access to index.php
+      location = /index.php {
+          include snippets/fastcgi-php.conf;
+          fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+      }
+
+      # Block all other .php requests
+      location ~ \.php$ {
+          return 403;
+      }
+
+      location / {
+          try_files $uri $uri/ /index.php?$query_string;
+
+          # Add your rewrite rule for non-existent files
+          if (!-e $request_filename) {
+              rewrite ^(.+)$ /index.php?q=$1 last;
+          }
+      }
+
+      location ~ /\.ht {
+          deny all;
+      }
+
     }
