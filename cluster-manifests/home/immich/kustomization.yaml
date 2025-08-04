@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       useDeprecatedPostgresChart: true
       image:
-        tag: v1.132.1
+        tag: v1.133.0
       immich:
         persistence:
           library:
@@ -21,8 +21,8 @@ helmCharts:
       postgresql:
         enabled: true
         image:
-          repository: tensorchord/pgvecto-rs
-          tag: pg14-v0.2.0
+          repository: ghcr.io/immich-app/postgres
+          tag: 14-vectorchord0.3.0-pgvectors0.2.0
         global:
           postgresql:
             auth:
