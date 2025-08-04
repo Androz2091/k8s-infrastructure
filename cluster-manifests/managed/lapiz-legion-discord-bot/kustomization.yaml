@@ -1,0 +1,37 @@
+helmCharts:
+  - name: onechart
+    releaseName: lapiz-legion-discord-bot
+    namespace: managed
+    version: 0.70.0
+    repo: https://chart.onechart.dev
+    valuesInline:
+      image:
+        repository: harbor.androz2091.fr/fiverr-discord-bots/lapiz-legion
+        tag: c440d66d
+      secretName: lapiz-legion-discord-bot-secrets
+      sealedFileSecrets:
+      - name: google-creds
+        path: /app/google-creds.json
+        subPath: google-creds.json
+        filesToMount:
+          - name: google-creds.json
+            source: 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
+      imagePullSecrets:
+      - regcred
+      ports:
+      - svcPort: 80
+        name: http
+        containerPort: 3000
+      resources:
+        limits:
+          cpu: "2000m"
+          memory: "2000Mi"
+        requests:
+          cpu: "50m"
+
+namespace: managed
+
+resources:
+  - sealed-secrets.yaml
+
+patches: []
