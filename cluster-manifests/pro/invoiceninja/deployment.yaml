@@ -58,7 +58,7 @@ spec:
 
           ports:
             - containerPort: 9000
-              name: http
+              name: fpm
               protocol: TCP
 
           volumeMounts:
@@ -69,6 +69,25 @@ spec:
 
           resources: {}
 
+        - name: nginx
+          image: nginx:1.25-alpine
+          imagePullPolicy: IfNotPresent
+          
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+
+          volumeMounts:
+            - name: invoiceninja-public
+              mountPath: /var/app/public
+              readOnly: true
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+
+          resources: {}
+
       volumes:
         - name: invoiceninja-public
           persistentVolumeClaim:
@@ -76,3 +95,6 @@ spec:
         - name: invoiceninja-storage
           persistentVolumeClaim:
             claimName: invoiceninja-storage-pvc
+        - name: nginx-config
+          configMap:
+            name: invoiceninja-nginx-config
