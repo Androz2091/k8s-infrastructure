@@ -21,16 +21,16 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              chown -R www-data:www-data /var/app/public /var/app/storage
-              find /var/app/public -type d -exec chmod 755 {} \;
-              find /var/app/storage -type d -exec chmod 755 {} \;
-              find /var/app/public -type f -exec chmod 644 {} \;
-              find /var/app/storage -type f -exec chmod 644 {} \;
+              chown -R www-data:www-data /var/www/app/public /var/www/app/storage
+              find /var/www/app/public -type d -exec chmod 755 {} \;
+              find /var/www/app/storage -type d -exec chmod 755 {} \;
+              find /var/www/app/public -type f -exec chmod 644 {} \;
+              find /var/www/app/storage -type f -exec chmod 644 {} \;
           volumeMounts:
             - name: invoiceninja-public
-              mountPath: /var/app/public
+              mountPath: /var/www/app/public
             - name: invoiceninja-storage
-              mountPath: /var/app/storage
+              mountPath: /var/www/app/storage
           securityContext:
             runAsUser: 0
       containers:
@@ -83,9 +83,9 @@ spec:
 
           volumeMounts:
             - name: invoiceninja-public
-              mountPath: /var/app/public
+              mountPath: /var/www/app/public
             - name: invoiceninja-storage
-              mountPath: /var/app/storage
+              mountPath: /var/www/app/storage
 
           resources: {}
 
@@ -96,7 +96,7 @@ spec:
           args:
             - |
               while true; do
-                php /var/app/artisan schedule:run --verbose --no-interaction
+                php /var/www/app/artisan schedule:run --verbose --no-interaction
                 sleep 60
               done
           
@@ -140,9 +140,9 @@ spec:
 
           volumeMounts:
             - name: invoiceninja-public
-              mountPath: /var/app/public
+              mountPath: /var/www/app/public
             - name: invoiceninja-storage
-              mountPath: /var/app/storage
+              mountPath: /var/www/app/storage
 
           resources: {}
 
@@ -152,7 +152,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              php /var/app/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+              php /var/www/app/artisan queue:work --sleep=3 --tries=3 --max-time=3600
           
           env:
             - name: APP_ENV
@@ -194,9 +194,9 @@ spec:
 
           volumeMounts:
             - name: invoiceninja-public
-              mountPath: /var/app/public
+              mountPath: /var/www/app/public
             - name: invoiceninja-storage
-              mountPath: /var/app/storage
+              mountPath: /var/www/app/storage
 
           resources: {}
 
@@ -211,7 +211,7 @@ spec:
 
           volumeMounts:
             - name: invoiceninja-public
-              mountPath: /var/app/public
+              mountPath: /var/www/app/public
               readOnly: true
             - name: nginx-config
               mountPath: /etc/nginx/conf.d/default.conf

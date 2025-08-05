@@ -9,7 +9,7 @@ data:
 
       listen 80;
       server_name ninja.androz2091.fr;
-      root /var/app/public;
+      root /var/www/app/public;
       index index.php index.html index.htm;
       client_max_body_size 20M;
 
