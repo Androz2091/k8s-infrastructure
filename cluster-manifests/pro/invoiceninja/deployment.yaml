@@ -42,6 +42,8 @@ spec:
               value: "production"
             - name: APP_DEBUG
               value: "0"
+            - name: REQUIRE_HTTPS
+              value: "true"
             - name: APP_URL
               valueFrom:
                 secretKeyRef:
