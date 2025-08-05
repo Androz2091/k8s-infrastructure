@@ -21,11 +21,9 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
+              chown -R www-data:www-data /var/www/app
               chown -R www-data:www-data /var/www/app/public /var/www/app/storage
-              find /var/www/app/public -type d -exec chmod 755 {} \;
-              find /var/www/app/storage -type d -exec chmod 755 {} \;
-              find /var/www/app/public -type f -exec chmod 644 {} \;
-              find /var/www/app/storage -type f -exec chmod 644 {} \;
+              sudo find /var/www/app -type d -exec chmod 755 {} \;
           volumeMounts:
             - name: invoiceninja-public
               mountPath: /var/www/app/public
