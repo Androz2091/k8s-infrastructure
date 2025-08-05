@@ -35,7 +35,7 @@ spec:
         - name: invoiceninja
           image: invoiceninja/invoiceninja:latest
           imagePullPolicy: IfNotPresent
-          command: ["/bin/bash"]
+          command: ["/bin/sh"]
           args: ["-c", "sleep 999999"]
           env:
             - name: APP_ENV
