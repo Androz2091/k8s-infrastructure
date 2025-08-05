@@ -13,8 +13,8 @@ data:
       client_max_body_size 20M;
 
       gzip on;
-      gzip_types      application/javascript application/x-javascript text/javascript text/plain application/xml application/json;
-      gzip_proxied    no-cache no-store private expired auth;
+      gzip_types application/javascript application/x-javascript text/javascript text/plain application/xml application/json;
+      gzip_proxied no-cache no-store private expired auth;
       gzip_min_length 1000;
 
       location / {
@@ -23,8 +23,9 @@ data:
 
       location ~ \.php$ {
           include fastcgi_params;
-          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
           fastcgi_index index.php;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_param PATH_INFO $fastcgi_path_info;
           fastcgi_pass 127.0.0.1:9000;
       }
 
@@ -32,3 +33,4 @@ data:
           deny all;
       }
     }
+
