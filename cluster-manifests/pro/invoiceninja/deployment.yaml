@@ -73,11 +73,124 @@ spec:
                 secretKeyRef:
                   name: invoiceninja-secrets
                   key: DB_PASSWORD
+            - name: QUEUE_CONNECTION
+              value: "database"
 
           ports:
             - containerPort: 9000
               name: fpm
               protocol: TCP
+
+          volumeMounts:
+            - name: invoiceninja-public
+              mountPath: /var/app/public
+            - name: invoiceninja-storage
+              mountPath: /var/app/storage
+
+          resources: {}
+
+        - name: scheduler
+          image: invoiceninja/invoiceninja:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                php /var/app/artisan schedule:run --verbose --no-interaction
+                sleep 60
+              done
+          
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: APP_DEBUG
+              value: "0"
+            - name: APP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: APP_URL
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: APP_KEY
+            - name: APP_CIPHER
+              value: "AES-256-CBC"
+            - name: DB_TYPE
+              value: "mysql"
+            - name: DB_STRICT
+              value: "false"
+            - name: DB_HOST
+              value: "invoiceninja-mysql"
+            - name: DB_DATABASE
+              value: "ninja"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_PASSWORD
+            - name: QUEUE_CONNECTION
+              value: "database"
+
+          volumeMounts:
+            - name: invoiceninja-public
+              mountPath: /var/app/public
+            - name: invoiceninja-storage
+              mountPath: /var/app/storage
+
+          resources: {}
+
+        - name: queue-worker
+          image: invoiceninja/invoiceninja:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              php /var/app/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+          
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: APP_DEBUG
+              value: "0"
+            - name: APP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: APP_URL
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: APP_KEY
+            - name: APP_CIPHER
+              value: "AES-256-CBC"
+            - name: DB_TYPE
+              value: "mysql"
+            - name: DB_STRICT
+              value: "false"
+            - name: DB_HOST
+              value: "invoiceninja-mysql"
+            - name: DB_DATABASE
+              value: "ninja"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: DB_PASSWORD
+            - name: QUEUE_CONNECTION
+              value: "database"
 
           volumeMounts:
             - name: invoiceninja-public
@@ -104,7 +217,13 @@ spec:
               mountPath: /etc/nginx/conf.d/default.conf
               subPath: default.conf
 
-          resources: {}
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
 
       volumes:
         - name: invoiceninja-public
