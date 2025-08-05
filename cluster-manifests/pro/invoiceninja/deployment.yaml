@@ -43,7 +43,9 @@ spec:
             - name: APP_DEBUG
               value: "0"
             - name: REQUIRE_HTTPS
-              value: "true"
+              value: "false"
+            - name: TRUSTED_PROXIES
+              value: "*"
             - name: APP_URL
               valueFrom:
                 secretKeyRef:
