@@ -78,6 +78,46 @@ spec:
                   key: DB_PASSWORD
             - name: QUEUE_CONNECTION
               value: "database"
+            - name: MAIL_MAILER
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_MAILER
+            - name: MAIL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_HOST
+            - name: MAIL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_PORT
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_PASSWORD
+            - name: MAIL_ENCRYPTION
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_ENCRYPTION
+            - name: MAIL_FROM_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_FROM_ADDRESS
+            - name: MAIL_FROM_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_FROM_NAME
 
           ports:
             - containerPort: 9000
@@ -140,6 +180,46 @@ spec:
                   key: DB_PASSWORD
             - name: QUEUE_CONNECTION
               value: "database"
+            - name: MAIL_MAILER
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_MAILER
+            - name: MAIL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_HOST
+            - name: MAIL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_PORT
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_PASSWORD
+            - name: MAIL_ENCRYPTION
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_ENCRYPTION
+            - name: MAIL_FROM_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_FROM_ADDRESS
+            - name: MAIL_FROM_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_FROM_NAME
 
           volumeMounts:
             - name: invoiceninja-public
@@ -194,6 +274,46 @@ spec:
                   key: DB_PASSWORD
             - name: QUEUE_CONNECTION
               value: "database"
+            - name: MAIL_MAILER
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_MAILER
+            - name: MAIL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_HOST
+            - name: MAIL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_PORT
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_PASSWORD
+            - name: MAIL_ENCRYPTION
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_ENCRYPTION
+            - name: MAIL_FROM_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_FROM_ADDRESS
+            - name: MAIL_FROM_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: invoiceninja-secrets
+                  key: MAIL_FROM_NAME
 
           volumeMounts:
             - name: invoiceninja-public
