@@ -423,6 +423,12 @@ A **backup** is a snapshot that is stored outside of the cluster. It's stored in
 
 ### Troubleshooting
 
+#### Prometheus KubeClientCertificateExpiration
+
+This usually happens when the internal Kubernetes API server's certificate is about to expire. You can check the expiration date with the following command: `sudo kubeadm certs check-expiration`.
+
+If it's about to expire, run `sudo kubeadm certs renew all`. Then use `sudo systemctl restart kubelet` to restart the pods!
+
 #### OpenSSL error
 
 Understand why sometimes requests are terminated by a SSL error (1/5 requests for some services):
