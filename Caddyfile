@@ -173,3 +173,7 @@ changedetection.androz2091.fr {
 ninja.androz2091.fr {
     reverse_proxy http://invoiceninja.pro.svc.cluster.local:80
 }
+
+gitpod.androz2091.fr {
+    reverse_proxy http://gitpod-server.pro.svc.cluster.local:80
+}

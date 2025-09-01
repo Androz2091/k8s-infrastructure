@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitpod-server
+  namespace: pro
+  labels:
+    app: gitpod-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hgitpod-server
+  template:
+    metadata:
+      labels:
+        app: hgitpod-server
+    spec:
+      containers:
+        - name: gitpod-server
+          image: gitpod/openvscode-server:1.103.1
+          imagePullPolicy: IfNotPresent
+          
+          # Override the entrypoint to add connection token
+          args:
+            - "--connection-token"
+            - "$(CONNECTION_TOKEN)"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "3000"
+
+          env:
+            - name: CONNECTION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitpod-server-secrets
+                  key: CONNECTION_TOKEN
+
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+
+          volumeMounts:
+            - name: workspace
+              mountPath: /home/workspace
+
+          resources: {}
+      
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: gitpod-server-workspace-pvc
