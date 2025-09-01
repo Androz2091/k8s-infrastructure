@@ -15,17 +15,31 @@ spec:
       labels:
         app: hgitpod-server
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              mkdir -p /home/workspace
+              chown -R 1001:1001 /home/workspace
+              chmod -R 755 /home/workspace
+          volumeMounts:
+            - name: workspace
+              mountPath: /home/workspace
+          securityContext:
+            runAsUser: 0
+
       containers:
         - name: gitpod-server
           image: gitpod/openvscode-server:1.103.1
           imagePullPolicy: IfNotPresent
           
           # Override the entrypoint to add connection token
+          # Note: Don't specify --host here as it may conflict with default entrypoint
           args:
             - "--connection-token"
             - "$(CONNECTION_TOKEN)"
-            - "--host"
-            - "0.0.0.0"
             - "--port"
             - "3000"
 
@@ -44,6 +58,11 @@ spec:
           volumeMounts:
             - name: workspace
               mountPath: /home/workspace
+
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            fsGroup: 1001
 
           resources: {}
       
