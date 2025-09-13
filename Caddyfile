@@ -177,3 +177,7 @@ ninja.androz2091.fr {
 gitpod.androz2091.fr {
     reverse_proxy http://gitpod-server.pro.svc.cluster.local:80
 }
+
+tailo.androz2091.fr {
+    reverse_proxy http://tailo.pro.svc.cluster.local:80
+}
