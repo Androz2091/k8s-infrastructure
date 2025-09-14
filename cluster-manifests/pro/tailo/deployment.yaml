@@ -15,6 +15,16 @@ spec:
       labels:
         app: tailo
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.35
+          command: ['sh', '-c', 'chown -R 1000:1000 /app/data && chmod -R 755 /app/data']
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
       containers:
         - name: tailo
           image: androz2091/tailo:main
