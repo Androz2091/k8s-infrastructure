@@ -81,7 +81,7 @@ spec:
 
           volumeMounts:
             - name: data-volume
-              mountPath: /app
+              mountPath: /app/data
               
           securityContext:
             runAsNonRoot: true
