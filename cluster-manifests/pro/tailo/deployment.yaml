@@ -15,16 +15,11 @@ spec:
       labels:
         app: tailo
     spec:
-      initContainers:
-        - name: fix-permissions
-          image: busybox:1.35
-          command: ['sh', '-c', 'chown -R 1000:1000 /app/data && chmod -R 755 /app/data']
-          volumeMounts:
-            - name: data-volume
-              mountPath: /app/data
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
       containers:
         - name: tailo
           image: androz2091/tailo:main
@@ -92,24 +87,8 @@ spec:
           volumeMounts:
             - name: data-volume
               mountPath: /app/data
-              
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
-            capabilities:
-              drop:
-                - ALL
 
       volumes:
         - name: data-volume
           persistentVolumeClaim:
             claimName: tailo-data
-
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
