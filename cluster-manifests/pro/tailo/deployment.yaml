@@ -20,6 +20,23 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         runAsNonRoot: true
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.35
+          command: 
+            - sh
+            - -c
+            - |
+              chmod -R 755 /app/data
+              chown -R 1000:1000 /app/data || true
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
       containers:
         - name: tailo
           image: androz2091/tailo:main

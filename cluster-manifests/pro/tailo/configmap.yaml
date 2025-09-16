@@ -6,6 +6,6 @@ metadata:
   labels:
     app: tailo
 data:
-  DATABASE_URL: "file:./data/dev.db"
+  DATABASE_URL: "file:/app/data/dev.db"
   NODE_ENV: "production"
   NEXTAUTH_URL: "https://tailo.androz2091.fr"
