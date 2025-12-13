@@ -27,6 +27,8 @@ spec:
               value: "1000"
             - name: TZ
               value: "Europe/Paris"
+            - name: TRANS_DIR
+              value: /transcode
 
           ports:
             - containerPort: 32400
@@ -40,8 +42,14 @@ spec:
               mountPath: /data
             - name: plex-config-v
               mountPath: /config
+            - name: transcode
+              mountPath: /transcode
 
       volumes:
+        - name: transcode
+          emptyDir:
+            medium: Memory
+            sizeLimit: "12Gi"
         - name: servarr-data-v
           persistentVolumeClaim:
             claimName: servarr-data-pvc
