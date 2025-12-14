@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/forward-wh-discord-bot
-        tag: sha-07f4c40
+        tag: sha-01fc595
       sealedFileSecrets:
       - name: config
         path: /opt/app/config.json
