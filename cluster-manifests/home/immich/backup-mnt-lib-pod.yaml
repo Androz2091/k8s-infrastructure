@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backup-mnt-lib-pod
+  namespace: home
+spec:
+  containers:
+  - name: debug
+    image: busybox:latest
+    command:
+      - sleep
+      - "infinity"
+    volumeMounts:
+    - name: immich-library
+      mountPath: /mnt/library
+  volumes:
+  - name: immich-library
+    persistentVolumeClaim:
+      claimName: immich-library-pvc
