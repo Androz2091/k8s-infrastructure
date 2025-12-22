@@ -49,5 +49,6 @@ namespace: home
 
 resources:
   - pvc.yaml
+  - backup-mnt-lib-pod.yaml
 
 patches: []
