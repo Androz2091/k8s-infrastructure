@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backup-mnt-data-pod
+  namespace: home
+spec:
+  containers:
+  - name: debug
+    image: busybox:latest
+    command:
+      - sleep
+      - "infinity"
+    volumeMounts:
+    - name: paperless-data
+      mountPath: /mnt/data
+  volumes:
+  - name: paperless-data
+    persistentVolumeClaim:
+      claimName: paperless-data
