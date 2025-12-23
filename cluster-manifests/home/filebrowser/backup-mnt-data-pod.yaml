@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: backup-mnt-data-pod
+  name: backup-filebrowser-mnt-data-pod
   namespace: home
 spec:
   containers:

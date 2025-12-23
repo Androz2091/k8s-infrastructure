@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: backup-mnt-lib-pod
+  name: backup-immich-mnt-lib-pod
   namespace: home
 spec:
   containers:
