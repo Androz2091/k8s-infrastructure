@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: backup-paperless-mnt-data-pod
+  name: backup-paperless-mnt-media-pod
   namespace: home
 spec:
   containers:
@@ -11,9 +11,9 @@ spec:
       - sleep
       - "infinity"
     volumeMounts:
-    - name: paperless-data
-      mountPath: /mnt/data
+    - name: paperless-media
+      mountPath: /mnt/media
   volumes:
-  - name: paperless-data
+  - name: paperless-media
     persistentVolumeClaim:
-      claimName: paperless-data
+      claimName: paperless-media
