@@ -87,10 +87,6 @@ monica.androz2091.fr {
     reverse_proxy http://monica.home.svc.cluster.local:80
 }
 
-pdf.androz2091.fr {
-    reverse_proxy http://stirling-pdf.pro.svc.cluster.local:80
-}
-
 prometheus-grafana.androz2091.fr {
     reverse_proxy http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
 }
@@ -120,10 +116,6 @@ h5ai-servarr.androz2091.fr {
     reverse_proxy http://h5ai-servarr.sushiflix.svc.cluster.local:80
 }
 
-lapiz-legion-adminjs.androz2091.fr {
-    reverse_proxy http://lapiz-legion-discord-bot.managed.svc.cluster.local:80
-}
-
 jellyfin.androz2091.fr {
     reverse_proxy http://jellyfin.sushiflix.svc.cluster.local:80
 }
@@ -145,11 +137,6 @@ stratos-gaming-club-adminjs.androz2091.fr {
     redir / /admin
 }
 
-clip-city-adminjs.androz2091.fr {
-    reverse_proxy http://clip-city-discord-bot.managed.svc.cluster.local:80
-    redir / /admin
-}
-
 theproptrade-adminjs.androz2091.fr {
     reverse_proxy http://theproptrade-giveaways-discord-bot.managed.svc.cluster.local:80
 }
@@ -162,22 +149,10 @@ go.simonlefort.ch {
     reverse_proxy http://shlink.home.svc.cluster.local:80
 }
 
-techwithwomen-adminjs.androz2091.fr {
-    reverse_proxy http://tech-with-women-discord-bot.managed.svc.cluster.local:80
-}
-
 changedetection.androz2091.fr {
     reverse_proxy http://changedetection.home.svc.cluster.local:80
 }
 
 ninja.androz2091.fr {
     reverse_proxy http://invoiceninja.pro.svc.cluster.local:80
-}
-
-gitpod.androz2091.fr {
-    reverse_proxy http://gitpod-server.pro.svc.cluster.local:80
-}
-
-tailo.androz2091.fr {
-    reverse_proxy http://tailo.pro.svc.cluster.local:80
 }
