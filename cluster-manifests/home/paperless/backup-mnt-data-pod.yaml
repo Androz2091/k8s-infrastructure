@@ -4,12 +4,20 @@ metadata:
   name: backup-paperless-mnt-media-pod
   namespace: home
 spec:
+  priorityClassName: system-cluster-critical
   containers:
   - name: debug
     image: busybox:latest
     command:
       - sleep
       - "infinity"
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
     volumeMounts:
     - name: paperless-media
       mountPath: /mnt/media
