@@ -9,6 +9,9 @@ helmCharts:
       namespaceOverride: monitoring
       kubeControllerManager:
         enabled: false
+      kube-state-metrics:
+        image:
+          tag: v2.14.0
       kubeProxy:
         # see https://stackoverflow.com/questions/73031228/getting-kubecontrollermanager-kubeproxy-kubescheduler-down-alert-in-kube-prome
         enabled: false
