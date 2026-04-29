@@ -2,7 +2,7 @@ helmCharts:
   - name: umami
     releaseName: umami-analytics
     namespace: pro
-    version: 4.7.12
+    version: 7.9.0
     repo: https://christianhuth.github.io/helm-charts
     valuesInline:
       postgresql:
