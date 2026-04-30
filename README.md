@@ -118,6 +118,24 @@ kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt --raw --from-
 kubeseal --recovery-unseal --recovery-private-key ~/private.key -o yaml < sealed-secrets.yaml
 ```
 
+### Upgrade Umami
+
+Umami runs Prisma migrations on container startup. Long data backfills (such as `09_update_hostname_region` which copies hostname from `session` to `website_event`) can be killed by the startup probe, leaving `_prisma_migrations` rows marked failed and a partially applied schema. Future Prisma startups then refuse to proceed with error `P3009`.
+
+Before bumping the chart, scale the deployment to 0 and run any data-heavy migration as a one-shot pod so it cannot be killed by probes:
+
+```sh
+kubectl -n pro scale deploy umami-analytics --replicas=0
+DB_URL=$(kubectl -n pro get secret umami-analytics-secrets -o jsonpath='{.data.DATABASE_URL}' | base64 -d)
+kubectl run umami-migrate --rm -it -n pro \
+  --image=ghcr.io/umami-software/umami:postgresql-vX.Y.Z \
+  --restart=Never --env="DATABASE_URL=$DB_URL" \
+  --command -- npx prisma migrate deploy
+kubectl -n pro scale deploy umami-analytics --replicas=1
+```
+
+If a previous attempt left a failed migration, inspect schema state by hand (columns, indexes, `_prisma_migrations` rows), finish any missing SQL manually, then mark the migration applied with `npx prisma migrate resolve --applied <migration_name>` from the same one-shot pod.
+
 ### Setup Sushiflix
 
 The Plex server has to be accessed locally to be claimed. Use port forwarding to access it first. Then we need to specify the custom domain name in the server network settings (advanced), and specify `plex.androz2091.fr`. Otherwise it will try to load data from `server-ip:32400` or even `cluster-ip:32400` which is not securely accessible.
