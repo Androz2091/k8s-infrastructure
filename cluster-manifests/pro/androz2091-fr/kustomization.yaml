@@ -7,11 +7,11 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/androz2091-fr
-        tag: sha-9739a18
+        tag: sha-9ed0f36
       ports:
-      - svcPort: 80
-        name: http
-        containerPort: 80
+        - svcPort: 80
+          name: http
+          containerPort: 80
       resources:
         limits:
           cpu: "2000m"
