@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bonds
+  namespace: home
+  labels:
+    app: bonds
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: bonds
+  template:
+    metadata:
+      labels:
+        app: bonds
+    spec:
+      containers:
+        - name: bonds
+          image: harbor.androz2091.fr/personal/bonds:latest
+          imagePullPolicy: Always
+
+          env:
+            - name: APP_ENV
+              value: production
+            - name: APP_URL
+              value: https://bonds.androz2091.fr
+            - name: SERVER_HOST
+              value: 0.0.0.0
+            - name: SERVER_PORT
+              value: "8080"
+            - name: DB_DRIVER
+              value: postgres
+            - name: STORAGE_UPLOAD_DIR
+              value: /app/data/uploads
+            - name: BLEVE_INDEX_PATH
+              value: /app/data/bonds.bleve
+            - name: BACKUP_DIR
+              value: /app/data/backups
+            - name: BACKUP_CRON
+              value: "0 2 * * *"
+            - name: BACKUP_RETENTION
+              value: "30"
+          envFrom:
+            - secretRef:
+                name: bonds-secrets
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+
+          livenessProbe:
+            httpGet:
+              path: /api/instance/info
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /api/instance/info
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: bonds-data
