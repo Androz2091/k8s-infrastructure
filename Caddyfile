@@ -30,6 +30,10 @@ vault.androz2091.fr {
     reverse_proxy http://vaultwarden.home.svc.cluster.local:80
 }
 
+bonds.androz2091.fr {
+    reverse_proxy http://bonds.home.svc.cluster.local:80
+}
+
 sabnzbd.androz2091.fr {
     reverse_proxy http://sabnzbd.sushiflix.svc.cluster.local:80
 }
