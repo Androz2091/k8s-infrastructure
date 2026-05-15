@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: bonds
-          image: harbor.androz2091.fr/personal/bonds:latest
+          image: docker.io/androz2091/bonds:simon-version
           imagePullPolicy: Always
 
           env:
