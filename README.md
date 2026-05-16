@@ -77,6 +77,8 @@ These services used to be public but were removed from the `Caddyfile` for secur
 | Sonarr | http://localhost:8084 | `kubectl -n sushiflix port-forward svc/sonarr 8084:80` |
 | SABnzbd | http://localhost:8085 | `kubectl -n sushiflix port-forward svc/sabnzbd 8085:80` |
 | Tautulli | http://localhost:8086 | `kubectl -n sushiflix port-forward svc/tautulli 8086:80` |
+| changedetection | http://localhost:8087 | `kubectl -n home port-forward svc/changedetection 8087:80` |
+| Monica | http://localhost:8088 | `kubectl -n home port-forward svc/monica 8088:80` |
 
 ### Enter a pod
 
