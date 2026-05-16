@@ -1,21 +1,15 @@
-argocd.androz2091.fr {
-    reverse_proxy http://argocd-server.argocd.svc.cluster.local:80
+(adminjs_auth) {
+    basicauth {
+        admin $2y$12$.T3FhLVeNE9qKmushm9MH.s4/ZoxJNqDdyyA2Jwjz2H.VTaD.3Yo6
+    }
 }
 
 tagger.androz2091.fr, timetagger.androz2091.fr {
     reverse_proxy http://timetagger.home.svc.cluster.local:80
 }
 
-pgadmin.androz2091.fr {
-    reverse_proxy http://pgadmin-pgadmin4.db.svc.cluster.local:80
-}
-
 plex.androz2091.fr:32400, plex.androz2091.fr {
     reverse_proxy http://plex.sushiflix.svc.cluster.local:80
-}
-
-radarr.androz2091.fr {
-    reverse_proxy http://radarr.sushiflix.svc.cluster.local:80
 }
 
 harbor.androz2091.fr {
@@ -34,31 +28,27 @@ bonds.androz2091.fr {
     reverse_proxy http://bonds.home.svc.cluster.local:80
 }
 
-sabnzbd.androz2091.fr {
-    reverse_proxy http://sabnzbd.sushiflix.svc.cluster.local:80
-}
-
-tautulli.androz2091.fr {
-    reverse_proxy http://tautulli.sushiflix.svc.cluster.local:80
-}
-
 qbt.androz2091.fr {
     reverse_proxy http://qbittorrent.sushiflix.svc.cluster.local:80
 }
 
 kolc-adminjs.androz2091.fr {
+    import adminjs_auth
     reverse_proxy http://kolc-discord-bot.managed.svc.cluster.local:80
 }
 
 evolution-markets-adminjs.androz2091.fr {
+    import adminjs_auth
     reverse_proxy http://evolution-markets-discord-bot.managed.svc.cluster.local:80
 }
 
 10mans-adminjs.androz2091.fr {
+    import adminjs_auth
     reverse_proxy http://ten-mans-discord-bot.managed.svc.cluster.local:80
 }
 
 pokercode-quiz-adminjs.androz2091.fr {
+    import adminjs_auth
     reverse_proxy http://pokercode-quiz-discord-bot.managed.svc.cluster.local:80
 }
 
@@ -89,10 +79,6 @@ haste.androz2091.fr {
 
 monica.androz2091.fr {
     reverse_proxy http://monica.home.svc.cluster.local:80
-}
-
-prometheus-grafana.androz2091.fr {
-    reverse_proxy http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
 }
 
 photos.androz2091.fr {
@@ -128,20 +114,18 @@ overseerr.androz2091.fr {
     reverse_proxy http://overseerr.sushiflix.svc.cluster.local:80
 }
 
-sonarr.androz2091.fr {
-    reverse_proxy http://sonarr.sushiflix.svc.cluster.local:80
-}
-
 documents.androz2091.fr {
     reverse_proxy http://paperless.home.svc.cluster.local:80
 }
 
 stratos-gaming-club-adminjs.androz2091.fr {
+    import adminjs_auth
     reverse_proxy http://stratos-gaming-club-discord-bot.managed.svc.cluster.local:80
     redir / /admin
 }
 
 theproptrade-adminjs.androz2091.fr {
+    import adminjs_auth
     reverse_proxy http://theproptrade-giveaways-discord-bot.managed.svc.cluster.local:80
 }
 
