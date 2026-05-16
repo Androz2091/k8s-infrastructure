@@ -4,6 +4,12 @@
     }
 }
 
+(personal_auth) {
+    basicauth {
+        admin $2y$12$Xi5yYKOnTrbRiX8LsjC3aOFIU3DE7aus9ojRwFHnxFi1iPFrCzTny
+    }
+}
+
 tagger.androz2091.fr, timetagger.androz2091.fr {
     reverse_proxy http://timetagger.home.svc.cluster.local:80
 }
@@ -77,10 +83,6 @@ haste.androz2091.fr {
     reverse_proxy http://haste-server.pro.svc.cluster.local:80
 }
 
-monica.androz2091.fr {
-    reverse_proxy http://monica.home.svc.cluster.local:80
-}
-
 photos.androz2091.fr {
     reverse_proxy http://immich-server.home.svc.cluster.local:2283
 }
@@ -115,6 +117,7 @@ overseerr.androz2091.fr {
 }
 
 documents.androz2091.fr {
+    import personal_auth
     reverse_proxy http://paperless.home.svc.cluster.local:80
 }
 
@@ -135,10 +138,6 @@ pdfding.androz2091.fr {
 
 go.simonlefort.ch {
     reverse_proxy http://shlink.home.svc.cluster.local:80
-}
-
-changedetection.androz2091.fr {
-    reverse_proxy http://changedetection.home.svc.cluster.local:80
 }
 
 ninja.androz2091.fr {
