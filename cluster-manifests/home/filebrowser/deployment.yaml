@@ -17,6 +17,11 @@ spec:
       labels:
         app: filebrowser
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: filebrowser
           image: filebrowser/filebrowser:v2.63.3
