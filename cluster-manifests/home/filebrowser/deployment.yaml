@@ -7,6 +7,8 @@ metadata:
     app: filebrowser
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: filebrowser
@@ -17,14 +19,12 @@ spec:
     spec:
       containers:
         - name: filebrowser
-          image: hurlenko/filebrowser:v2.31.2
+          image: filebrowser/filebrowser:v2.63.3
           imagePullPolicy: IfNotPresent
-          # command: ["/bin/bash"]
-          # args: ["-c", "sleep 999999"]
-
-          # env:
-          #   - name: ROCKET_PORT
-          #     value: "4000"
+          args:
+            - --port=8080
+            - --root=/srv
+            - --database=/database/filebrowser.db
 
           ports:
             - containerPort: 8080
@@ -35,9 +35,9 @@ spec:
 
           volumeMounts:
             - name: filebrowser-data-v
-              mountPath: /data
+              mountPath: /srv
             - name: filebrowser-config-v
-              mountPath: /config
+              mountPath: /database
 
       volumes:
         - name: filebrowser-data-v
