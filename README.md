@@ -35,6 +35,20 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 
 ## 📜 Wiki
 
+### Postgres roles
+
+Each app in the shared `db/postgresql` connects with its own role, scoped to its own database(s). Never use the `postgres` superuser from a workload.
+
+| Role        | Used by |
+|-------------|---------|
+| `bots`      | All `managed/*` Discord bots + `pro/manage-invite-bot` |
+| `haste`     | `pro/haste-server` |
+| `umami`     | `pro/umami-analytics` |
+| `monica`    | `home/monica` |
+| `shlink`    | `home/shlink` |
+| `paperless` | `home/paperless` |
+| `bonds`     | `home/bonds` |
+
 ### Create a new sealed secret
 
 Create a new secret (the simplest way is to use `stringData`).
