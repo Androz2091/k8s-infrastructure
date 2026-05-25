@@ -33,7 +33,7 @@ spec:
             runAsUser: 0
       containers:
         - name: invoiceninja
-          image: invoiceninja/invoiceninja:latest
+          image: invoiceninja/invoiceninja:5.13
           imagePullPolicy: IfNotPresent
           # command: ["/bin/sh"]
           # args: ["-c", "sleep 999999"]
