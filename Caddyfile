@@ -34,6 +34,17 @@ bonds.androz2091.fr {
     reverse_proxy http://bonds.home.svc.cluster.local:80
 }
 
+superwaymo.androz2091.fr {
+    import personal_auth
+    # /api/* → the node API (flush_interval -1 keeps the area-scan NDJSON stream live);
+    # everything else → the static React/Radix UI. SuperWaymo has no auth of its own —
+    # this basicauth is the only gate.
+    reverse_proxy /api/* http://superwaymo-api.home.svc.cluster.local:80 {
+        flush_interval -1
+    }
+    reverse_proxy http://superwaymo-ui.home.svc.cluster.local:80
+}
+
 qbt.androz2091.fr {
     reverse_proxy http://qbittorrent.sushiflix.svc.cluster.local:80
 }

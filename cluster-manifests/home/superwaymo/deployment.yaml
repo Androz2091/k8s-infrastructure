@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superwaymo-api
+  namespace: home
+  labels:
+    app: superwaymo-api
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: superwaymo-api
+  template:
+    metadata:
+      labels:
+        app: superwaymo-api
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: api
+          image: harbor.androz2091.fr/superwaymo/api:latest
+          imagePullPolicy: Always
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "8787"
+          envFrom:
+            - secretRef:
+                name: superwaymo-secrets
+                optional: true
+          ports:
+            - containerPort: 8787
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 5
+          resources:
+            requests: { cpu: 25m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superwaymo-ui
+  namespace: home
+  labels:
+    app: superwaymo-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: superwaymo-ui
+  template:
+    metadata:
+      labels:
+        app: superwaymo-ui
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: ui
+          image: harbor.androz2091.fr/superwaymo/ui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { cpu: 200m, memory: 128Mi }
