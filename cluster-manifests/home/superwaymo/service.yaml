@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: superwaymo-api
+  namespace: home
+  labels:
+    app: superwaymo-api
+spec:
+  type: ClusterIP
+  selector:
+    app: superwaymo-api
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superwaymo-ui
+  namespace: home
+  labels:
+    app: superwaymo-ui
+spec:
+  type: ClusterIP
+  selector:
+    app: superwaymo-ui
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
