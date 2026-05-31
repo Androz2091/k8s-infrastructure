@@ -1,11 +1,11 @@
 (adminjs_auth) {
-    basicauth {
+    basic_auth {
         admin $2y$12$.T3FhLVeNE9qKmushm9MH.s4/ZoxJNqDdyyA2Jwjz2H.VTaD.3Yo6
     }
 }
 
 (personal_auth) {
-    basicauth {
+    basic_auth {
         admin $2y$12$Xi5yYKOnTrbRiX8LsjC3aOFIU3DE7aus9ojRwFHnxFi1iPFrCzTny
     }
 }
@@ -38,7 +38,7 @@ superwaymo.androz2091.fr {
     import personal_auth
     # /api/* → the node API (flush_interval -1 keeps the area-scan NDJSON stream live);
     # everything else → the static React/Radix UI. SuperWaymo has no auth of its own —
-    # this basicauth is the only gate.
+    # this basic_auth is the only gate.
     reverse_proxy /api/* http://superwaymo-api.home.svc.cluster.local:80 {
         flush_interval -1
     }
