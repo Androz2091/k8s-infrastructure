@@ -1,0 +1,19 @@
+cluster-manifests/home/paperless/sealed-secrets.yaml
+  s_39520670babe7f::t_786cef53b7d376 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "52dd302d71edc2f825161efb21bba872e910852d",
+  "prompts": {},
+  "sessions": {
+    "s_39520670babe7f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4f02362-a803-44fb-b37f-10e5432049a5",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "androz2091 <androz2091@gmail.com>"
+    }
+  }
+}
