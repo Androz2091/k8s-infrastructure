@@ -4,9 +4,9 @@
     }
 }
 
-(personal_auth) {
-    basic_auth {
-        admin $2y$12$Xi5yYKOnTrbRiX8LsjC3aOFIU3DE7aus9ojRwFHnxFi1iPFrCzTny
+(tinyauth_auth) {
+    forward_auth tinyauth.home.svc.cluster.local:3000 {
+        uri /api/auth/caddy
     }
 }
 
@@ -35,10 +35,10 @@ bonds.androz2091.fr {
 }
 
 superwaymo.androz2091.fr {
-    import personal_auth
+    import tinyauth_auth
     # /api/* → the node API (flush_interval -1 keeps the area-scan NDJSON stream live);
     # everything else → the static React/Radix UI. SuperWaymo has no auth of its own —
-    # this basic_auth is the only gate.
+    # tinyauth is the only gate.
     reverse_proxy /api/* http://superwaymo-api.home.svc.cluster.local:80 {
         flush_interval -1
     }
@@ -127,8 +127,12 @@ overseerr.androz2091.fr {
     reverse_proxy http://overseerr.sushiflix.svc.cluster.local:80
 }
 
+auth.androz2091.fr {
+    reverse_proxy http://tinyauth.home.svc.cluster.local:3000
+}
+
 documents.androz2091.fr {
-    import personal_auth
+    import tinyauth_auth
     reverse_proxy http://paperless.home.svc.cluster.local:80
 }
 
