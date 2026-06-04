@@ -1,5 +1,5 @@
 (adminjs_auth) {
-    basicauth {
+    basic_auth {
         admin $2y$12$.T3FhLVeNE9qKmushm9MH.s4/ZoxJNqDdyyA2Jwjz2H.VTaD.3Yo6
     }
 }
@@ -32,6 +32,17 @@ vault.androz2091.fr {
 
 bonds.androz2091.fr {
     reverse_proxy http://bonds.home.svc.cluster.local:80
+}
+
+superwaymo.androz2091.fr {
+    import tinyauth_auth
+    # /api/* → the node API (flush_interval -1 keeps the area-scan NDJSON stream live);
+    # everything else → the static React/Radix UI. SuperWaymo has no auth of its own —
+    # tinyauth is the only gate.
+    reverse_proxy /api/* http://superwaymo-api.home.svc.cluster.local:80 {
+        flush_interval -1
+    }
+    reverse_proxy http://superwaymo-ui.home.svc.cluster.local:80
 }
 
 qbt.androz2091.fr {
