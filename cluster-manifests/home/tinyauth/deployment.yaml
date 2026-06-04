@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinyauth
+  namespace: home
+  labels:
+    app: tinyauth
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tinyauth
+  template:
+    metadata:
+      labels:
+        app: tinyauth
+    spec:
+      containers:
+        - name: tinyauth
+          image: ghcr.io/steveiliop56/tinyauth:v5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: TINYAUTH_APPURL
+              value: "https://auth.androz2091.fr"
+            - name: TINYAUTH_DATABASE_PATH
+              value: "/data/tinyauth.db"
+          envFrom:
+            - secretRef:
+                name: tinyauth-secrets
+          volumeMounts:
+            - name: tinyauth-data
+              mountPath: /data
+      volumes:
+        - name: tinyauth-data
+          persistentVolumeClaim:
+            claimName: tinyauth-data

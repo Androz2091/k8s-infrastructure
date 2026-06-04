@@ -4,9 +4,9 @@
     }
 }
 
-(personal_auth) {
-    basicauth {
-        admin $2y$12$Xi5yYKOnTrbRiX8LsjC3aOFIU3DE7aus9ojRwFHnxFi1iPFrCzTny
+(tinyauth_auth) {
+    forward_auth tinyauth.home.svc.cluster.local:3000 {
+        uri /api/auth/caddy
     }
 }
 
@@ -116,8 +116,12 @@ overseerr.androz2091.fr {
     reverse_proxy http://overseerr.sushiflix.svc.cluster.local:80
 }
 
+auth.androz2091.fr {
+    reverse_proxy http://tinyauth.home.svc.cluster.local:3000
+}
+
 documents.androz2091.fr {
-    import personal_auth
+    import tinyauth_auth
     reverse_proxy http://paperless.home.svc.cluster.local:80
 }
 
