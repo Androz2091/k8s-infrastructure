@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: tinyauth
-          image: ghcr.io/steveiliop56/tinyauth:v5
+          image: ghcr.io/tinyauthapp/tinyauth:v5
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
