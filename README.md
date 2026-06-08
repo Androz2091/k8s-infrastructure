@@ -88,8 +88,6 @@ Cluster-admin and DB-direct services that stay off the public internet. Port-for
 | pgAdmin | http://localhost:8081 | `kubectl -n db port-forward svc/pgadmin-pgadmin4 8081:80` |
 | SABnzbd | http://localhost:8085 | `kubectl -n sushiflix port-forward svc/sabnzbd 8085:80` |
 
-Other formerly-internal services (Grafana, Radarr, Sonarr, Tautulli, changedetection, Monica) are now exposed publicly behind [tinyauth](https://tinyauth.app) — see the `tinyauth_auth` snippet in the `Caddyfile`.
-
 ### Enter a pod
 
 ```sh
