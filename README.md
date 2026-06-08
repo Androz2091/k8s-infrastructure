@@ -80,19 +80,15 @@ kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port`
 
 ### Internal-only services (port-forward to access)
 
-These services used to be public but were removed from the `Caddyfile` for security. Port-forward them locally to access:
+Cluster-admin and DB-direct services that stay off the public internet. Port-forward them locally to access:
 
 | Service | URL after forwarding | Command |
 |---|---|---|
 | Argo CD | http://localhost:8080 | `kubectl -n argocd port-forward svc/argocd-server 8080:80` |
 | pgAdmin | http://localhost:8081 | `kubectl -n db port-forward svc/pgadmin-pgadmin4 8081:80` |
-| Grafana | http://localhost:8082 | `kubectl -n monitoring port-forward svc/kube-prometheus-stack-grafana 8082:80` |
-| Radarr | http://localhost:8083 | `kubectl -n sushiflix port-forward svc/radarr 8083:80` |
-| Sonarr | http://localhost:8084 | `kubectl -n sushiflix port-forward svc/sonarr 8084:80` |
 | SABnzbd | http://localhost:8085 | `kubectl -n sushiflix port-forward svc/sabnzbd 8085:80` |
-| Tautulli | http://localhost:8086 | `kubectl -n sushiflix port-forward svc/tautulli 8086:80` |
-| changedetection | http://localhost:8087 | `kubectl -n home port-forward svc/changedetection 8087:80` |
-| Monica | http://localhost:8088 | `kubectl -n home port-forward svc/monica 8088:80` |
+
+Other formerly-internal services (Grafana, Radarr, Sonarr, Tautulli, changedetection, Monica) are now exposed publicly behind [tinyauth](https://tinyauth.app) — see the `tinyauth_auth` snippet in the `Caddyfile`.
 
 ### Enter a pod
 
