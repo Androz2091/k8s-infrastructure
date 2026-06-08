@@ -158,3 +158,33 @@ go.simonlefort.ch {
 ninja.androz2091.fr {
     reverse_proxy http://invoiceninja.pro.svc.cluster.local:80
 }
+
+changedetection.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://changedetection.home.svc.cluster.local:80
+}
+
+monica.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://monica.home.svc.cluster.local:80
+}
+
+prometheus-grafana.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
+}
+
+radarr.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://radarr.sushiflix.svc.cluster.local:80
+}
+
+sonarr.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://sonarr.sushiflix.svc.cluster.local:80
+}
+
+tautulli.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://tautulli.sushiflix.svc.cluster.local:80
+}
