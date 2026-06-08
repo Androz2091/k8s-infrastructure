@@ -30,6 +30,8 @@ spec:
               value: "https://auth.androz2091.fr"
             - name: TINYAUTH_DATABASE_PATH
               value: "/data/tinyauth.db"
+            - name: TINYAUTH_UI_BACKGROUNDIMAGE
+              value: "https://photos.androz2091.fr/api/assets/f555dced-a633-48be-b84b-ba475c8b2493/thumbnail?key=09zMecTGWSuy1epLVhWg1fXRhj8lJP1AdZ3-v2UGK-z3f2K7-_TDb1bjwIJIIcAKhOI&size=preview&c=mxgWDYJQindeh3iHeHeHh5z20ok%2F&edited=true"
           envFrom:
             - secretRef:
                 name: tinyauth-secrets
