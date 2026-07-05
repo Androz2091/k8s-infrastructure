@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airtrail
+  namespace: home
+  labels:
+    app: airtrail
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: airtrail
+  template:
+    metadata:
+      labels:
+        app: airtrail
+    spec:
+      initContainers:
+        - name: init-uploads
+          image: busybox
+          imagePullPolicy: Always
+          command:
+            - sh
+            - -c
+            - chown -R 1000:1000 /app/uploads
+          volumeMounts:
+            - name: airtrail-uploads
+              mountPath: /app/uploads
+      containers:
+        - name: airtrail
+          image: johly/airtrail:v3.11.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ORIGIN
+              value: https://airtrail.androz2091.fr
+            - name: UPLOAD_LOCATION
+              value: /app/uploads
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: airtrail-secrets
+                  key: DB_URL
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/ping
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: airtrail-uploads
+              mountPath: /app/uploads
+          resources: {}
+      volumes:
+        - name: airtrail-uploads
+          persistentVolumeClaim:
+            claimName: airtrail-uploads-pvc

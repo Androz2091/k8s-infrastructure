@@ -34,6 +34,11 @@ bonds.androz2091.fr {
     reverse_proxy http://bonds.home.svc.cluster.local:80
 }
 
+airtrail.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://airtrail.home.svc.cluster.local:80
+}
+
 superwaymo.androz2091.fr {
     import tinyauth_auth
     # /api/* → the node API (flush_interval -1 keeps the area-scan NDJSON stream live);
