@@ -24,7 +24,6 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 ## 🚀 Apps
 
 * **Pro**: This namespace is for all the services hosted for me as a freelancer, such as Umami, HasteServer, Blog, DDPE, Diswho, Instaddict.
-* **ManageInvite**: This namespace is for all the services hosted for my ManageInvite project (API, Dashboard, Discord bot).
 * **Home**: This namespace is for all the services hosted for my personal use such as Vaultwarden, TimeTagger, Immich, Monica, Mealie, FileBrowser.
 * **Managed**: This namespace is for all the services hosted for my clients.
 * **Sushiflix**: This namespace is for all media services such as Plex, Radarr, Sonarr, Bazarr, Jackett, Qbittorrent, Sabnzbd, Tautulli, Overseerr.
@@ -41,7 +40,7 @@ Each app in the shared `db/postgresql` connects with its own role, scoped to its
 
 | Role        | Used by |
 |-------------|---------|
-| `bots`      | All `managed/*` Discord bots + `pro/manage-invite-bot` |
+| `bots`      | All `managed/*` Discord bots |
 | `haste`     | `pro/haste-server` |
 | `umami`     | `pro/umami-analytics` |
 | `monica`    | `home/monica` |
@@ -168,7 +167,7 @@ The Plex server has to be accessed locally to be claimed. Use port forwarding to
 
 Logs are collected by Promtail/Loki and can be access via the dashboard available at [grafana/loki-dashboard.json](./grafana/loki-dashboard.json).
 
-⚠️ Onechart labels all its apps with `onechart` so we have to differentiate them using the `instance` label. For instance, please select `App > pro/onechart` and `Instance > manage-invite-bot` to view ManageInvite's logs.
+⚠️ Onechart labels all its apps with `onechart` so we have to differentiate them using the `instance` label.
 
 ## ⚒️ Setup
 
