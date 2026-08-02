@@ -7,6 +7,8 @@ metadata:
     app: qbittorrent
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: qbittorrent
@@ -15,6 +17,7 @@ spec:
       labels:
         app: qbittorrent
     spec:
+      hostname: qbittorrent
       containers:
         - name: qbittorrent
           image: lscr.io/linuxserver/qbittorrent:5.2.0
@@ -30,10 +33,32 @@ spec:
             - name: WEBUI_PORT
               value: "8080"
           ports:
-            - containerPort: 8080
-            - containerPort: 6881
-            - containerPort: 6881
+            - name: http
+              containerPort: 8080
+            - name: bittorrent-tcp
+              containerPort: 6881
+            - name: bittorrent-udp
+              containerPort: 6881
               protocol: UDP
+
+          startupProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 1
+          readinessProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 2
 
           resources: {}
 
