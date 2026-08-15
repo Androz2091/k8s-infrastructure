@@ -85,7 +85,6 @@ Cluster-admin and DB-direct services that stay off the public internet. Port-for
 |---|---|---|
 | Argo CD | http://localhost:8080 | `kubectl -n argocd port-forward svc/argocd-server 8080:80` |
 | pgAdmin | http://localhost:8081 | `kubectl -n db port-forward svc/pgadmin-pgadmin4 8081:80` |
-| SABnzbd | http://localhost:8085 | `kubectl -n sushiflix port-forward svc/sabnzbd 8085:80` |
 
 ### Enter a pod
 
