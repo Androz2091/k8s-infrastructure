@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       useDeprecatedPostgresChart: true
       image:
-        tag: v2.7.5
+        tag: v3.1.0
       immich:
         persistence:
           library:
@@ -43,6 +43,7 @@ helmCharts:
 
       env:
         DB_HOSTNAME: immich-postgresql.home.svc.cluster.local
+        IMMICH_MEDIA_LOCATION: /usr/src/app/upload
         REDIS_HOSTNAME: immich-redis-master.home.svc.cluster.local
 
 namespace: home
