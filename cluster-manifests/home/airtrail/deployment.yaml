@@ -30,7 +30,7 @@ spec:
               mountPath: /app/uploads
       containers:
         - name: airtrail
-          image: johly/airtrail:v3.11.1
+          image: johly/airtrail:v3.12.0
           imagePullPolicy: IfNotPresent
           env:
             - name: ORIGIN
