@@ -27,4 +27,13 @@ namespace: managed
 resources:
   - sealed-secrets.yaml
 
-patches: []
+patches:
+  # Disabled: the bot no longer has access to its configured Discord guild.
+  # Keep its configuration and secrets so it can be restored deliberately.
+  - target:
+      kind: Deployment
+      name: ten-mans-discord-bot
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 0
