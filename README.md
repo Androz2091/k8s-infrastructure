@@ -500,6 +500,18 @@ Progress:
 - [ ] Stable `controlPlaneEndpoint` and API server certificate SANs, then join the VPS as a control plane node
 - [ ] Move etcd to the VPS and remove the control plane from `ns561436`
 
+#### Node packages
+
+Single source of truth for what each node needs installed. The Kubernetes stack is **held** at the main node's versions so it never auto-upgrades — a plain package list wouldn't capture the pinned versions, repos and holds, so the install steps stay in [Create the k8s cluster](#create-the-k8s-cluster) and everything else points here.
+
+| Package | Version | Nodes | For |
+|---|---|---|---|
+| `cri-o` | 1.30.10-1.1 (held) | control plane | container runtime |
+| `kubeadm` / `kubelet` / `kubectl` | 1.31.14-1.1 (held) | control plane | Kubernetes |
+| `nftables` | latest | both | host firewall (`firewall/`) |
+| `wireguard-tools` | latest | both | private link (todo) |
+| `fio` | latest | diagnostic only | etcd disk latency check |
+
 #### SSH access
 
 The user is `debian` (passwordless sudo). Host key: `SHA256:ntDgt0UwHZ7QIxj+q6JYZWXBYysPiHcyJ3PnKZ/TlJE` (ED25519).

@@ -2,7 +2,7 @@
 #
 # Host firewall for vps-ab240c42 (148.113.245.134) — the control plane node.
 #
-# Node requirement: apt-get install -y nftables
+# Needs the nftables package — see README > Control Plane Node > Node packages.
 # Install to:       /etc/nftables.conf
 # Apply now:        sudo nft -f /etc/nftables.conf
 # Persist at boot:  sudo systemctl enable nftables
