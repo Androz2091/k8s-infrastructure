@@ -461,6 +461,79 @@ kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access
 A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.
 A **backup** is a snapshot that is stored outside of the cluster. It's stored in the backup target (here backblaze).
 
+### Control Plane Node
+
+🚧 In progress: the control plane (API server, etcd, scheduler, controller-manager) is moving from the dedicated server to a small NVMe VPS. Apps and Longhorn storage stay on the dedicated server.
+
+**Why**: etcd waits for a disk sync (`fdatasync`) on every write and needs p99 < 10 ms. On the HDD RAID1, shared with Longhorn and Loki, it can't get that, so the scheduler and controller-manager lose their leader election and restart (340+ restarts each).
+
+| WAL sync latency | `ns561436` (HDD, 4.5M real etcd syncs over 18 days) | `vps-ab240c42` (NVMe, fio, 2026-09-20) |
+|---|---|---|
+| median | 8–16 ms | 0.55 ms |
+| p99 | 128–256 ms | 0.87 ms |
+| worst | > 8 s (384 times) | 2.8 ms |
+
+Target architecture:
+
+```mermaid
+flowchart LR
+    Internet -->|"80 / 443 (Caddy)"| DED
+    subgraph BHS["OVH Beauharnois (BHS)"]
+        VPS["vps-ab240c42 (VPS-1: 2 vCPU, 4 GB, 40 GB NVMe)<br/>148.113.245.134<br/>control plane + etcd"]
+        DED["ns561436 (dedicated: 8 threads, 64 GB, 2x8 TB HDD RAID1)<br/>54.39.102.76<br/>apps + Longhorn storage"]
+        VPS <-->|"0.4 ms, WireGuard (todo)"| DED
+    end
+```
+
+Progress:
+
+- [x] Order the VPS (OVH VPS-1 2027, Beauharnois, Debian 12, no commitment, 5.39 €/month incl. VAT)
+- [x] SSH access with key only
+- [x] Check the disk latency
+- [ ] System updates and firewall
+- [ ] Kernel modules, CRI-O and Kubernetes packages (same steps and versions as [Create the k8s cluster](#create-the-k8s-cluster), without `kubeadm init`)
+- [ ] WireGuard link between the two machines
+- [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
+- [ ] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan
+- [ ] Stable `controlPlaneEndpoint` and API server certificate SANs, then join the VPS as a control plane node
+- [ ] Move etcd to the VPS and remove the control plane from `ns561436`
+
+#### SSH access
+
+The user is `debian` (passwordless sudo). Host key: `SHA256:ntDgt0UwHZ7QIxj+q6JYZWXBYysPiHcyJ3PnKZ/TlJE` (ED25519).
+
+```sh
+ssh -i ~/.ssh/mbp2024 debian@148.113.245.134
+```
+
+Done once: log in with the temporary password from the OVH email (it forces a password change), then install the key and turn passwords off.
+
+```sh
+ssh-copy-id -i ~/.ssh/mbp2024.pub debian@148.113.245.134
+
+# sshd keeps the FIRST value it reads and OVH's 50-cloud-init.conf says "yes",
+# so the override must be in a file that sorts before it.
+echo 'PasswordAuthentication no' | sudo tee /etc/ssh/sshd_config.d/00-no-passwords.conf
+sudo sshd -t && sudo systemctl reload ssh
+sudo sshd -T | grep -i '^passwordauthentication' # no
+```
+
+#### Check the disk latency for etcd
+
+Simulates the etcd write pattern (small writes, each followed by `fdatasync`). Read the `99.00th` value of the `fsync/fdatasync` block: it must be under 10 ms (10000 usec).
+
+```sh
+sudo apt-get install -y fio
+mkdir -p ~/fio-test && fio --name=etcd-sim --directory=$HOME/fio-test --rw=write --ioengine=sync --fdatasync=1 --size=22m --bs=2300
+rm -rf ~/fio-test
+```
+
+⚠️ Don't run it on `ns561436`: it competes with etcd for the HDD. Read etcd's own histogram instead (cumulative since etcd started).
+
+```sh
+curl -s http://127.0.0.1:2381/metrics | grep etcd_disk_wal_fsync_duration_seconds_bucket
+```
+
 ### Troubleshooting
 
 #### Prometheus KubeClientCertificateExpiration
