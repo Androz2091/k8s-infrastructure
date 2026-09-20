@@ -490,7 +490,9 @@ Progress:
 - [x] Order the VPS (OVH VPS-1 2027, Beauharnois, Debian 12, no commitment, 5.39 €/month incl. VAT)
 - [x] SSH access with key only
 - [x] Check the disk latency
-- [ ] System updates and firewall
+- [x] System updates
+- [ ] Firewall on the VPS ([`firewall/vps-ab240c42.nft`](./firewall/vps-ab240c42.nft))
+- [ ] Harden `ns561436`: close public VXLAN 8472 now ([`firewall/ns561436.nft`](./firewall/ns561436.nft)), full firewall after WireGuard
 - [ ] Kernel modules, CRI-O and Kubernetes packages (same steps and versions as [Create the k8s cluster](#create-the-k8s-cluster), without `kubeadm init`)
 - [ ] WireGuard link between the two machines
 - [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
@@ -533,6 +535,34 @@ rm -rf ~/fio-test
 ```sh
 curl -s http://127.0.0.1:2381/metrics | grep etcd_disk_wal_fsync_duration_seconds_bucket
 ```
+
+#### System updates
+
+`full-upgrade` and not `upgrade`: a new kernel is a new package, which `apt-get upgrade` refuses to install. Debian security patches are then applied automatically by `unattended-upgrades` (it never reboots by itself, and never touches the held Kubernetes packages).
+
+```sh
+sudo apt-get update && sudo apt-get -y full-upgrade
+sudo reboot # only needed for a new kernel, check with uname -r
+```
+
+#### Firewall
+
+Rules are version-controlled under [`firewall/`](./firewall/) (one file per node) so a node rebuild is reproducible. Each node needs the `nftables` package; each file manages only its own table, so it never clears the rules kube-proxy and Flannel install in the same kernel engine (no `flush ruleset`).
+
+```sh
+sudo apt-get install -y nftables
+sudo cp firewall/<node>.nft /etc/nftables.conf   # the file for that node
+sudo nft -c -f /etc/nftables.conf                # check syntax (no output = ok)
+sudo nft -f /etc/nftables.conf                   # apply now (keep your SSH session open)
+sudo systemctl enable nftables                   # load at every boot
+```
+
+| File | Node | Policy |
+|---|---|---|
+| `firewall/vps-ab240c42.nft` | control plane VPS | default-drop; allows SSH, ping, DHCP |
+| `firewall/ns561436.nft` | dedicated server | default-accept; only drops Flannel's public VXLAN (8472) |
+
+`ns561436` stays default-accept for now because it runs production; VXLAN (8472) is unauthenticated and needs no public exposure on a single node. Reopen it only from the WireGuard peer once the VPS joins, then tighten to a full default-drop firewall.
 
 ### Troubleshooting
 

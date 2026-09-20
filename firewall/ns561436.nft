@@ -1,0 +1,28 @@
+#!/usr/sbin/nft -f
+#
+# Interim host firewall for ns561436 (54.39.102.76) — the dedicated server
+# running the apps and Longhorn storage.
+#
+# Node requirement: apt-get install -y nftables
+# Install to:       /etc/nftables.conf
+# Apply now:        sudo nft -f /etc/nftables.conf
+# Persist at boot:  sudo systemctl enable nftables
+#
+# Default-ACCEPT: this node runs production (Caddy 80/443, Plex 32400, API 6443,
+# SSH 22), so we do NOT lock it down here — we only close Flannel's unauthenticated
+# VXLAN port to the internet. On a single-node cluster nothing legitimate uses 8472;
+# when the VPS joins, reopen it ONLY from the WireGuard peer.
+# To be replaced by a full default-drop host firewall after the WireGuard link exists.
+# Only manages its OWN table "vxlanguard" — never "flush ruleset".
+
+table inet vxlanguard
+delete table inet vxlanguard
+
+table inet vxlanguard {
+    chain input {
+        type filter hook input priority filter; policy accept;
+
+        iif "lo" accept
+        udp dport 8472 drop   # block Flannel VXLAN from off-box (unauthenticated overlay)
+    }
+}
