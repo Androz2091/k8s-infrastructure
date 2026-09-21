@@ -1,15 +1,5 @@
 #!/usr/sbin/nft -f
-#
-# Host firewall for vps-ab240c42 (148.113.245.134) — the control plane node.
-#
-# Needs the nftables package — see README > Control Plane Node > Node packages.
-# Install to:       /etc/nftables.conf
-# Apply now:        sudo nft -f /etc/nftables.conf
-# Persist at boot:  sudo systemctl enable nftables
-#
-# Default-drop: only the ports listed below are reachable from the internet.
-# Only manages its OWN table "hostfw" — never "flush ruleset", which would wipe
-# the rules kube-proxy and Flannel install into the same kernel engine.
+# Installed by ansible/bootstrap.yaml
 
 table inet hostfw
 delete table inet hostfw
@@ -25,7 +15,6 @@ table inet hostfw {
         udp sport 67 udp dport 68 accept          # DHCP replies from OVH
         tcp dport 22 accept                       # SSH
 
-        # Added when the private link is set up:
-        # udp dport 51820 accept                  # WireGuard
+        ip saddr 54.39.102.76 udp dport 51820 accept   # WireGuard, only from ns561436
     }
 }

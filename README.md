@@ -184,7 +184,7 @@ swapoff -a
 systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
 ```
 
-Prepare the node with Ansible: SSH hardening, host firewall, kernel modules and sysctl, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) runs on **all** of them, production included (`--limit <host>` for one), and refuses to run if swap is on. Always `--check --diff` first. Tasks are idempotent: a second run must report `changed=0`.
+Prepare the node with Ansible: SSH hardening, host firewall, kernel modules and sysctl, WireGuard link, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) runs on **all** of them, production included (`--limit <host>` for one), and refuses to run if swap is on. Always `--check --diff` first. Tasks are idempotent: a second run must report `changed=0`.
 
 ```sh
 brew install ansible
@@ -192,7 +192,7 @@ ansible -i ansible/inventory.ini all -m ping                                    
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --check --diff           # dry run, changes nothing
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                   # bare Debian 12 -> ready node
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --limit apps --diff      # one host or group
-ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: ssh | firewall | kernel | packages
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: ssh | firewall | kernel | wireguard | packages
 ```
 
 `ns561436` was built by hand with the equivalent commands (see this file's git history) and brought under the playbook on 2026-09-21. Done by hand first, because Ansible's apt tasks fail on any broken source (`apt-get` only warns): the old `kubernetes.list`/`cri-o.list` with their keyrings (the same repo declared twice with different keys is an apt error) and the dead Helm repo (`baltocdn.com`, retired in 2025) were moved to `/root/apt-legacy/`, and `apt-mark manual conntrack ebtables` keeps `apt autoremove` away from them.
@@ -423,10 +423,14 @@ Target architecture:
 flowchart LR
     Internet -->|"80 / 443 (Caddy)"| DED
     subgraph BHS["OVH Beauharnois (BHS)"]
-        VPS["vps-ab240c42 (VPS-1: 2 vCPU, 4 GB, 40 GB NVMe)<br/>148.113.245.134<br/>control plane + etcd"]
-        DED["ns561436 (dedicated: 8 threads, 64 GB, 2x8 TB HDD RAID1)<br/>54.39.102.76<br/>apps + Longhorn storage"]
-        VPS <-->|"0.4 ms, WireGuard (todo)"| DED
+        VPS["<b>vps-ab240c42</b> (VPS-1)<br/>2 vCPU, 4 GB RAM<br/>disk: 40 GB NVMe<br/>148.113.245.134, wg0 10.8.0.1<br/>control plane + etcd"]
+        DED["<b>ns561436</b> (dedicated)<br/>8 threads, 64 GB RAM<br/>disk: 2x8 TB HDD RAID1 (7.3 TB usable)<br/>54.39.102.76, wg0 10.8.0.2<br/>apps + Longhorn storage"]
+        VPS <-->|"WireGuard 10.8.0.0/24<br/>udp/51820, 0.55 ms"| DED
     end
+    subgraph TOR["OVH Toronto (ca-east-tor)"]
+        S3[("Object Storage (S3)<br/>bucket longhornbackups")]
+    end
+    DED -->|"Longhorn backups<br/>daily 02:00 UTC, keep 30"| S3
 ```
 
 Progress:
@@ -439,7 +443,7 @@ Progress:
 - [x] Harden `ns561436`: SSH keys only, public VXLAN 8472 closed ([`firewall/ns561436.nft`](./firewall/ns561436.nft))
 - [ ] Full default-drop firewall on `ns561436` (after WireGuard)
 - [x] Kernel modules, CRI-O and Kubernetes packages ([`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), same versions as `ns561436`, no `kubeadm init`)
-- [ ] WireGuard link between the two machines
+- [x] WireGuard link between the two machines ([WireGuard](#wireguard)); the cluster does not use it yet
 - [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
 - [x] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan ([etcd backup and rollback](#etcd-backup-and-rollback)); take a fresh snapshot right before touching etcd
 - [ ] Stable `controlPlaneEndpoint` and API server certificate SANs, then join the VPS as a control plane node
@@ -507,6 +511,21 @@ sudo systemctl enable nftables                   # load at every boot
 | `firewall/ns561436.nft` | dedicated server | default-accept; only drops Flannel's public VXLAN (8472) |
 
 `ns561436` stays default-accept for now because it runs production; VXLAN (8472) is unauthenticated and needs no public exposure on a single node. Reopen it only from the WireGuard peer once the VPS joins, then tighten to a full default-drop firewall.
+
+#### WireGuard
+
+Private link between the nodes: `wg0` on `10.8.0.0/24` (VPS `10.8.0.1`, `ns561436` `10.8.0.2`), udp/51820, MTU 1420, ~0.55 ms. The VPS firewall only accepts 51820 from `54.39.102.76`. The cluster does not use it yet: node IPs are still the public ones.
+
+No secret is in this repo. Each node generates its own private key, which never leaves it; public keys and tunnel addresses are host vars in [`ansible/inventory.ini`](./ansible/inventory.ini), and [`ansible/templates/wg0.conf.j2`](./ansible/templates/wg0.conf.j2) makes WireGuard load the private key from its file (`PostUp`), so the config holds no secret either.
+
+```sh
+# once per node, as root. Running it again replaces the key and breaks the tunnel.
+umask 077; wg genkey | tee /etc/wireguard/privatekey | wg pubkey > /etc/wireguard/publickey
+cat /etc/wireguard/publickey   # -> wg_public_key in ansible/inventory.ini
+
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags "wireguard,firewall" --diff
+ping -c 3 10.8.0.2 && sudo wg show wg0   # from the VPS: recent handshake, transfer counters going up
+```
 
 #### etcd backup and rollback
 

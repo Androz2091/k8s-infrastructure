@@ -102,6 +102,24 @@
         state: present
       tags: packages
 
+
+    - name: WireGuard tunnel config (no secret inside)
+      ansible.builtin.template:
+        src: templates/wg0.conf.j2
+        dest: /etc/wireguard/wg0.conf
+        owner: root
+        group: root
+        mode: "0600"
+      notify: Restart WireGuard
+      tags: wireguard
+
+    - name: Bring the tunnel up now and at every boot
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        state: started
+        enabled: true
+      tags: wireguard
+
     - name: Add the Kubernetes and CRI-O apt repositories
       ansible.builtin.deb822_repository:
         name: "{{ item.name }}"
@@ -154,3 +172,7 @@
         state: reloaded
     - name: Load firewall rules
       ansible.builtin.command: /usr/sbin/nft -f /etc/nftables.conf
+    - name: Restart WireGuard
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        state: restarted
