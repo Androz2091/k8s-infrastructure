@@ -184,17 +184,18 @@ swapoff -a
 systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
 ```
 
-Prepare the node with Ansible: host firewall, kernel modules and sysctl, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) only targets the `control_plane` group, never production, and refuses to run if swap is on. Tasks are idempotent: a second run must report `changed=0`.
+Prepare the node with Ansible: SSH hardening, host firewall, kernel modules and sysctl, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) runs on **all** of them, production included (`--limit <host>` for one), and refuses to run if swap is on. Always `--check --diff` first. Tasks are idempotent: a second run must report `changed=0`.
 
 ```sh
 brew install ansible
-ansible -i ansible/inventory.ini control_plane -m ping                                    # SSH + Python ok?
+ansible -i ansible/inventory.ini all -m ping                                              # SSH + Python ok?
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --check --diff           # dry run, changes nothing
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                   # bare Debian 12 -> ready node
-ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: firewall | kernel | packages
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --limit apps --diff      # one host or group
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: ssh | firewall | kernel | packages
 ```
 
-`ns561436` was built by hand with the equivalent commands (see this file's git history); the playbook has only been run on `vps-ab240c42` so far, where it was checked to give the same packages, versions, modules and sysctl as `ns561436`.
+`ns561436` was built by hand with the equivalent commands (see this file's git history) and brought under the playbook on 2026-09-21. Done by hand first, because Ansible's apt tasks fail on any broken source (`apt-get` only warns): the old `kubernetes.list`/`cri-o.list` with their keyrings (the same repo declared twice with different keys is an apt error) and the dead Helm repo (`baltocdn.com`, retired in 2025) were moved to `/root/apt-legacy/`, and `apt-mark manual conntrack ebtables` keeps `apt autoremove` away from them.
 
 Create the cluster.
 
@@ -435,7 +436,8 @@ Progress:
 - [x] Check the disk latency
 - [x] System updates
 - [x] Firewall on the VPS ([`firewall/vps-ab240c42.nft`](./firewall/vps-ab240c42.nft))
-- [ ] Harden `ns561436`: close public VXLAN 8472 now ([`firewall/ns561436.nft`](./firewall/ns561436.nft)), full firewall after WireGuard
+- [x] Harden `ns561436`: SSH keys only, public VXLAN 8472 closed ([`firewall/ns561436.nft`](./firewall/ns561436.nft))
+- [ ] Full default-drop firewall on `ns561436` (after WireGuard)
 - [x] Kernel modules, CRI-O and Kubernetes packages ([`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), same versions as `ns561436`, no `kubeadm init`)
 - [ ] WireGuard link between the two machines
 - [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
@@ -451,17 +453,14 @@ The user is `debian` (passwordless sudo). Host key: `SHA256:ntDgt0UwHZ7QIxj+q6JY
 ssh -i ~/.ssh/mbp2024 debian@148.113.245.134
 ```
 
-Done once: log in with the temporary password from the OVH email (it forces a password change), then install the key and turn passwords off.
+Done once: log in with the temporary password from the OVH email (it forces a password change) and install the key. The playbook (`--tags ssh`) then turns passwords off on every node with `/etc/ssh/sshd_config.d/00-hardening.conf` (keys only, 20 s to log in, 3 half-open connections per IP).
 
 ```sh
 ssh-copy-id -i ~/.ssh/mbp2024.pub debian@148.113.245.134
-
-# sshd keeps the FIRST value it reads and OVH's 50-cloud-init.conf says "yes",
-# so the override must be in a file that sorts before it.
-echo 'PasswordAuthentication no' | sudo tee /etc/ssh/sshd_config.d/00-no-passwords.conf
-sudo sshd -t && sudo systemctl reload ssh
-sudo sshd -T | grep -i '^passwordauthentication' # no
+sudo sshd -T | grep -i '^passwordauthentication' # what sshd really enforces: no
 ```
+
+sshd keeps the FIRST value it reads and OVH's `50-cloud-init.conf` says "yes", so the override must sort before it. `PasswordAuthentication no` in the main `sshd_config` is not enough: `ns561436` was effectively accepting password logins that way until 2026-09-21 (~1000 guesses and ~170 dropped connections per hour, both 0 since).
 
 #### Check the disk latency for etcd
 
@@ -492,7 +491,7 @@ sudo reboot # only needed for a new kernel, check with uname -r
 
 Rules are version-controlled under [`firewall/`](./firewall/) (one file per node) so a node rebuild is reproducible. Each node needs the `nftables` package; each file manages only its own table, so it never clears the rules kube-proxy and Flannel install in the same kernel engine (no `flush ruleset`).
 
-On the VPS this is done by [the playbook](#create-the-k8s-cluster) (`--tags firewall`); by hand it is:
+Done on both nodes by [the playbook](#create-the-k8s-cluster) (`--tags firewall`), which replaces Debian's default `/etc/nftables.conf` (it starts with `flush ruleset`). By hand it is:
 
 ```sh
 sudo apt-get install -y nftables

@@ -1,5 +1,5 @@
 - name: Bootstrap a cluster node
-  hosts: control_plane
+  hosts: all
   become: true
 
   vars:
@@ -18,6 +18,22 @@
           - ansible_facts.swaptotal_mb == 0
         fail_msg: "Expected Debian 12 with swap off, refusing to continue"
       tags: always
+
+    - name: SSH accepts keys only and sheds bots quickly
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/00-hardening.conf
+        content: |
+          # Managed by ansible/bootstrap.yaml. Must sort before 50-cloud-init.conf:
+          # sshd keeps the FIRST value it reads, and that file says "PasswordAuthentication yes".
+          PasswordAuthentication no
+          LoginGraceTime 20
+          PerSourceMaxStartups 3
+        owner: root
+        group: root
+        mode: "0644"
+        validate: /usr/sbin/sshd -t -f %s
+      notify: Reload sshd
+      tags: ssh
 
     - name: Install nftables
       ansible.builtin.apt:
@@ -132,5 +148,9 @@
             enabled: true
 
   handlers:
+    - name: Reload sshd
+      ansible.builtin.systemd:
+        name: ssh
+        state: reloaded
     - name: Load firewall rules
       ansible.builtin.command: /usr/sbin/nft -f /etc/nftables.conf
