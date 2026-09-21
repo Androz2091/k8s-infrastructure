@@ -140,6 +140,16 @@ kubeseal --scope namespace-wide --cert ../../../sealed-secrets.crt --raw --from-
 kubeseal --recovery-unseal --recovery-private-key ~/private.key -o yaml < sealed-secrets.yaml
 ```
 
+### Add a TimeTagger user
+
+Generate a `user:hash` pair on <https://timetagger.app/cred>. ⚠️ The page escapes `$` as `$$` for docker-compose: use a single `$` here (`$2a$08$...`, 60 characters), or the login fails.
+
+Append it (comma-separated) to `TIMETAGGER_CREDENTIALS` in `cluster-manifests/home/timetagger/secrets.yaml`, [seal the secret](#seal-a-secret), merge, then restart the pod once ArgoCD has synced (env vars are only read at startup):
+
+```sh
+kubectl -n home rollout restart deploy/timetagger
+```
+
 ### Upgrade Umami
 
 Umami runs Prisma migrations on container startup. Long data backfills (such as `09_update_hostname_region` which copies hostname from `session` to `website_event`) can be killed by the startup probe, leaving `_prisma_migrations` rows marked failed and a partially applied schema. Future Prisma startups then refuse to proceed with error `P3009`.
