@@ -439,7 +439,7 @@ Progress:
 - [x] Kernel modules, CRI-O and Kubernetes packages ([`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), same versions as `ns561436`, no `kubeadm init`)
 - [ ] WireGuard link between the two machines
 - [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
-- [ ] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan
+- [x] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan ([etcd backup and rollback](#etcd-backup-and-rollback)); take a fresh snapshot right before touching etcd
 - [ ] Stable `controlPlaneEndpoint` and API server certificate SANs, then join the VPS as a control plane node
 - [ ] Move etcd to the VPS and remove the control plane from `ns561436`
 
@@ -508,6 +508,53 @@ sudo systemctl enable nftables                   # load at every boot
 | `firewall/ns561436.nft` | dedicated server | default-accept; only drops Flannel's public VXLAN (8472) |
 
 `ns561436` stays default-accept for now because it runs production; VXLAN (8472) is unauthenticated and needs no public exposure on a single node. Reopen it only from the WireGuard peer once the VPS joins, then tighten to a full default-drop firewall.
+
+#### etcd backup and rollback
+
+Taken before any change to `ns561436`. The files hold every Secret in readable form (no encryption at rest) and the cluster CA keys: `chmod 600`, never in this repo. Copies: `ns561436:/root/cluster-backup`, `vps-ab240c42:~/cluster-backup`, and the admin's Mac (`~/cluster-backup`, outside iCloud-synced folders).
+
+```sh
+# on ns561436. etcdctl/etcdutl only exist inside the etcd container, which only sees /var/lib/etcd and /etc/kubernetes/pki/etcd
+D=$(date +%F); mkdir -p /root/cluster-backup && chmod 700 /root/cluster-backup
+ETCD="kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kube-system exec etcd-ns561436 --"
+$ETCD etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
+  snapshot save /var/lib/etcd/snapshot-$D.db
+$ETCD etcdutl snapshot status /var/lib/etcd/snapshot-$D.db -w table
+mv /var/lib/etcd/snapshot-$D.db /root/cluster-backup/
+# certificates, control plane manifests, kubeconfigs (tmp/ = 444 MB of stale kubeadm upgrade backups)
+tar czf /root/cluster-backup/etc-kubernetes-$D.tar.gz --exclude=kubernetes/tmp -C /etc kubernetes
+cd /root/cluster-backup && chmod 600 *.db *.tar.gz && sha256sum *.db *.tar.gz | tee SHA256SUMS
+
+# from the Mac: copy off the machine, then check every copy (sha256sum -c on Linux)
+scp -i ~/.ssh/mbp2024 'root@54.39.102.76:/root/cluster-backup/*' ~/cluster-backup/
+scp -i ~/.ssh/mbp2024 ~/cluster-backup/* debian@148.113.245.134:cluster-backup/
+shasum -a 256 -c SHA256SUMS
+```
+
+Restore test, on the VPS (2026-09-21: 14 namespaces and 3726 keys read back). `etcdutl` must be the cluster's etcd version.
+
+```sh
+curl -fsSLO https://github.com/etcd-io/etcd/releases/download/v3.5.24/etcd-v3.5.24-linux-amd64.tar.gz   # check it against the release's SHA256SUMS
+tar xzf etcd-v3.5.24-linux-amd64.tar.gz --strip-components=1
+./etcdutl snapshot restore ~/cluster-backup/snapshot-2026-09-21.db --data-dir ~/restore-test
+./etcd --data-dir ~/restore-test --listen-client-urls http://127.0.0.1:12379 --advertise-client-urls http://127.0.0.1:12379 --listen-peer-urls http://127.0.0.1:12380 &
+./etcdctl --endpoints=http://127.0.0.1:12379 get /registry/namespaces/ --prefix --keys-only
+kill %1; rm -rf ~/restore-test
+```
+
+Rollback on `ns561436` if a migration step breaks etcd. ⚠️ Never run on production so far. Apps keep running meanwhile: kubelet and CRI-O don't need the API server.
+
+```sh
+mv /etc/kubernetes/manifests /etc/kubernetes/manifests.off   # kubelet stops etcd, API server, scheduler, controller-manager
+crictl ps --name 'etcd|kube-apiserver' -q                     # wait until this prints nothing
+mv /var/lib/etcd /var/lib/etcd.broken
+etcdutl snapshot restore /root/cluster-backup/snapshot-<date>.db --data-dir /var/lib/etcd \
+  --name ns561436 --initial-cluster ns561436=https://54.39.102.76:2380 --initial-advertise-peer-urls https://54.39.102.76:2380
+tar xzf /root/cluster-backup/etc-kubernetes-<date>.tar.gz -C /etc   # pki, kubeconfigs and the pre-change manifests: the control plane starts again
+kubectl --kubeconfig=/etc/kubernetes/admin.conf get nodes,pods -A
+# if the VPS had already joined: kubeadm reset on the VPS (the restored state doesn't know it)
+```
 
 ### Troubleshooting
 
