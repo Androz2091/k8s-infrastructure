@@ -1,0 +1,47 @@
+- name: Bootstrap a cluster node
+  hosts: control_plane
+  become: true
+
+  tasks:
+
+    - name: Preflight checks
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == "Debian"
+          - ansible_facts.distribution_major_version == "12"
+          - ansible_facts.swaptotal_mb == 0
+        fail_msg: "Expected Debian 12 with swap off, refusing to continue"
+      tags: always
+
+    - name: Install nftables
+      ansible.builtin.apt:
+        name: nftables
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+      tags: firewall
+
+    - name: Install this node's firewall rules
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../firewall/{{ inventory_hostname }}.nft"
+        dest: /etc/nftables.conf
+        owner: root
+        group: root
+        mode: "0644"
+        validate: /usr/sbin/nft -c -f %s
+      notify: Load firewall rules
+      tags: firewall
+
+    # we only enable the service, we don't restart or stop it
+    # indeed on Debian, stopping nftables.service will run "nft flush ruleset"
+    # which would also wipe kube-proxy's and Flannel's rules
+    - name: Load the firewall at every boot
+      ansible.builtin.systemd:
+        name: nftables
+        enabled: true
+      ignore_errors: "{{ ansible_check_mode }}"
+      tags: firewall
+
+  handlers:
+    - name: Load firewall rules
+      ansible.builtin.command: /usr/sbin/nft -f /etc/nftables.conf

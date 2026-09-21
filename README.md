@@ -491,7 +491,7 @@ Progress:
 - [x] SSH access with key only
 - [x] Check the disk latency
 - [x] System updates
-- [ ] Firewall on the VPS ([`firewall/vps-ab240c42.nft`](./firewall/vps-ab240c42.nft))
+- [x] Firewall on the VPS ([`firewall/vps-ab240c42.nft`](./firewall/vps-ab240c42.nft))
 - [ ] Harden `ns561436`: close public VXLAN 8472 now ([`firewall/ns561436.nft`](./firewall/ns561436.nft)), full firewall after WireGuard
 - [ ] Kernel modules, CRI-O and Kubernetes packages (same steps and versions as [Create the k8s cluster](#create-the-k8s-cluster), without `kubeadm init`)
 - [ ] WireGuard link between the two machines
@@ -557,9 +557,22 @@ sudo apt-get update && sudo apt-get -y full-upgrade
 sudo reboot # only needed for a new kernel, check with uname -r
 ```
 
+#### Provisioning (Ansible)
+
+Ansible turns a bare Debian into a ready cluster node and stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) only targets the `control_plane` group, never production. Tasks are idempotent: a second run must report `changed=0`.
+
+```sh
+brew install ansible
+ansible -i ansible/inventory.ini control_plane -m ping                                    # SSH + Python ok?
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --check --diff           # dry run, changes nothing
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: firewall | kernel | packages
+```
+
 #### Firewall
 
 Rules are version-controlled under [`firewall/`](./firewall/) (one file per node) so a node rebuild is reproducible. Each node needs the `nftables` package; each file manages only its own table, so it never clears the rules kube-proxy and Flannel install in the same kernel engine (no `flush ruleset`).
+
+On the VPS this is done by the playbook (`--tags firewall`); by hand it is:
 
 ```sh
 sudo apt-get install -y nftables
