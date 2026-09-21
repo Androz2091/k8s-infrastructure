@@ -184,74 +184,17 @@ swapoff -a
 systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
 ```
 
-Install CRI-O and Kubernetes. See [cri-o/packaging instructions.](https://github.com/cri-o/packaging/blob/main/README.md#distributions-using-deb-packages).
+Prepare the node with Ansible: host firewall, kernel modules and sysctl, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) only targets the `control_plane` group, never production, and refuses to run if swap is on. Tasks are idempotent: a second run must report `changed=0`.
 
 ```sh
-KUBERNETES_VERSION=v1.31
-CRIO_VERSION=v1.30
+brew install ansible
+ansible -i ansible/inventory.ini control_plane -m ping                                    # SSH + Python ok?
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --check --diff           # dry run, changes nothing
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                   # bare Debian 12 -> ready node
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: firewall | kernel | packages
 ```
 
-Add the Kubernetes repository.
-
-```sh
-curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key |
-    gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" |
-    tee /etc/apt/sources.list.d/kubernetes.list
-```
-
-Add the CRI-O repository.
-
-```sh
-curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key |
-    gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
-
-echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/ /" |
-    tee /etc/apt/sources.list.d/cri-o.list
-```
-
-Install the packages.
-
-```sh
-apt-get update
-apt-get install -y cri-o kubelet kubeadm kubectl
-apt-mark hold cri-o kubelet kubeadm kubectl
-```
-
-Start the cluster
-
-```sh
-systemctl start crio.service
-```
-
-Forwarding IPv4 and letting iptables see bridged traffic.
-
-```sh
-cat <<EOF | tee /etc/modules-load.d/k8s.conf
-overlay
-br_netfilter
-EOF
-
-modprobe overlay
-modprobe br_netfilter
-
-# sysctl params required by setup, params persist across reboots
-cat <<EOF | tee /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward                 = 1
-EOF
-
-# Apply sysctl params without reboot
-sysctl --system
-
-# Checks
-lsmod | grep br_netfilter
-lsmod | grep overlay
-
-systemctl enable --now crio
-```
+`ns561436` was built by hand with the equivalent commands (see this file's git history); the playbook has only been run on `vps-ab240c42` so far, where it was checked to give the same packages, versions, modules and sysctl as `ns561436`.
 
 Create the cluster.
 
@@ -493,24 +436,12 @@ Progress:
 - [x] System updates
 - [x] Firewall on the VPS ([`firewall/vps-ab240c42.nft`](./firewall/vps-ab240c42.nft))
 - [ ] Harden `ns561436`: close public VXLAN 8472 now ([`firewall/ns561436.nft`](./firewall/ns561436.nft)), full firewall after WireGuard
-- [ ] Kernel modules, CRI-O and Kubernetes packages (same steps and versions as [Create the k8s cluster](#create-the-k8s-cluster), without `kubeadm init`)
+- [x] Kernel modules, CRI-O and Kubernetes packages ([`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), same versions as `ns561436`, no `kubeadm init`)
 - [ ] WireGuard link between the two machines
 - [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
 - [ ] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan
 - [ ] Stable `controlPlaneEndpoint` and API server certificate SANs, then join the VPS as a control plane node
 - [ ] Move etcd to the VPS and remove the control plane from `ns561436`
-
-#### Node packages
-
-Single source of truth for what each node needs installed. The Kubernetes stack is **held** at the main node's versions so it never auto-upgrades — a plain package list wouldn't capture the pinned versions, repos and holds, so the install steps stay in [Create the k8s cluster](#create-the-k8s-cluster) and everything else points here.
-
-| Package | Version | Nodes | For |
-|---|---|---|---|
-| `cri-o` | 1.30.10-1.1 (held) | control plane | container runtime |
-| `kubeadm` / `kubelet` / `kubectl` | 1.31.14-1.1 (held) | control plane | Kubernetes |
-| `nftables` | latest | both | host firewall (`firewall/`) |
-| `wireguard-tools` | latest | both | private link (todo) |
-| `fio` | latest | diagnostic only | etcd disk latency check |
 
 #### SSH access
 
@@ -557,22 +488,11 @@ sudo apt-get update && sudo apt-get -y full-upgrade
 sudo reboot # only needed for a new kernel, check with uname -r
 ```
 
-#### Provisioning (Ansible)
-
-Ansible turns a bare Debian into a ready cluster node and stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) only targets the `control_plane` group, never production. Tasks are idempotent: a second run must report `changed=0`.
-
-```sh
-brew install ansible
-ansible -i ansible/inventory.ini control_plane -m ping                                    # SSH + Python ok?
-ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --check --diff           # dry run, changes nothing
-ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: firewall | kernel | packages
-```
-
 #### Firewall
 
 Rules are version-controlled under [`firewall/`](./firewall/) (one file per node) so a node rebuild is reproducible. Each node needs the `nftables` package; each file manages only its own table, so it never clears the rules kube-proxy and Flannel install in the same kernel engine (no `flush ruleset`).
 
-On the VPS this is done by the playbook (`--tags firewall`); by hand it is:
+On the VPS this is done by [the playbook](#create-the-k8s-cluster) (`--tags firewall`); by hand it is:
 
 ```sh
 sudo apt-get install -y nftables

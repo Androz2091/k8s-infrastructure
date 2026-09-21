@@ -2,6 +2,12 @@
   hosts: control_plane
   become: true
 
+  vars:
+    kubernetes_repo: v1.31
+    kubernetes_version: 1.31.14-1.1
+    crio_repo: v1.30
+    crio_version: 1.30.10-1.1
+
   tasks:
 
     - name: Preflight checks
@@ -41,6 +47,89 @@
         enabled: true
       ignore_errors: "{{ ansible_check_mode }}"
       tags: firewall
+
+    - name: Load the kernel modules at every boot
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+        owner: root
+        group: root
+        mode: "0644"
+      tags: kernel
+
+    - name: Load the kernel modules now
+      community.general.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
+      tags: kernel
+
+    - name: Let the node route pod traffic
+      ansible.posix.sysctl:
+        name: "{{ item }}"
+        value: "1"
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        reload: true
+      loop:
+        - net.bridge.bridge-nf-call-iptables
+        - net.bridge.bridge-nf-call-ip6tables
+        - net.ipv4.ip_forward
+      tags: kernel
+
+    - name: Install WireGuard tools
+      ansible.builtin.apt:
+        name: wireguard-tools
+        state: present
+      tags: packages
+
+    - name: Add the Kubernetes and CRI-O apt repositories
+      ansible.builtin.deb822_repository:
+        name: "{{ item.name }}"
+        types: deb
+        uris: "{{ item.url }}"
+        suites: /
+        signed_by: "{{ item.url }}Release.key"
+      loop:
+        - name: kubernetes
+          url: "https://pkgs.k8s.io/core:/stable:/{{ kubernetes_repo }}/deb/"
+        - name: cri-o
+          url: "https://pkgs.k8s.io/addons:/cri-o:/stable:/{{ crio_repo }}/deb/"
+      tags: packages
+
+    - name: CRI-O and Kubernetes
+      tags: packages
+      ignore_errors: "{{ ansible_check_mode }}"
+      block:
+        - name: Install the same versions as the main node
+          ansible.builtin.apt:
+            name:
+              - "cri-o={{ crio_version }}"
+              - "kubelet={{ kubernetes_version }}"
+              - "kubeadm={{ kubernetes_version }}"
+              - "kubectl={{ kubernetes_version }}"
+              - conntrack
+            state: present
+            update_cache: true
+
+        - name: Hold them so apt never upgrades them on its own
+          ansible.builtin.dpkg_selections:
+            name: "{{ item }}"
+            selection: hold
+          loop:
+            - cri-o
+            - kubelet
+            - kubeadm
+            - kubectl
+
+        - name: Start CRI-O now and at every boot
+          ansible.builtin.systemd:
+            name: crio
+            state: started
+            enabled: true
 
   handlers:
     - name: Load firewall rules
