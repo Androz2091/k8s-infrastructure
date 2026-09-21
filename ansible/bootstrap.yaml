@@ -1,0 +1,178 @@
+- name: Bootstrap a cluster node
+  hosts: all
+  become: true
+
+  vars:
+    kubernetes_repo: v1.31
+    kubernetes_version: 1.31.14-1.1
+    crio_repo: v1.30
+    crio_version: 1.30.10-1.1
+
+  tasks:
+
+    - name: Preflight checks
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == "Debian"
+          - ansible_facts.distribution_major_version == "12"
+          - ansible_facts.swaptotal_mb == 0
+        fail_msg: "Expected Debian 12 with swap off, refusing to continue"
+      tags: always
+
+    - name: SSH accepts keys only and sheds bots quickly
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/00-hardening.conf
+        content: |
+          # Managed by ansible/bootstrap.yaml. Must sort before 50-cloud-init.conf:
+          # sshd keeps the FIRST value it reads, and that file says "PasswordAuthentication yes".
+          PasswordAuthentication no
+          LoginGraceTime 20
+          PerSourceMaxStartups 3
+        owner: root
+        group: root
+        mode: "0644"
+        validate: /usr/sbin/sshd -t -f %s
+      notify: Reload sshd
+      tags: ssh
+
+    - name: Install nftables
+      ansible.builtin.apt:
+        name: nftables
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+      tags: firewall
+
+    - name: Install this node's firewall rules
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../firewall/{{ inventory_hostname }}.nft"
+        dest: /etc/nftables.conf
+        owner: root
+        group: root
+        mode: "0644"
+        validate: /usr/sbin/nft -c -f %s
+      notify: Load firewall rules
+      tags: firewall
+
+    # we only enable the service, we don't restart or stop it
+    # indeed on Debian, stopping nftables.service will run "nft flush ruleset"
+    # which would also wipe kube-proxy's and Flannel's rules
+    - name: Load the firewall at every boot
+      ansible.builtin.systemd:
+        name: nftables
+        enabled: true
+      ignore_errors: "{{ ansible_check_mode }}"
+      tags: firewall
+
+    - name: Load the kernel modules at every boot
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+        owner: root
+        group: root
+        mode: "0644"
+      tags: kernel
+
+    - name: Load the kernel modules now
+      community.general.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
+      tags: kernel
+
+    - name: Let the node route pod traffic
+      ansible.posix.sysctl:
+        name: "{{ item }}"
+        value: "1"
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        reload: true
+      loop:
+        - net.bridge.bridge-nf-call-iptables
+        - net.bridge.bridge-nf-call-ip6tables
+        - net.ipv4.ip_forward
+      tags: kernel
+
+    - name: Install WireGuard tools
+      ansible.builtin.apt:
+        name: wireguard-tools
+        state: present
+      tags: packages
+
+
+    - name: WireGuard tunnel config (no secret inside)
+      ansible.builtin.template:
+        src: templates/wg0.conf.j2
+        dest: /etc/wireguard/wg0.conf
+        owner: root
+        group: root
+        mode: "0600"
+      notify: Restart WireGuard
+      tags: wireguard
+
+    - name: Bring the tunnel up now and at every boot
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        state: started
+        enabled: true
+      tags: wireguard
+
+    - name: Add the Kubernetes and CRI-O apt repositories
+      ansible.builtin.deb822_repository:
+        name: "{{ item.name }}"
+        types: deb
+        uris: "{{ item.url }}"
+        suites: /
+        signed_by: "{{ item.url }}Release.key"
+      loop:
+        - name: kubernetes
+          url: "https://pkgs.k8s.io/core:/stable:/{{ kubernetes_repo }}/deb/"
+        - name: cri-o
+          url: "https://pkgs.k8s.io/addons:/cri-o:/stable:/{{ crio_repo }}/deb/"
+      tags: packages
+
+    - name: CRI-O and Kubernetes
+      tags: packages
+      ignore_errors: "{{ ansible_check_mode }}"
+      block:
+        - name: Install the same versions as the main node
+          ansible.builtin.apt:
+            name:
+              - "cri-o={{ crio_version }}"
+              - "kubelet={{ kubernetes_version }}"
+              - "kubeadm={{ kubernetes_version }}"
+              - "kubectl={{ kubernetes_version }}"
+              - conntrack
+            state: present
+            update_cache: true
+
+        - name: Hold them so apt never upgrades them on its own
+          ansible.builtin.dpkg_selections:
+            name: "{{ item }}"
+            selection: hold
+          loop:
+            - cri-o
+            - kubelet
+            - kubeadm
+            - kubectl
+
+        - name: Start CRI-O now and at every boot
+          ansible.builtin.systemd:
+            name: crio
+            state: started
+            enabled: true
+
+  handlers:
+    - name: Reload sshd
+      ansible.builtin.systemd:
+        name: ssh
+        state: reloaded
+    - name: Load firewall rules
+      ansible.builtin.command: /usr/sbin/nft -f /etc/nftables.conf
+    - name: Restart WireGuard
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        state: restarted

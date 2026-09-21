@@ -194,74 +194,18 @@ swapoff -a
 systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
 ```
 
-Install CRI-O and Kubernetes. See [cri-o/packaging instructions.](https://github.com/cri-o/packaging/blob/main/README.md#distributions-using-deb-packages).
+Prepare the node with Ansible: SSH hardening, host firewall, kernel modules and sysctl, WireGuard link, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) runs on **all** of them, production included (`--limit <host>` for one), and refuses to run if swap is on. Always `--check --diff` first. Tasks are idempotent: a second run must report `changed=0`.
 
 ```sh
-KUBERNETES_VERSION=v1.31
-CRIO_VERSION=v1.30
+brew install ansible
+ansible -i ansible/inventory.ini all -m ping                                              # SSH + Python ok?
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --check --diff           # dry run, changes nothing
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                   # bare Debian 12 -> ready node
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --limit apps --diff      # one host or group
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: ssh | firewall | kernel | wireguard | packages
 ```
 
-Add the Kubernetes repository.
-
-```sh
-curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key |
-    gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" |
-    tee /etc/apt/sources.list.d/kubernetes.list
-```
-
-Add the CRI-O repository.
-
-```sh
-curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key |
-    gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
-
-echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/ /" |
-    tee /etc/apt/sources.list.d/cri-o.list
-```
-
-Install the packages.
-
-```sh
-apt-get update
-apt-get install -y cri-o kubelet kubeadm kubectl
-apt-mark hold cri-o kubelet kubeadm kubectl
-```
-
-Start the cluster
-
-```sh
-systemctl start crio.service
-```
-
-Forwarding IPv4 and letting iptables see bridged traffic.
-
-```sh
-cat <<EOF | tee /etc/modules-load.d/k8s.conf
-overlay
-br_netfilter
-EOF
-
-modprobe overlay
-modprobe br_netfilter
-
-# sysctl params required by setup, params persist across reboots
-cat <<EOF | tee /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward                 = 1
-EOF
-
-# Apply sysctl params without reboot
-sysctl --system
-
-# Checks
-lsmod | grep br_netfilter
-lsmod | grep overlay
-
-systemctl enable --now crio
-```
+`ns561436` was built by hand with the equivalent commands (see this file's git history) and brought under the playbook on 2026-09-21. Done by hand first, because Ansible's apt tasks fail on any broken source (`apt-get` only warns): the old `kubernetes.list`/`cri-o.list` with their keyrings (the same repo declared twice with different keys is an apt error) and the dead Helm repo (`baltocdn.com`, retired in 2025) were moved to `/root/apt-legacy/`, and `apt-mark manual conntrack ebtables` keeps `apt autoremove` away from them.
 
 Create the cluster.
 
@@ -470,6 +414,175 @@ kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<access
 
 A **snaphost** is the state of a Kubernetes Volume at any given point in time. It's stored in the cluster.
 A **backup** is a snapshot that is stored outside of the cluster. It's stored in the backup target (here backblaze).
+
+### Control Plane Node
+
+🚧 In progress: the control plane (API server, etcd, scheduler, controller-manager) is moving from the dedicated server to a small NVMe VPS. Apps and Longhorn storage stay on the dedicated server.
+
+**Why**: etcd waits for a disk sync (`fdatasync`) on every write and needs p99 < 10 ms. On the HDD RAID1, shared with Longhorn and Loki, it can't get that, so the scheduler and controller-manager lose their leader election and restart (340+ restarts each).
+
+| WAL sync latency | `ns561436` (HDD, 4.5M real etcd syncs over 18 days) | `vps-ab240c42` (NVMe, fio, 2026-09-20) |
+|---|---|---|
+| median | 8–16 ms | 0.55 ms |
+| p99 | 128–256 ms | 0.87 ms |
+| worst | > 8 s (384 times) | 2.8 ms |
+
+Target architecture:
+
+```mermaid
+flowchart LR
+    Internet -->|"80 / 443 (Caddy)"| DED
+    subgraph BHS["OVH Beauharnois (BHS)"]
+        VPS["<b>vps-ab240c42</b> (VPS-1)<br/>2 vCPU, 4 GB RAM<br/>disk: 40 GB NVMe<br/>148.113.245.134, wg0 10.8.0.1<br/>control plane + etcd"]
+        DED["<b>ns561436</b> (dedicated)<br/>8 threads, 64 GB RAM<br/>disk: 2x8 TB HDD RAID1 (7.3 TB usable)<br/>54.39.102.76, wg0 10.8.0.2<br/>apps + Longhorn storage"]
+        VPS <-->|"WireGuard 10.8.0.0/24<br/>udp/51820, 0.55 ms"| DED
+    end
+    subgraph TOR["OVH Toronto (ca-east-tor)"]
+        S3[("Object Storage (S3)<br/>bucket longhornbackups")]
+    end
+    DED -->|"Longhorn backups<br/>daily 02:00 UTC, keep 30"| S3
+```
+
+Progress:
+
+- [x] Order the VPS (OVH VPS-1 2027, Beauharnois, Debian 12, no commitment, 5.39 €/month incl. VAT)
+- [x] SSH access with key only
+- [x] Check the disk latency
+- [x] System updates
+- [x] Firewall on the VPS ([`firewall/vps-ab240c42.nft`](./firewall/vps-ab240c42.nft))
+- [x] Harden `ns561436`: SSH keys only, public VXLAN 8472 closed ([`firewall/ns561436.nft`](./firewall/ns561436.nft))
+- [ ] Full default-drop firewall on `ns561436` (after WireGuard)
+- [x] Kernel modules, CRI-O and Kubernetes packages ([`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), same versions as `ns561436`, no `kubeadm init`)
+- [x] WireGuard link between the two machines ([WireGuard](#wireguard)); the cluster does not use it yet
+- [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
+- [x] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan ([etcd backup and rollback](#etcd-backup-and-rollback)); take a fresh snapshot right before touching etcd
+- [ ] Stable `controlPlaneEndpoint` and API server certificate SANs, then join the VPS as a control plane node
+- [ ] Move etcd to the VPS and remove the control plane from `ns561436`
+
+#### SSH access
+
+The user is `debian` (passwordless sudo). Host key: `SHA256:ntDgt0UwHZ7QIxj+q6JYZWXBYysPiHcyJ3PnKZ/TlJE` (ED25519).
+
+```sh
+ssh -i ~/.ssh/mbp2024 debian@148.113.245.134
+```
+
+Done once: log in with the temporary password from the OVH email (it forces a password change) and install the key. The playbook (`--tags ssh`) then turns passwords off on every node with `/etc/ssh/sshd_config.d/00-hardening.conf` (keys only, 20 s to log in, 3 half-open connections per IP).
+
+```sh
+ssh-copy-id -i ~/.ssh/mbp2024.pub debian@148.113.245.134
+sudo sshd -T | grep -i '^passwordauthentication' # what sshd really enforces: no
+```
+
+sshd keeps the FIRST value it reads and OVH's `50-cloud-init.conf` says "yes", so the override must sort before it. `PasswordAuthentication no` in the main `sshd_config` is not enough: `ns561436` was effectively accepting password logins that way until 2026-09-21 (~1000 guesses and ~170 dropped connections per hour, both 0 since).
+
+#### Check the disk latency for etcd
+
+Simulates the etcd write pattern (small writes, each followed by `fdatasync`). Read the `99.00th` value of the `fsync/fdatasync` block: it must be under 10 ms (10000 usec).
+
+```sh
+sudo apt-get install -y fio
+mkdir -p ~/fio-test && fio --name=etcd-sim --directory=$HOME/fio-test --rw=write --ioengine=sync --fdatasync=1 --size=22m --bs=2300
+rm -rf ~/fio-test
+```
+
+⚠️ Don't run it on `ns561436`: it competes with etcd for the HDD. Read etcd's own histogram instead (cumulative since etcd started).
+
+```sh
+curl -s http://127.0.0.1:2381/metrics | grep etcd_disk_wal_fsync_duration_seconds_bucket
+```
+
+#### System updates
+
+`full-upgrade` and not `upgrade`: a new kernel is a new package, which `apt-get upgrade` refuses to install. Debian security patches are then applied automatically by `unattended-upgrades` (it never reboots by itself, and never touches the held Kubernetes packages).
+
+```sh
+sudo apt-get update && sudo apt-get -y full-upgrade
+sudo reboot # only needed for a new kernel, check with uname -r
+```
+
+#### Firewall
+
+Rules are version-controlled under [`firewall/`](./firewall/) (one file per node) so a node rebuild is reproducible. Each node needs the `nftables` package; each file manages only its own table, so it never clears the rules kube-proxy and Flannel install in the same kernel engine (no `flush ruleset`).
+
+Done on both nodes by [the playbook](#create-the-k8s-cluster) (`--tags firewall`), which replaces Debian's default `/etc/nftables.conf` (it starts with `flush ruleset`). By hand it is:
+
+```sh
+sudo apt-get install -y nftables
+sudo cp firewall/<node>.nft /etc/nftables.conf   # the file for that node
+sudo nft -c -f /etc/nftables.conf                # check syntax (no output = ok)
+sudo nft -f /etc/nftables.conf                   # apply now (keep your SSH session open)
+sudo systemctl enable nftables                   # load at every boot
+```
+
+| File | Node | Policy |
+|---|---|---|
+| `firewall/vps-ab240c42.nft` | control plane VPS | default-drop; allows SSH, ping, DHCP |
+| `firewall/ns561436.nft` | dedicated server | default-accept; only drops Flannel's public VXLAN (8472) |
+
+`ns561436` stays default-accept for now because it runs production; VXLAN (8472) is unauthenticated and needs no public exposure on a single node. Reopen it only from the WireGuard peer once the VPS joins, then tighten to a full default-drop firewall.
+
+#### WireGuard
+
+Private link between the nodes: `wg0` on `10.8.0.0/24` (VPS `10.8.0.1`, `ns561436` `10.8.0.2`), udp/51820, MTU 1420, ~0.55 ms. The VPS firewall only accepts 51820 from `54.39.102.76`. The cluster does not use it yet: node IPs are still the public ones.
+
+No secret is in this repo. Each node generates its own private key, which never leaves it; public keys and tunnel addresses are host vars in [`ansible/inventory.ini`](./ansible/inventory.ini), and [`ansible/templates/wg0.conf.j2`](./ansible/templates/wg0.conf.j2) makes WireGuard load the private key from its file (`PostUp`), so the config holds no secret either.
+
+```sh
+# once per node, as root. Running it again replaces the key and breaks the tunnel.
+umask 077; wg genkey | tee /etc/wireguard/privatekey | wg pubkey > /etc/wireguard/publickey
+cat /etc/wireguard/publickey   # -> wg_public_key in ansible/inventory.ini
+
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags "wireguard,firewall" --diff
+ping -c 3 10.8.0.2 && sudo wg show wg0   # from the VPS: recent handshake, transfer counters going up
+```
+
+#### etcd backup and rollback
+
+Taken before any change to `ns561436`. The files hold every Secret in readable form (no encryption at rest) and the cluster CA keys: `chmod 600`, never in this repo. Copies: `ns561436:/root/cluster-backup`, `vps-ab240c42:~/cluster-backup`, and the admin's Mac (`~/cluster-backup`, outside iCloud-synced folders).
+
+```sh
+# on ns561436. etcdctl/etcdutl only exist inside the etcd container, which only sees /var/lib/etcd and /etc/kubernetes/pki/etcd
+D=$(date +%F); mkdir -p /root/cluster-backup && chmod 700 /root/cluster-backup
+ETCD="kubectl --kubeconfig=/etc/kubernetes/admin.conf -n kube-system exec etcd-ns561436 --"
+$ETCD etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
+  snapshot save /var/lib/etcd/snapshot-$D.db
+$ETCD etcdutl snapshot status /var/lib/etcd/snapshot-$D.db -w table
+mv /var/lib/etcd/snapshot-$D.db /root/cluster-backup/
+# certificates, control plane manifests, kubeconfigs (tmp/ = 444 MB of stale kubeadm upgrade backups)
+tar czf /root/cluster-backup/etc-kubernetes-$D.tar.gz --exclude=kubernetes/tmp -C /etc kubernetes
+cd /root/cluster-backup && chmod 600 *.db *.tar.gz && sha256sum *.db *.tar.gz | tee SHA256SUMS
+
+# from the Mac: copy off the machine, then check every copy (sha256sum -c on Linux)
+scp -i ~/.ssh/mbp2024 'root@54.39.102.76:/root/cluster-backup/*' ~/cluster-backup/
+scp -i ~/.ssh/mbp2024 ~/cluster-backup/* debian@148.113.245.134:cluster-backup/
+shasum -a 256 -c SHA256SUMS
+```
+
+Restore test, on the VPS (2026-09-21: 14 namespaces and 3726 keys read back). `etcdutl` must be the cluster's etcd version.
+
+```sh
+curl -fsSLO https://github.com/etcd-io/etcd/releases/download/v3.5.24/etcd-v3.5.24-linux-amd64.tar.gz   # check it against the release's SHA256SUMS
+tar xzf etcd-v3.5.24-linux-amd64.tar.gz --strip-components=1
+./etcdutl snapshot restore ~/cluster-backup/snapshot-2026-09-21.db --data-dir ~/restore-test
+./etcd --data-dir ~/restore-test --listen-client-urls http://127.0.0.1:12379 --advertise-client-urls http://127.0.0.1:12379 --listen-peer-urls http://127.0.0.1:12380 &
+./etcdctl --endpoints=http://127.0.0.1:12379 get /registry/namespaces/ --prefix --keys-only
+kill %1; rm -rf ~/restore-test
+```
+
+Rollback on `ns561436` if a migration step breaks etcd. ⚠️ Never run on production so far. Apps keep running meanwhile: kubelet and CRI-O don't need the API server.
+
+```sh
+mv /etc/kubernetes/manifests /etc/kubernetes/manifests.off   # kubelet stops etcd, API server, scheduler, controller-manager
+crictl ps --name 'etcd|kube-apiserver' -q                     # wait until this prints nothing
+mv /var/lib/etcd /var/lib/etcd.broken
+etcdutl snapshot restore /root/cluster-backup/snapshot-<date>.db --data-dir /var/lib/etcd \
+  --name ns561436 --initial-cluster ns561436=https://54.39.102.76:2380 --initial-advertise-peer-urls https://54.39.102.76:2380
+tar xzf /root/cluster-backup/etc-kubernetes-<date>.tar.gz -C /etc   # pki, kubeconfigs and the pre-change manifests: the control plane starts again
+kubectl --kubeconfig=/etc/kubernetes/admin.conf get nodes,pods -A
+# if the VPS had already joined: kubeadm reset on the VPS (the restored state doesn't know it)
+```
 
 ### Troubleshooting
 
