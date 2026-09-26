@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: bonds
-          image: docker.io/androz2091/bonds:sha-a87d42f
+          image: docker.io/androz2091/bonds:sha-ee12687
           imagePullPolicy: Always
 
           env:
