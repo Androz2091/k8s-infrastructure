@@ -39,7 +39,7 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 `kubectl`, `helm` and `k9s` run on the Mac. The API server only listens on the WireGuard link (`10.8.0.1:6443`), so [`admin/k8s.zsh`](./admin/k8s.zsh) opens an SSH tunnel to the VPS whenever a command needs it (local port 16443) and uses its own kubeconfig, `~/.kube/k8s-infrastructure.yaml`. `kubectl port-forward` then opens ports on the Mac directly.
 
 ```sh
-echo "source $PWD/admin/k8s.zsh" >> ~/.zshrc && source ~/.zshrc   # once, from the repo folder
+echo "source $PWD/admin/k8s.zsh" >> ~/.zshenv && source ~/.zshenv   # once, from the repo folder (.zshenv: every zsh, scripts included)
 k8s-login                  # personal admin certificate signed by the cluster CA, valid 1 year: run again to renew
 k get pods -A              # k = kubectl; k8s-tunnel up | down | status
 ```
