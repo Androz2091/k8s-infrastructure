@@ -120,6 +120,13 @@
         enabled: true
       tags: wireguard
 
+    - name: Kubernetes API endpoint name
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '\s{{ k8s_api_name | regex_escape }}$'
+        line: "{{ k8s_api_address }}  {{ k8s_api_name }}"
+      tags: hosts
+
     - name: Add the Kubernetes and CRI-O apt repositories
       ansible.builtin.deb822_repository:
         name: "{{ item.name }}"

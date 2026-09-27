@@ -197,10 +197,10 @@ ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall
 
 `ns561436` was built by hand with the equivalent commands (see this file's git history) and brought under the playbook on 2026-09-21. Done by hand first, because Ansible's apt tasks fail on any broken source (`apt-get` only warns): the old `kubernetes.list`/`cri-o.list` with their keyrings (the same repo declared twice with different keys is an apt error) and the dead Helm repo (`baltocdn.com`, retired in 2025) were moved to `/root/apt-legacy/`, and `apt-mark manual conntrack ebtables` keeps `apt autoremove` away from them.
 
-Create the cluster.
+Create the cluster from [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml), copied to the node first. It is the configuration the cluster stores in its `kubeadm-config` ConfigMap: keep the two identical. ⚠️ `networking.podSubnet` comes with the pod CIDR fix; until then, add `podSubnet: 10.244.0.0/16` under `networking` before creating a brand-new cluster.
 
 ```sh
-kubeadm init --pod-network-cidr=10.244.0.0/16
+kubeadm init --config cluster-config.yaml --upload-certs
 ```
 
 Configure kubectl CLI to connect to the cluster.
@@ -213,6 +213,14 @@ Allow the current (single) node to be a worker node.
 
 ```sh
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+```
+
+Add a node, once the playbook has run on it. kubeadm writes its certificates and kubeconfigs from the cluster's stored configuration, so they already use `api.k8s.internal`. Nothing needs to be stored: a join token lasts 24 h, a certificate key 2 h.
+
+```sh
+kubeadm token create --print-join-command        # on the control plane; run what it prints on the new node
+kubeadm init phase upload-certs --upload-certs   # control-plane nodes only: prints the certificate key
+# control-plane node: append --control-plane --certificate-key <key> --apiserver-advertise-address <its wg_address>
 ```
 
 ### Install a CNI plugin
@@ -446,7 +454,8 @@ Progress:
 - [x] WireGuard link between the two machines ([WireGuard](#wireguard)); the cluster does not use it yet
 - [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
 - [x] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan ([etcd backup and rollback](#etcd-backup-and-rollback)); take a fresh snapshot right before touching etcd
-- [ ] Stable `controlPlaneEndpoint` and API server certificate SANs, then join the VPS as a control plane node
+- [x] Stable API endpoint `api.k8s.internal` and API server certificate names ([Stable API endpoint](#stable-api-endpoint))
+- [ ] Join the VPS as a control plane node
 - [ ] Move etcd to the VPS and remove the control plane from `ns561436`
 
 #### SSH access
@@ -526,6 +535,34 @@ cat /etc/wireguard/publickey   # -> wg_public_key in ansible/inventory.ini
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags "wireguard,firewall" --diff
 ping -c 3 10.8.0.2 && sudo wg show wg0   # from the VPS: recent handshake, transfer counters going up
 ```
+
+#### Stable API endpoint
+
+Everything that must follow the API when it moves reaches it as `api.k8s.internal:6443`: kubectl, kubelet, kube-proxy and nodes that join. The name is a line in `/etc/hosts` on every node (playbook, `--tags hosts`) pointing at `k8s_api_address` in [`ansible/inventory.ini`](./ansible/inventory.ini): `10.8.0.2` (`ns561436`) today, `10.8.0.1` (VPS) after the move. kubeadm knows it as `controlPlaneEndpoint` in [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml). The controller-manager and scheduler keep talking to the API server on their own machine. OVH's cloud-init only maintains the `127.0.1.1` line of `/etc/hosts` (`manage_etc_hosts: localhost`), so the extra line survives reboots.
+
+Done once, on the running cluster, on 2026-09-27 (no downtime; rollback copies in `/root/cluster-backup/*-before-2026-09-27/` on `ns561436`):
+
+```sh
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags hosts --diff
+
+# on ns561436, with kubeadm/cluster-config.yaml copied to /root/kubeadm/
+# 1. API certificate with the extra names: generated in a scratch dir holding only the CA, checked, then swapped in.
+#    The API server reloads its certificate by itself, no restart.
+S=/root/kubeadm/pki-new; mkdir -p $S && cp /etc/kubernetes/pki/ca.{crt,key} $S/
+sed "s|^certificatesDir: .*|certificatesDir: $S|" /root/kubeadm/cluster-config.yaml > /root/kubeadm/scratch.yaml
+kubeadm init phase certs apiserver --config /root/kubeadm/scratch.yaml
+openssl x509 -in $S/apiserver.crt -noout -ext subjectAltName && openssl verify -CAfile /etc/kubernetes/pki/ca.crt $S/apiserver.crt
+install -m 600 $S/apiserver.key /etc/kubernetes/pki/ && install -m 644 $S/apiserver.crt /etc/kubernetes/pki/ && rm -rf $S /root/kubeadm/scratch.yaml
+# 2. kubeadm's stored configuration, and what a joining node reads first
+kubeadm init phase upload-config kubeadm --config /root/kubeadm/cluster-config.yaml
+kubectl -n kube-public get cm cluster-info -o yaml | sed 's#https://54.39.102.76:6443#https://api.k8s.internal:6443#' | kubectl replace -f -
+# 3. clients
+sed -i 's#https://54.39.102.76:6443#https://api.k8s.internal:6443#' /etc/kubernetes/{admin,super-admin,kubelet}.conf && systemctl restart kubelet
+kubectl -n kube-system get cm kube-proxy -o yaml | sed 's#https://54.39.102.76:6443#https://api.k8s.internal:6443#' | kubectl replace -f -
+kubectl -n kube-system rollout restart ds/kube-proxy
+```
+
+kubeadm traps: `init phase certs apiserver` silently keeps an existing certificate ("Using existing apiserver certificate"), hence the scratch dir; `--config` can't be combined with `--cert-dir`; `--dry-run` leaves copies of the certificates in `/etc/kubernetes/tmp/kubeadm-init-dryrun*`, delete them.
 
 #### etcd backup and rollback
 

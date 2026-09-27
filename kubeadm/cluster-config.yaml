@@ -1,0 +1,25 @@
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+kubernetesVersion: v1.31.14
+clusterName: kubernetes
+controlPlaneEndpoint: api.k8s.internal:6443
+apiServer:
+  certSANs:
+    - api.k8s.internal
+    - 10.8.0.1
+    - 10.8.0.2
+certificatesDir: /etc/kubernetes/pki
+caCertificateValidityPeriod: 87600h0m0s
+certificateValidityPeriod: 8760h0m0s
+encryptionAlgorithm: RSA-2048
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: registry.k8s.io
+networking:
+  dnsDomain: cluster.local
+  serviceSubnet: 10.96.0.0/12
+controllerManager: {}
+scheduler: {}
+dns: {}
+proxy: {}
