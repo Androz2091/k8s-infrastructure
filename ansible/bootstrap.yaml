@@ -172,6 +172,15 @@
             state: started
             enabled: true
 
+    - name: kubelet uses the tunnel address as the node IP
+      ansible.builtin.lineinfile:
+        path: /etc/default/kubelet
+        regexp: '^KUBELET_EXTRA_ARGS='
+        line: "KUBELET_EXTRA_ARGS=--node-ip={{ wg_address }}"
+        create: true
+        mode: "0644"
+      tags: kubelet
+
   handlers:
     - name: Reload sshd
       ansible.builtin.systemd:

@@ -184,7 +184,7 @@ swapoff -a
 systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
 ```
 
-Prepare the node with Ansible: SSH hardening, host firewall, kernel modules and sysctl, WireGuard link, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) runs on **all** of them, production included (`--limit <host>` for one), and refuses to run if swap is on. Always `--check --diff` first. Tasks are idempotent: a second run must report `changed=0`.
+Prepare the node with Ansible: SSH hardening, host firewall, kernel modules and sysctl, WireGuard link, the `api.k8s.internal` name, kubelet on the tunnel address, CRI-O and Kubernetes (versions pinned in the playbook's `vars`, packages held). It stops **before** `kubeadm init/join`; Kubernetes + ArgoCD own everything in-cluster. [`ansible/inventory.ini`](./ansible/inventory.ini) lists the machines; [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml) runs on **all** of them, production included (`--limit <host>` for one), and refuses to run if swap is on. Always `--check --diff` first. Tasks are idempotent: a second run must report `changed=0`.
 
 ```sh
 brew install ansible
@@ -192,12 +192,12 @@ ansible -i ansible/inventory.ini all -m ping                                    
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --check --diff           # dry run, changes nothing
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                   # bare Debian 12 -> ready node
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --limit apps --diff      # one host or group
-ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: ssh | firewall | kernel | wireguard | packages
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags firewall --diff   # one step: ssh | firewall | kernel | wireguard | hosts | packages | kubelet
 ```
 
 `ns561436` was built by hand with the equivalent commands (see this file's git history) and brought under the playbook on 2026-09-21. Done by hand first, because Ansible's apt tasks fail on any broken source (`apt-get` only warns): the old `kubernetes.list`/`cri-o.list` with their keyrings (the same repo declared twice with different keys is an apt error) and the dead Helm repo (`baltocdn.com`, retired in 2025) were moved to `/root/apt-legacy/`, and `apt-mark manual conntrack ebtables` keeps `apt autoremove` away from them.
 
-Create the cluster from [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml), copied to the node first. It is the configuration the cluster stores in its `kubeadm-config` ConfigMap: keep the two identical. ⚠️ `networking.podSubnet` comes with the pod CIDR fix; until then, add `podSubnet: 10.244.0.0/16` under `networking` before creating a brand-new cluster.
+Create the cluster from [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml), copied to the node first. It is the configuration the cluster stores in its `kubeadm-config` ConfigMap: keep the two identical. Each node then gets its own `/24` of the pod network `10.244.0.0/16`.
 
 ```sh
 kubeadm init --config cluster-config.yaml --upload-certs
@@ -336,7 +336,15 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 apt-get install open-iscsi -y
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.7.0
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.7.3 --set persistence.defaultClassReplicaCount=1
+```
+
+`defaultClassReplicaCount=1`: one node, so one copy per volume (the chart default is 3). Upgraded from 1.7.0 on 2026-09-27, mainly for the fix of a CSI race that could reformat a volume on mount (longhorn#10416). The volumes' engines were left on 1.7.0. There is no downgrade, and `--reuse-values` would keep the old images:
+
+```sh
+export KUBECONFIG=/etc/kubernetes/admin.conf
+helm repo update longhorn
+helm upgrade longhorn longhorn/longhorn --namespace longhorn-system --version 1.7.3 --set persistence.defaultClassReplicaCount=1 --timeout 15m
 ```
 
 (optional) forward the Longhorn UI to the host.
@@ -451,10 +459,11 @@ Progress:
 - [x] Harden `ns561436`: SSH keys only, public VXLAN 8472 closed ([`firewall/ns561436.nft`](./firewall/ns561436.nft))
 - [ ] Full default-drop firewall on `ns561436` (after WireGuard)
 - [x] Kernel modules, CRI-O and Kubernetes packages ([`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), same versions as `ns561436`, no `kubeadm init`)
-- [x] WireGuard link between the two machines ([WireGuard](#wireguard)); the cluster does not use it yet
-- [ ] Fix the pod CIDR (`ns561436` owns `10.244.1.0/16`, which is the whole Flannel range, so a second node can't get a subnet)
+- [x] WireGuard link between the two machines ([WireGuard](#wireguard))
+- [x] Per-node pod ranges (`ns561436` has `10.244.0.0/24`), node IP and Flannel on the tunnel ([Pod CIDR fix and tunnel switch](#pod-cidr-fix-and-tunnel-switch))
 - [x] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan ([etcd backup and rollback](#etcd-backup-and-rollback)); take a fresh snapshot right before touching etcd
 - [x] Stable API endpoint `api.k8s.internal` and API server certificate names ([Stable API endpoint](#stable-api-endpoint))
+- [ ] Allow the cluster traffic on `wg0` in both firewalls (`ns561436` still drops VXLAN 8472 on every interface)
 - [ ] Join the VPS as a control plane node
 - [ ] Move etcd to the VPS and remove the control plane from `ns561436`
 
@@ -523,7 +532,7 @@ sudo systemctl enable nftables                   # load at every boot
 
 #### WireGuard
 
-Private link between the nodes: `wg0` on `10.8.0.0/24` (VPS `10.8.0.1`, `ns561436` `10.8.0.2`), udp/51820, MTU 1420, ~0.55 ms. The VPS firewall only accepts 51820 from `54.39.102.76`. The cluster does not use it yet: node IPs are still the public ones.
+Private link between the nodes: `wg0` on `10.8.0.0/24` (VPS `10.8.0.1`, `ns561436` `10.8.0.2`), udp/51820, MTU 1420, ~0.55 ms. The VPS firewall only accepts 51820 from `54.39.102.76`. Since 2026-09-27 `ns561436` announces `10.8.0.2` as its node IP and Flannel runs over `wg0` (pod MTU 1370).
 
 No secret is in this repo. Each node generates its own private key, which never leaves it; public keys and tunnel addresses are host vars in [`ansible/inventory.ini`](./ansible/inventory.ini), and [`ansible/templates/wg0.conf.j2`](./ansible/templates/wg0.conf.j2) makes WireGuard load the private key from its file (`PostUp`), so the config holds no secret either.
 
@@ -563,6 +572,32 @@ kubectl -n kube-system rollout restart ds/kube-proxy
 ```
 
 kubeadm traps: `init phase certs apiserver` silently keeps an existing certificate ("Using existing apiserver certificate"), hence the scratch dir; `--config` can't be combined with `--cert-dir`; `--dry-run` leaves copies of the certificates in `/etc/kubernetes/tmp/kubeadm-init-dryrun*`, delete them.
+
+#### Pod CIDR fix and tunnel switch
+
+Done on 2026-09-27 (apps down 18:34 → 19:07 UTC). The Node object's `podCIDR` can't be edited and `ns561436` owned the whole `10.244.0.0/16`, so the node was registered again: the controller-manager now hands out one `/24` per node, and at the same time the node IP and Flannel moved to the tunnel (every pod restarts once, so none keeps the old MTU). Longhorn 1.7.3 first, volumes detached before touching the node; Longhorn found the same disk and all 36 replicas again. State saved beforehand in `/root/cluster-backup/window-2026-09-27/` on `ns561436`.
+
+```sh
+# on ns561436 (KUBECONFIG=/etc/kubernetes/admin.conf); volume-workloads.txt = every Deployment/StatefulSet mounting a PVC
+kubectl cordon ns561436
+while read kind ns name; do kubectl -n $ns scale $kind/$name --replicas=0; done < volume-workloads.txt   # then wait: all volumes "detached"
+kubeadm init phase upload-config kubeadm --config /root/kubeadm/cluster-config.yaml       # podSubnet in kubeadm's stored config
+kubeadm init phase control-plane controller-manager --config /root/kubeadm/cluster-config.yaml   # adds --allocate-node-cidrs --cluster-cidr
+kubectl -n kube-system get cm kube-proxy -o yaml | sed 's#^    clusterCIDR: ""$#    clusterCIDR: 10.244.0.0/16#' | kubectl replace -f -
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags kubelet --diff    # from the Mac: --node-ip=<wg_address>
+
+systemctl stop kubelet && kubectl delete node ns561436    # wait until no pod is bound to the node (~1 min)
+kubectl -n kube-flannel patch ds kube-flannel-ds --type=json -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--iface=wg0"}]'
+# stop every pod sandbox except etcd, kube-apiserver, kube-controller-manager, kube-scheduler
+for p in $(crictl pods -q); do crictl inspectp -o go-template --template '{{.status.metadata.name}}' $p | grep -qE '^(etcd|kube-apiserver|kube-controller-manager|kube-scheduler)-' || { crictl stopp $p; crictl rmp $p; }; done
+ip link delete cni0; ip link delete flannel.1; rm -rf /var/lib/cni/networks/* /run/flannel/subnet.env
+systemctl start kubelet                                   # node back with podCIDR 10.244.0.0/24, InternalIP 10.8.0.2
+kubectl label node ns561436 node-role.kubernetes.io/control-plane= node.kubernetes.io/exclude-from-external-load-balancers=
+kubectl annotate node ns561436 kubeadm.alpha.kubernetes.io/cri-socket=unix:///var/run/crio/crio.sock
+while read kind ns name; do kubectl -n $ns scale $kind/$name --replicas=1; done < volume-workloads.txt    # Harbor first, then databases, then the rest
+```
+
+Lessons: start the apps in small batches (20 at once saturated the HDDs; etcd slowed down and kubelet restarted the API server, ~1 min without API). The `backup-*-pod`s in `home/` (filebrowser, immich, paperless) keep those volumes mounted for the SFTP backups; bring them back with a sync of the pod only: a full sync of `immich` would also rewrite `Secret/immich-postgresql`, whose `postgres-password` the chart regenerates.
 
 #### etcd backup and rollback
 
