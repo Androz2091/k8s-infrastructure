@@ -9,4 +9,6 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 60G
+      # 60G rounded up by Longhorn to whole 2 MiB blocks (= 57222Mi). A PVC can
+      # never shrink, so anything smaller makes every ArgoCD sync fail.
+      storage: 60001615872
