@@ -34,6 +34,23 @@ Because nothing is ever perfect, here is a list of things that need to be done. 
 
 ## 📜 Wiki
 
+### Admin access
+
+`kubectl`, `helm` and `k9s` run on the Mac. The API server only listens on the WireGuard link (`10.8.0.1:6443`), so [`admin/k8s.zsh`](./admin/k8s.zsh) opens an SSH tunnel to the VPS whenever a command needs it (local port 16443) and uses its own kubeconfig, `~/.kube/k8s-infrastructure.yaml`. `kubectl port-forward` then opens ports on the Mac directly.
+
+```sh
+echo "source $PWD/admin/k8s.zsh" >> ~/.zshrc && source ~/.zshrc   # once, from the repo folder
+k8s-login                  # personal admin certificate signed by the cluster CA, valid 1 year: run again to renew
+k get pods -A              # k = kubectl; k8s-tunnel up | down | status
+```
+
+The certificate is named after the Mac user (`CN=$USER`, no group) and gets its rights from its own binding, created once per person. Kubernetes can't revoke a certificate: deleting the binding cuts off a lost laptop without touching the control plane's `admin.conf`.
+
+```sh
+ssh -i ~/.ssh/mbp2024 debian@148.113.245.134 "sudo kubectl --kubeconfig /etc/kubernetes/admin.conf create clusterrolebinding admin-$USER --clusterrole=cluster-admin --user=$USER"
+k delete clusterrolebinding admin-<user>   # revoke
+```
+
 ### Postgres roles
 
 Each app in the shared `db/postgresql` connects with its own role, scoped to its own database(s). Never use the `postgres` superuser from a workload.
@@ -468,7 +485,7 @@ Progress:
 - [x] Stable API endpoint `api.k8s.internal` and API server certificate names ([Stable API endpoint](#stable-api-endpoint))
 - [x] Allow the cluster traffic on `wg0` in both firewalls ([Firewall](#firewall))
 - [x] Join the VPS as a control plane node, move etcd to it and remove the control plane from `ns561436` ([Move to the VPS](#move-to-the-vps))
-- [ ] Remove the cluster private keys and admin kubeconfigs from `ns561436`
+- [x] Remove the cluster private keys and admin kubeconfigs from `ns561436`, admin access from the Mac ([ns561436 as a plain worker](#ns561436-as-a-plain-worker))
 - [ ] Automatic etcd snapshots on the VPS, Prometheus scraping etcd
 
 #### SSH access
@@ -644,11 +661,27 @@ kubectl label node ns561436 node-role.kubernetes.io/control-plane- node.kubernet
 
 The first join stalled on "can only promote a learner member which is in sync with leader": etcd only accepts a peer connecting from an IP listed in its certificate, and `ns561436`'s etcd was still on its public IP, so neither side matched. Cleanup before trying again: `E member remove <learner id>` and `kubectl cordon` on the cluster side; on the VPS `kubeadm reset -f --skip-phases=remove-etcd-member` (that phase also empties `/var/lib/etcd`: do it by hand), `crictl rmp -fa` if reset times out, `ip link delete cni0` and `flannel.1`; then `kubectl delete node vps-ab240c42` (join refuses a name that is already Ready). On `ns561436`, kubelet took ~2 min to apply any static pod change (etcd itself starts in 2 s).
 
+#### ns561436 as a plain worker
+
+Done on 2026-09-27 after the move. `ns561436` faces the internet, so it keeps only what a joined worker gets: `kubelet.conf` and `pki/ca.crt`. The cluster's private keys (identical on the VPS) and every admin kubeconfig are gone from it; admin access is from the Mac ([Admin access](#admin-access)).
+
+```sh
+# on the VPS: no join token left (print only the IDs, the second half of a token is its secret)
+for t in $(sudo kubeadm token list | awk 'NR>1{print substr($1,1,6)}'); do sudo kubeadm token delete $t; done
+# from the Mac: backups holding keys or Secrets move to the VPS, checked file by file (the postgres dump stays)
+ssh -i ~/.ssh/mbp2024 root@54.39.102.76 'cd /root/cluster-backup && find . \( -path ./postgres-2026-09-27 -o -name MOVED.sha256 \) -prune -o -type f -print0 | sort -z | xargs -0 sha256sum > MOVED.sha256 && tar cf - --exclude=./postgres-2026-09-27 .' \
+  | ssh -i ~/.ssh/mbp2024 debian@148.113.245.134 'sudo sh -c "mkdir -m 700 -p /root/cluster-backup/from-ns561436 && tar xpf - -C /root/cluster-backup/from-ns561436 && cd /root/cluster-backup/from-ns561436 && sha256sum -c --quiet MOVED.sha256"'
+# on ns561436, once the copy is verified (tmp/ = stale kubeadm upgrade backups from May 2026)
+cd /root/cluster-backup && ls -A | grep -vx postgres-2026-09-27 | xargs rm -rf -- && rm -rf /etc/kubernetes/tmp
+cd /etc/kubernetes && rm -f admin.conf super-admin.conf controller-manager.conf scheduler.conf /home/debian/.kube/config
+find pki -type f ! -path pki/ca.crt -delete && find pki -mindepth 1 -type d -empty -delete && systemctl restart kubelet
+```
+
 #### etcd backup and rollback
 
-Since the move etcd runs on the VPS: same commands with `etcd-vps-ab240c42`, files in its `/root/cluster-backup`. The rollback below was the plan for the migration and no longer applies.
+Since the move etcd runs on the VPS: same commands with `etcd-vps-ab240c42`, files in its `/root/cluster-backup` (the ones below in `from-ns561436/`). The rollback below was the plan for the migration and no longer applies.
 
-Taken before any change to `ns561436`. The files hold every Secret in readable form (no encryption at rest) and the cluster CA keys: `chmod 600`, never in this repo. Copies: `ns561436:/root/cluster-backup`, `vps-ab240c42:~/cluster-backup`, and the admin's Mac (`~/cluster-backup`, outside iCloud-synced folders).
+Taken before any change to `ns561436`. The files hold every Secret in readable form (no encryption at rest) and the cluster CA keys: `chmod 600`, never in this repo. Copies: the VPS (`/root/cluster-backup`, `~/cluster-backup`) and the admin's Mac (`~/cluster-backup`, outside iCloud-synced folders).
 
 ```sh
 # on ns561436. etcdctl/etcdutl only exist inside the etcd container, which only sees /var/lib/etcd and /etc/kubernetes/pki/etcd
