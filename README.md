@@ -209,7 +209,7 @@ Configure kubectl CLI to connect to the cluster.
 export KUBECONFIG=/etc/kubernetes/admin.conf
 ```
 
-Allow the current (single) node to be a worker node.
+Single-node cluster only: let the control plane run apps too. The VPS control plane keeps its taint.
 
 ```sh
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
@@ -218,10 +218,13 @@ kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 Add a node, once the playbook has run on it. kubeadm writes its certificates and kubeconfigs from the cluster's stored configuration, so they already use `api.k8s.internal`. Nothing needs to be stored: a join token lasts 24 h, a certificate key 2 h.
 
 ```sh
-kubeadm token create --print-join-command        # on the control plane; run what it prints on the new node
-kubeadm init phase upload-certs --upload-certs   # control-plane nodes only: prints the certificate key
+kubeadm token create --print-join-command --ttl 1h   # on the control plane; run what it prints on the new node
+kubeadm init phase upload-certs --upload-certs       # control-plane nodes only: prints the certificate key
 # control-plane node: append --control-plane --certificate-key <key> --apiserver-advertise-address <its wg_address>
+kubeadm config images pull --kubernetes-version v1.31.14   # optional, on the new node before joining
 ```
+
+A new control plane gets its `NoSchedule` taint only at the end of the join, and a taint never evicts: delete the DaemonSet pods that landed on it meanwhile (`kubectl -n longhorn-system delete pod --field-selector spec.nodeName=<node>`, Longhorn can't run without `open-iscsi`).
 
 ### Install a CNI plugin
 
@@ -423,23 +426,23 @@ A **backup** is a snapshot that is stored outside of the cluster. It's stored in
 
 ### Control Plane Node
 
-🚧 In progress: the control plane (API server, etcd, scheduler, controller-manager) is moving from the dedicated server to a small NVMe VPS. Apps and Longhorn storage stay on the dedicated server.
+Since 2026-09-27 the control plane (API server, etcd, scheduler, controller-manager) runs on a small NVMe VPS. Apps and Longhorn storage stay on the dedicated server, now a plain worker.
 
 **Why**: etcd waits for a disk sync (`fdatasync`) on every write and needs p99 < 10 ms. On the HDD RAID1, shared with Longhorn and Loki, it can't get that, so the scheduler and controller-manager lose their leader election and restart (340+ restarts each).
 
-| WAL sync latency | `ns561436` (HDD, 4.5M real etcd syncs over 18 days) | `vps-ab240c42` (NVMe, fio, 2026-09-20) |
-|---|---|---|
-| median | 8–16 ms | 0.55 ms |
-| p99 | 128–256 ms | 0.87 ms |
-| worst | > 8 s (384 times) | 2.8 ms |
+| WAL sync latency | `ns561436` (HDD, 4.5M real etcd syncs over 18 days) | `vps-ab240c42` (NVMe, fio, 2026-09-20) | `vps-ab240c42` (real etcd syncs, first 11 min) |
+|---|---|---|---|
+| median | 8–16 ms | 0.55 ms | ≤ 1 ms |
+| p99 | 128–256 ms | 0.87 ms | 4–8 ms |
+| worst | > 8 s (384 times) | 2.8 ms | ≤ 16 ms |
 
-Target architecture:
+Architecture:
 
 ```mermaid
 flowchart LR
     Internet -->|"80 / 443 (Caddy)"| DED
     subgraph BHS["OVH Beauharnois (BHS)"]
-        VPS["<b>vps-ab240c42</b> (VPS-1)<br/>2 vCPU, 4 GB RAM<br/>disk: 40 GB NVMe<br/>148.113.245.134, wg0 10.8.0.1<br/>control plane + etcd"]
+        VPS["<b>vps-ab240c42</b> (VPS-1)<br/>2 vCPU, 4 GB RAM<br/>disk: 40 GB NVMe<br/>148.113.245.134, wg0 10.8.0.1<br/>control plane + etcd<br/>api.k8s.internal"]
         DED["<b>ns561436</b> (dedicated)<br/>8 threads, 64 GB RAM<br/>disk: 2x8 TB HDD RAID1 (7.3 TB usable)<br/>54.39.102.76, wg0 10.8.0.2<br/>apps + Longhorn storage"]
         VPS <-->|"WireGuard 10.8.0.0/24<br/>udp/51820, 0.55 ms"| DED
     end
@@ -457,15 +460,16 @@ Progress:
 - [x] System updates
 - [x] Firewall on the VPS ([`firewall/vps-ab240c42.nft`](./firewall/vps-ab240c42.nft))
 - [x] Harden `ns561436`: SSH keys only, public VXLAN 8472 closed ([`firewall/ns561436.nft`](./firewall/ns561436.nft))
-- [ ] Full default-drop firewall on `ns561436` (after WireGuard)
+- [ ] Full default-drop firewall on `ns561436`
 - [x] Kernel modules, CRI-O and Kubernetes packages ([`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), same versions as `ns561436`, no `kubeadm init`)
 - [x] WireGuard link between the two machines ([WireGuard](#wireguard))
 - [x] Per-node pod ranges (`ns561436` has `10.244.0.0/24`), node IP and Flannel on the tunnel ([Pod CIDR fix and tunnel switch](#pod-cidr-fix-and-tunnel-switch))
 - [x] etcd snapshot, `/etc/kubernetes/pki` backup and rollback plan ([etcd backup and rollback](#etcd-backup-and-rollback)); take a fresh snapshot right before touching etcd
 - [x] Stable API endpoint `api.k8s.internal` and API server certificate names ([Stable API endpoint](#stable-api-endpoint))
-- [ ] Allow the cluster traffic on `wg0` in both firewalls (`ns561436` still drops VXLAN 8472 on every interface)
-- [ ] Join the VPS as a control plane node
-- [ ] Move etcd to the VPS and remove the control plane from `ns561436`
+- [x] Allow the cluster traffic on `wg0` in both firewalls ([Firewall](#firewall))
+- [x] Join the VPS as a control plane node, move etcd to it and remove the control plane from `ns561436` ([Move to the VPS](#move-to-the-vps))
+- [ ] Remove the cluster private keys and admin kubeconfigs from `ns561436`
+- [ ] Automatic etcd snapshots on the VPS, Prometheus scraping etcd
 
 #### SSH access
 
@@ -525,10 +529,10 @@ sudo systemctl enable nftables                   # load at every boot
 
 | File | Node | Policy |
 |---|---|---|
-| `firewall/vps-ab240c42.nft` | control plane VPS | default-drop; allows SSH, ping, DHCP |
-| `firewall/ns561436.nft` | dedicated server | default-accept; only drops Flannel's public VXLAN (8472) |
+| `firewall/vps-ab240c42.nft` | control plane VPS | default-drop; allows SSH, ping, DHCP, WireGuard from `ns561436`, everything on `wg0` |
+| `firewall/ns561436.nft` | dedicated server | default-accept; drops Flannel's VXLAN (8472) except on `wg0` |
 
-`ns561436` stays default-accept for now because it runs production; VXLAN (8472) is unauthenticated and needs no public exposure on a single node. Reopen it only from the WireGuard peer once the VPS joins, then tighten to a full default-drop firewall.
+Cluster traffic between the nodes (API 6443, kubelet 10250, etcd, VXLAN 8472) only uses `wg0`, which both firewalls accept in full. `ns561436` stays default-accept for now because it runs production (it no longer listens on the etcd and API ports); a full default-drop firewall is next.
 
 #### WireGuard
 
@@ -547,7 +551,9 @@ ping -c 3 10.8.0.2 && sudo wg show wg0   # from the VPS: recent handshake, trans
 
 #### Stable API endpoint
 
-Everything that must follow the API when it moves reaches it as `api.k8s.internal:6443`: kubectl, kubelet, kube-proxy and nodes that join. The name is a line in `/etc/hosts` on every node (playbook, `--tags hosts`) pointing at `k8s_api_address` in [`ansible/inventory.ini`](./ansible/inventory.ini): `10.8.0.2` (`ns561436`) today, `10.8.0.1` (VPS) after the move. kubeadm knows it as `controlPlaneEndpoint` in [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml). The controller-manager and scheduler keep talking to the API server on their own machine. OVH's cloud-init only maintains the `127.0.1.1` line of `/etc/hosts` (`manage_etc_hosts: localhost`), so the extra line survives reboots.
+Everything that must follow the API when it moves reaches it as `api.k8s.internal:6443`: kubectl, kubelet, kube-proxy and nodes that join. The name is a line in `/etc/hosts` on every node (playbook, `--tags hosts`) pointing at `k8s_api_address` in [`ansible/inventory.ini`](./ansible/inventory.ini): `10.8.0.1` (VPS) since the move, `10.8.0.2` (`ns561436`) before. kubeadm knows it as `controlPlaneEndpoint` in [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml). The controller-manager and scheduler keep talking to the API server on their own machine. OVH's cloud-init only maintains the `127.0.1.1` line of `/etc/hosts` (`manage_etc_hosts: localhost`), so the extra line survives reboots.
+
+⚠️ kubelet gives host-network pods a copy of `/etc/hosts` taken when the pod starts. After changing `k8s_api_address`, restart kube-proxy (its kubeconfig uses the name), or it keeps dialing the old address: `kubectl -n kube-system rollout restart ds/kube-proxy`.
 
 Done once, on the running cluster, on 2026-09-27 (no downtime; rollback copies in `/root/cluster-backup/*-before-2026-09-27/` on `ns561436`):
 
@@ -599,7 +605,48 @@ while read kind ns name; do kubectl -n $ns scale $kind/$name --replicas=1; done 
 
 Lessons: start the apps in small batches (20 at once saturated the HDDs; etcd slowed down and kubelet restarted the API server, ~1 min without API). The `backup-*-pod`s in `home/` (filebrowser, immich, paperless) keep those volumes mounted for the SFTP backups; bring them back with a sync of the pod only: a full sync of `immich` would also rewrite `Secret/immich-postgresql`, whose `postgres-password` the chart regenerates.
 
+#### Move to the VPS
+
+Done on 2026-09-27 (19:46 → 20:20 UTC): the VPS joined as a second control plane, took the etcd leadership, then `ns561436` stopped its control plane and left etcd. One API outage (2 min 35 s, step 1), apps untouched. Replaced files are kept in `/root/cluster-backup/` on `ns561436`. Fresh etcd snapshot before each etcd step ([etcd backup and rollback](#etcd-backup-and-rollback)).
+
+```sh
+# etcdctl runs inside an etcd pod (on the VPS: sudo, --kubeconfig=/etc/kubernetes/admin.conf)
+E() { kubectl -n kube-system exec etcd-<node> -- etcdctl --endpoints=https://127.0.0.1:2379 --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt --key=/etc/kubernetes/pki/etcd/healthcheck-client.key "$@"; }
+
+# 1. on ns561436: its etcd peer address moves from the public IP (set by kubeadm init in 2024) to the tunnel.
+#    New peer certificate = the old names + 10.8.0.2, made in a scratch dir holding only the etcd CA (kubeadm keeps existing certificates).
+D=/root/etcd-peer-new; mkdir -m 700 -p $D/etcd && cp /etc/kubernetes/pki/etcd/ca.{crt,key} $D/etcd/
+# $D/config.yaml: InitConfiguration (nodeRegistration.name ns561436, localAPIEndpoint.advertiseAddress 54.39.102.76)
+#               + ClusterConfiguration (kubernetesVersion, certificatesDir: $D, etcd.local.peerCertSANs: [10.8.0.2])
+kubeadm init phase certs etcd-peer --config $D/config.yaml
+install -m 644 $D/etcd/peer.crt /etc/kubernetes/pki/etcd/ && install -m 600 $D/etcd/peer.key /etc/kubernetes/pki/etcd/ && rm -rf $D
+E member update f3557d7c08b71d2d --peer-urls=https://10.8.0.2:2380
+sed -i 's#https://54.39.102.76:2380#https://10.8.0.2:2380#g' /etc/kubernetes/manifests/etcd.yaml   # etcd restarts
+
+# 2. from the Mac: join (see "Add a node"), then remove the Longhorn pods that landed before the taint
+JOIN=$(ssh -i ~/.ssh/mbp2024 root@54.39.102.76 'kubeadm token create --print-join-command --ttl 1h')
+KEY=$(ssh -i ~/.ssh/mbp2024 root@54.39.102.76 'kubeadm init phase upload-certs --upload-certs --config /root/kubeadm/cluster-config.yaml 2>/dev/null | tail -1')
+ssh -i ~/.ssh/mbp2024 debian@148.113.245.134 "sudo $JOIN --control-plane --certificate-key $KEY --apiserver-advertise-address 10.8.0.1"; unset JOIN KEY
+kubectl -n longhorn-system delete pod --field-selector spec.nodeName=vps-ab240c42
+
+# 3. handover
+E move-leader d3d61204134edca2                   # sent to the leader (ns561436): the VPS leads etcd
+# ansible/inventory.ini: k8s_api_address=10.8.0.1
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags hosts --diff
+kubectl -n kube-system rollout restart ds/kube-proxy
+B=/root/cluster-backup/manifests-ns561436-2026-09-27; mkdir -m 700 -p $B    # on ns561436
+mv /etc/kubernetes/manifests/kube-{apiserver,controller-manager,scheduler}.yaml $B/   # the VPS takes both leases, API stays up
+E member remove f3557d7c08b71d2d                 # in etcd-vps-ab240c42: etcd is now the VPS alone
+mv /etc/kubernetes/manifests/etcd.yaml $B/ && mv /var/lib/etcd /var/lib/etcd.removed-2026-09-27   # once etcd has stopped
+kubectl label node ns561436 node-role.kubernetes.io/control-plane- node.kubernetes.io/exclude-from-external-load-balancers-
+```
+
+The first join stalled on "can only promote a learner member which is in sync with leader": etcd only accepts a peer connecting from an IP listed in its certificate, and `ns561436`'s etcd was still on its public IP, so neither side matched. Cleanup before trying again: `E member remove <learner id>` and `kubectl cordon` on the cluster side; on the VPS `kubeadm reset -f --skip-phases=remove-etcd-member` (that phase also empties `/var/lib/etcd`: do it by hand), `crictl rmp -fa` if reset times out, `ip link delete cni0` and `flannel.1`; then `kubectl delete node vps-ab240c42` (join refuses a name that is already Ready). On `ns561436`, kubelet took ~2 min to apply any static pod change (etcd itself starts in 2 s).
+
 #### etcd backup and rollback
+
+Since the move etcd runs on the VPS: same commands with `etcd-vps-ab240c42`, files in its `/root/cluster-backup`. The rollback below was the plan for the migration and no longer applies.
 
 Taken before any change to `ns561436`. The files hold every Secret in readable form (no encryption at rest) and the cluster CA keys: `chmod 600`, never in this repo. Copies: `ns561436:/root/cluster-backup`, `vps-ab240c42:~/cluster-backup`, and the admin's Mac (`~/cluster-backup`, outside iCloud-synced folders).
 
