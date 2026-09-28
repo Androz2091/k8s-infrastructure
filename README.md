@@ -9,8 +9,8 @@ flowchart LR
     Internet(["Internet"])
 
     subgraph BHS["Beauharnois, Canada"]
-        DED["<b>Worker Node</b><br/>apps and their data<br/><small>8 threads · 64 GB RAM<br/>2×8 TB HDD</small><br/>"]
-        VPS["<b>VPS</b><br/>control plane<br/><small>2 vCPU · 4 GB RAM<br/>40 GB NVMe</small><br/>"]
+        DED["<b>Worker Node</b><br/>apps and their data<br/><small>8 threads<br/>64 GB RAM<br/>2×8 TB HDD</small><br/>"]
+        VPS["<b>VPS</b><br/>control plane<br/><small>2 vCPU<br/>4 GB RAM<br/>40 GB NVMe</small><br/>"]
     end
 
     subgraph TOR["Toronto, Canada"]
