@@ -1,7 +1,7 @@
 #!/usr/sbin/nft -f
 # Default-ACCEPT for now: this node runs production (Caddy 80/443, Plex 32400, SSH 22).
 # It only closes Flannel's unauthenticated VXLAN port (8472) to the internet; the port
-# stays open through the WireGuard tunnel. A full default-drop firewall comes after the move.
+# stays open through the WireGuard tunnel. A full default-drop firewall is issue #56.
 # Manages only its own table: never "flush ruleset" (kube-proxy and Flannel share nftables).
 
 table inet vxlanguard
