@@ -18,6 +18,11 @@ helmCharts:
           targetPort: 10249
       kubeScheduler:
         enabled: false
+      defaultRules:
+        disabled:
+          # one worker by design: losing it can never be "tolerated", so these would fire forever
+          KubeMemoryOvercommit: true
+          KubeCPUOvercommit: true
       alertmanager:
         alertmanagerSpec:
           replicas: 3

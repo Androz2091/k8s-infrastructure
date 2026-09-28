@@ -1,3 +1,16 @@
+# Upgrading: Umami runs its Prisma migrations at startup. A long data backfill (e.g.
+# 09_update_hostname_region) can be killed by the startup probe, leaving a failed row in
+# _prisma_migrations and a half-applied schema; later starts then fail with P3009.
+# Before bumping the chart, scale to 0 and run the migrations in a one-shot pod:
+#
+#   kubectl -n pro scale deploy umami-analytics --replicas=0
+#   DB_URL=$(kubectl -n pro get secret umami-analytics-secrets -o jsonpath='{.data.DATABASE_URL}' | base64 -d)
+#   kubectl run umami-migrate --rm -it -n pro --image=ghcr.io/umami-software/umami:postgresql-vX.Y.Z \
+#     --restart=Never --env="DATABASE_URL=$DB_URL" --command -- npx prisma migrate deploy
+#   kubectl -n pro scale deploy umami-analytics --replicas=1
+#
+# After a failed attempt: check the schema by hand (columns, indexes, _prisma_migrations), finish
+# the missing SQL, then `npx prisma migrate resolve --applied <migration_name>` from such a pod.
 helmCharts:
   - name: umami
     releaseName: umami-analytics

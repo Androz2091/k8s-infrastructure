@@ -1,0 +1,16 @@
+# managed by ansible/bootstrap.yaml, contains no secret
+
+[Interface]
+Address = {{ wg_address }}/24
+ListenPort = 51820
+# the private key never leaves this machine
+PostUp = wg set %i private-key /etc/wireguard/privatekey
+{% for peer in groups['all'] if peer != inventory_hostname %}
+
+[Peer]
+# {{ peer }}
+PublicKey = {{ hostvars[peer].wg_public_key }}
+Endpoint = {{ hostvars[peer].ansible_host }}:51820
+AllowedIPs = {{ hostvars[peer].wg_address }}/32
+PersistentKeepalive = 25
+{% endfor %}
