@@ -9,12 +9,12 @@ flowchart LR
     Internet(["Internet"])
 
     subgraph BHS["Beauharnois, Canada"]
-        DED["<b>Worker Node</b><br/>apps and their data<br/><small>8 threads · 64 GB RAM<br/>2×8 TB HDD</small><br/><b>48 €/month</b>"]
-        VPS["<b>VPS</b><br/>control plane<br/><small>2 vCPU · 4 GB RAM<br/>40 GB NVMe</small><br/><b>5 €/month</b>"]
+        DED["<b>Worker Node</b><br/>apps and their data<br/><small>8 threads · 64 GB RAM<br/>2×8 TB HDD</small><br/>"]
+        VPS["<b>VPS</b><br/>control plane<br/><small>2 vCPU · 4 GB RAM<br/>40 GB NVMe</small><br/>"]
     end
 
     subgraph TOR["Toronto, Canada"]
-        S3[("<b>OVH Object Storage</b><br/>backups<br/><b>4 €/month</b>")]
+        S3[("<b>OVH Object Storage</b><br/>backups<br/>")]
     end
 
     Internet -->|HTTPS| DED
@@ -22,7 +22,7 @@ flowchart LR
     DED -->|nightly| S3
 ```
 
-This cluster hosts personal services as well as client projects from my freelance business. All applications run on the main worker node, while the control plane runs on a separate VPS. This allows the worker node to be replaced without rebuilding the cluster, while the control plane’s NVMe storage keeps etcd fast.
+This cluster hosts personal services as well as client projects from my freelance business. All applications run on the main worker node, while the control plane runs on a separate VPS. This allows the worker node to be replaced without rebuilding the cluster, while the control plane’s NVMe storage keeps etcd fast. The cost of this setup at OVH is roughly $60/month.
 
 ### 🦙 Acknowledgment
 
