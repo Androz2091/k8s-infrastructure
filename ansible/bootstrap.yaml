@@ -96,6 +96,17 @@
         - net.ipv4.ip_forward
       tags: kernel
 
+    - name: Let containers watch many files (kubectl logs -f, Promtail)
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        reload: true
+      loop:
+        - { name: fs.inotify.max_user_instances, value: "1024" }
+        - { name: fs.inotify.max_user_watches, value: "1048576" }
+      tags: kernel
+
     - name: Install WireGuard tools
       ansible.builtin.apt:
         name: wireguard-tools
