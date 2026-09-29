@@ -5,6 +5,11 @@ metadata:
   namespace: sushiflix
   labels:
     app: qbittorrent
+  annotations:
+    # two ports share 6881 (TCP + UDP): client-side apply keys ports by number only and drops
+    # one name; server-side apply keys them by number and protocol
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   replicas: 1
   strategy:

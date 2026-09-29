@@ -18,6 +18,9 @@ helmCharts:
           targetPort: 10249
       kubeScheduler:
         enabled: false
+      kubeEtcd:
+        # etcd only serves metrics on the VPS's 127.0.0.1: a scrape target would always be down (#55)
+        enabled: false
       defaultRules:
         disabled:
           # one worker by design: losing it can never be "tolerated", so these would fire forever
