@@ -47,6 +47,13 @@ spec:
       destination:
         server: https://kubernetes.default.svc
         namespace: home
+      # values a chart generates at random on every render: git can never match the live ones
+      ignoreDifferences:
+      - kind: Secret
+        name: immich-postgresql
+        jsonPointers:
+        - /data/postgres-password
       syncPolicy:
         syncOptions:
         - CreateNamespace=true
+        - RespectIgnoreDifferences=true # a sync keeps the live values instead of new random ones
