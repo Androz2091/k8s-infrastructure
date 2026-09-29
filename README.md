@@ -52,13 +52,14 @@ Movies and TV shows are not backed up, considered as non-critical data.
 
 ### Admin access
 
-`kubectl`, `helm` and `k9s` run on the my laptop. The API server only listens on the WireGuard link (`10.8.0.1:6443`), so [`admin/k8s.zsh`](./admin/k8s.zsh) opens an SSH tunnel to the VPS whenever a command needs it (local port 16443) and uses its own kubeconfig, `~/.kube/k8s-infrastructure.yaml`. `kubectl port-forward` then opens ports on the Mac directly.
+`kubectl`, `helm`, `k9s` and `argocd` run on my laptop. The API server only listens on the WireGuard link (`10.8.0.1:6443`), so [`admin/k8s.zsh`](./admin/k8s.zsh) opens an SSH tunnel to the VPS whenever a command needs it (local port 16443) and uses its own kubeconfig, `~/.kube/k8s-infrastructure.yaml`. `kubectl port-forward` then opens ports on the Mac directly.
 
 ```sh
 brew install kubernetes-cli helm kubeseal argocd
 echo "source $PWD/admin/k8s.zsh" >> ~/.zshenv && source ~/.zshenv
 k8s-login # personal admin certificate signed by the cluster CA, valid 1 year: run again to renew
 k get pods -A
+argocd app sync <app>   # ArgoCD in core mode: no ArgoCD login, same certificate
 ```
 
 The certificate is named after the laptop user (`CN=$USER`, no group) and gets its rights from its own binding, created once per person. Kubernetes can't revoke a certificate: deleting the binding cuts off a lost laptop without touching the control plane's `admin.conf`.
