@@ -9,6 +9,9 @@ spec:
   destinations:
   - server: https://kubernetes.default.svc
     namespace: "monitoring"
+  # kube-prometheus-stack puts its CoreDNS scrape Service next to CoreDNS: a Service only selects pods in its own namespace
+  - server: https://kubernetes.default.svc
+    namespace: "kube-system"
   clusterResourceWhitelist:
   - group: '*'
     kind: '*'
