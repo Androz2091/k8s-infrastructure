@@ -1,0 +1,12 @@
+# A tiny app for live demos: edit index.html, push, `argocd app sync demo`, reload the page.
+# The ConfigMap name changes with its content, so every edit rolls out a new pod.
+namespace: pro
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+configMapGenerator:
+  - name: demo-html
+    files:
+      - index.html
