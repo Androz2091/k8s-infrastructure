@@ -21,9 +21,19 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # only a pod that answers gets requests
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          # a deleted pod keeps answering for 5 s while the Service stops sending it requests
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "5"]
           volumeMounts:
-            - name: html
-              mountPath: /usr/share/nginx/html
+            - name: conf
+              mountPath: /etc/nginx/conf.d
               readOnly: true
           securityContext:
             allowPrivilegeEscalation: false
@@ -34,6 +44,6 @@ spec:
             limits:
               memory: 64Mi
       volumes:
-        - name: html
+        - name: conf
           configMap:
-            name: demo-html
+            name: demo-conf

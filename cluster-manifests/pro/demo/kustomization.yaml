@@ -1,5 +1,6 @@
-# A tiny app for live demos: edit index.html, push, `argocd app sync demo`, reload the page.
-# The ConfigMap name changes with its content, so every edit rolls out a new pod.
+# A tiny app for live demos: open https://demo.androz2091.fr, change replicas or the
+# text in default.conf, push, `argocd app sync demo`.
+# The ConfigMap name changes with its content, so every edit rolls out new pods.
 namespace: pro
 
 resources:
@@ -7,6 +8,6 @@ resources:
   - service.yaml
 
 configMapGenerator:
-  - name: demo-html
+  - name: demo-conf
     files:
-      - index.html
+      - default.conf
