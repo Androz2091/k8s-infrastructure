@@ -1,4 +1,4 @@
-# A tiny app for live demos: open https://demo.androz2091.fr, change replicas or the
+# A tiny app for live demos: open https://hello.androz2091.fr, change replicas or the
 # text in default.conf, push, `argocd app sync demo`.
 # The ConfigMap name changes with its content, so every edit rolls out new pods.
 namespace: pro

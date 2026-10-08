@@ -182,7 +182,7 @@ tautulli.androz2091.fr {
 }
 
 # the live demo: no keepalive, so each request can land on a different pod
-demo.androz2091.fr {
+hello.androz2091.fr {
     reverse_proxy http://demo.pro.svc.cluster.local:80 {
         transport http {
             keepalive off
