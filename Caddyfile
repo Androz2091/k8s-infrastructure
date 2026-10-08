@@ -180,3 +180,12 @@ tautulli.androz2091.fr {
     import tinyauth_auth
     reverse_proxy http://tautulli.sushiflix.svc.cluster.local:80
 }
+
+# the live demo: no keepalive, so each request can land on a different pod
+hello.androz2091.fr {
+    reverse_proxy http://demo.pro.svc.cluster.local:80 {
+        transport http {
+            keepalive off
+        }
+    }
+}

@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+  labels:
+    app: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.31.6-alpine
+          ports:
+            - name: http
+              containerPort: 8080
+          # only a pod that answers gets requests
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          # a deleted pod keeps answering for 5 s while the Service stops sending it requests
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "5"]
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+      volumes:
+        - name: conf
+          configMap:
+            name: demo-conf
