@@ -44,9 +44,17 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data/
               name: postgresql-v
+            # parallel query workers share memory through /dev/shm,
+            # and the container default of 64 MB is too small for them
+            - mountPath: /dev/shm
+              name: dshm
           resources: {}
         #
       volumes:
         - name: postgresql-v
           persistentVolumeClaim:
             claimName: postgresql-pvc
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
