@@ -1,0 +1,93 @@
+# Nightly logical backup: every database (pg_dump -Fc --create) + roles (pg_dumpall --globals-only),
+# encrypted by rclone crypt and uploaded to the OVH bucket "pgdumps" (write-only key, 30-day expiry
+# rule on the bucket). Credentials: Secret pgdump-secrets (README > Postgres backups).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pgdump
+  namespace: db
+spec:
+  schedule: "30 3 * * *" # after the Longhorn offsite backup (02:00)
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 10800
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          volumes:
+            - name: dumps
+              emptyDir:
+                sizeLimit: 10Gi
+          initContainers:
+            - name: dump
+              image: postgres:15.18 # pg_dump must be at least the server's major version
+              env:
+                - name: PGHOST
+                  value: postgresql
+                - name: PGUSER
+                  value: postgres
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgresql-secrets
+                      key: postgres-password
+              command: ["/bin/sh", "-ec"]
+              args:
+                - |
+                  cd /dumps
+                  pg_dumpall --globals-only > globals.sql
+                  for db in $(psql -Atc "select datname from pg_database where datallowconn and datname <> 'template1' order by 1"); do
+                    pg_dump -Fc --create -d "$db" -f "$db.dump"
+                  done
+                  ls -la
+              volumeMounts:
+                - name: dumps
+                  mountPath: /dumps
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          containers:
+            - name: upload
+              image: rclone/rclone:1.75.1
+              env:
+                - name: RCLONE_CONFIG_OVH_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_OVH_PROVIDER
+                  value: Other
+                - name: RCLONE_CONFIG_OVH_ENDPOINT
+                  value: https://s3.ca-east-tor.io.cloud.ovh.net
+                - name: RCLONE_CONFIG_OVH_REGION
+                  value: ca-east-tor
+                - name: RCLONE_CONFIG_PGDUMPS_TYPE
+                  value: crypt
+                - name: RCLONE_CONFIG_PGDUMPS_REMOTE
+                  value: ovh:pgdumps
+              envFrom:
+                - secretRef:
+                    # RCLONE_CONFIG_OVH_ACCESS_KEY_ID, RCLONE_CONFIG_OVH_SECRET_ACCESS_KEY,
+                    # RCLONE_CONFIG_PGDUMPS_PASSWORD, RCLONE_CONFIG_PGDUMPS_PASSWORD2 (both "rclone obscure"d)
+                    name: pgdump-secrets
+              command: ["/bin/sh", "-ec"]
+              args:
+                # the key can only write: no listing, no existence checks
+                - rclone copy /dumps "pgdumps:$(date -u +%F)" --no-check-dest --s3-no-check-bucket --s3-no-head
+              volumeMounts:
+                - name: dumps
+                  mountPath: /dumps
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
