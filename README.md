@@ -47,8 +47,32 @@ What do I host on this cluster?
 
 - 1 local snapshot of each volume every 30 minutes. Retained for 24 hours.
 - 1 offsite backup (S3) of each volume every night. Retained for 30 days.
+- 1 `pg_dump` of every Postgres database every night ([below](#postgres-backups)). Retained for 30 days.
 
 Movies and TV shows are not backed up, considered as non-critical data.
+
+### Postgres backups
+
+On top of the Longhorn backups of its volume, a [CronJob](./cluster-manifests/db/postgres/pgdump-cronjob.yaml) dumps every database and the roles at 03:30 UTC, encrypts them with rclone crypt and uploads them to the OVH bucket `pgdumps` (Toronto). A dump restores one database alone, and into a newer Postgres.
+
+Set up once: the bucket, owned by `backups-admin` (its key only in the password manager), with a 30-day compliance object lock and an expiry rule at 31 days (S3 API only); the user `pgdumps-upload`, allowed only `s3:PutObject` on `pgdumps/*`; and the Secret `pgdump-secrets` in `db`, [sealed](#sealed-secrets) like the others. Keep both crypt passwords in the password manager: without them the dumps can't be read.
+
+```yaml
+stringData:
+  RCLONE_CONFIG_OVH_ACCESS_KEY_ID: …
+  RCLONE_CONFIG_OVH_SECRET_ACCESS_KEY: …
+  RCLONE_CONFIG_PGDUMPS_PASSWORD: …    # output of: rclone obscure '<password>'
+  RCLONE_CONFIG_PGDUMPS_PASSWORD2: …   # output of: rclone obscure '<salt>'
+```
+
+Restore a database from the Mac (`brew install rclone`, the `RCLONE_CONFIG_*` variables of the CronJob, and the `backups-admin` key):
+
+```sh
+rclone lsd pgdumps:
+rclone copy pgdumps:<date>/<db>.dump .
+k -n db cp <db>.dump <postgres pod>:/tmp/
+k -n db exec <postgres pod> -- pg_restore -U postgres --clean --if-exists -d <db> /tmp/<db>.dump   # replaces its content
+```
 
 ### Admin access
 

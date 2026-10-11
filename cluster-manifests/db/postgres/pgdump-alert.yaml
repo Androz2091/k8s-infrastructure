@@ -1,0 +1,20 @@
+# Failed runs already alert through the chart's KubeJobFailed; this catches a CronJob that stopped running.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pgdump
+  namespace: db
+  labels:
+    release: kube-prometheus-stack # the only rules Prometheus loads
+spec:
+  groups:
+    - name: pgdump
+      rules:
+        - alert: PostgresDumpTooOld
+          expr: time() - kube_cronjob_status_last_successful_time{namespace="db", cronjob="pgdump"} > 26 * 3600
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: The last successful Postgres dump is more than 26 hours old.
+            description: Check the db/pgdump CronJob (kubectl -n db get jobs).
