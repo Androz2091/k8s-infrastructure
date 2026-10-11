@@ -55,7 +55,7 @@ Movies and TV shows are not backed up, considered as non-critical data.
 
 On top of the Longhorn backups of its volume, a [CronJob](./cluster-manifests/db/postgres/pgdump-cronjob.yaml) dumps every database and the roles at 03:30 UTC, encrypts them with rclone crypt and uploads them to the OVH bucket `pgdumps` (Toronto). A dump restores one database alone, and into a newer Postgres.
 
-Set up once: the bucket with a 30-day expiration rule, an S3 user that can only upload to it (`s3:PutObject`, `s3:AbortMultipartUpload`, `s3:ListMultipartUploadParts`), and the Secret `pgdump-secrets` in `db`, [sealed](#sealed-secrets) like the others. Keep both crypt passwords in the password manager: without them the dumps can't be read.
+Set up once: the bucket, owned by `backups-admin` (its key only in the password manager), with a 30-day compliance object lock and an expiry rule at 31 days (S3 API only); the user `pgdumps-upload`, allowed only `s3:PutObject` on `pgdumps/*`; and the Secret `pgdump-secrets` in `db`, [sealed](#sealed-secrets) like the others. Keep both crypt passwords in the password manager: without them the dumps can't be read.
 
 ```yaml
 stringData:
@@ -65,7 +65,7 @@ stringData:
   RCLONE_CONFIG_PGDUMPS_PASSWORD2: …   # output of: rclone obscure '<salt>'
 ```
 
-Restore a database from the Mac (`brew install rclone`, the `RCLONE_CONFIG_*` variables of the CronJob, and an S3 key that can read the bucket):
+Restore a database from the Mac (`brew install rclone`, the `RCLONE_CONFIG_*` variables of the CronJob, and the `backups-admin` key):
 
 ```sh
 rclone lsd pgdumps:
