@@ -74,8 +74,6 @@ k -n db cp <db>.dump <postgres pod>:/tmp/
 k -n db exec <postgres pod> -- pg_restore -U postgres --clean --if-exists -d <db> /tmp/<db>.dump   # replaces its content
 ```
 
-Last restore test: 2026-10-11, `shlink` into a scratch database (`createdb -T template0`, then `pg_restore` without `--create`): same schema, same rows as of the dump.
-
 ### Admin access
 
 `kubectl`, `helm`, `k9s` and `argocd` run on my laptop. The API server only listens on the WireGuard link (`10.8.0.1:6443`), so [`admin/k8s.zsh`](./admin/k8s.zsh) opens an SSH tunnel to the VPS whenever a command needs it (local port 16443) and uses its own kubeconfig, `~/.kube/k8s-infrastructure.yaml`. `kubectl port-forward` then opens ports on the Mac directly.
