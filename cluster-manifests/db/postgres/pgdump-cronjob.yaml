@@ -1,6 +1,4 @@
-# Nightly logical backup: every database (pg_dump -Fc --create) + roles (pg_dumpall --globals-only),
-# encrypted by rclone crypt and uploaded to the OVH bucket "pgdumps" (write-only key, 30-day expiry
-# rule on the bucket). Credentials: Secret pgdump-secrets (README > Postgres backups).
+# Setup and restore: README > Postgres backups.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -74,8 +72,6 @@ spec:
                   value: ovh:pgdumps
               envFrom:
                 - secretRef:
-                    # RCLONE_CONFIG_OVH_ACCESS_KEY_ID, RCLONE_CONFIG_OVH_SECRET_ACCESS_KEY,
-                    # RCLONE_CONFIG_PGDUMPS_PASSWORD, RCLONE_CONFIG_PGDUMPS_PASSWORD2 (both "rclone obscure"d)
                     name: pgdump-secrets
               command: ["/bin/sh", "-ec"]
               args:
