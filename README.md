@@ -55,7 +55,7 @@ Movies and TV shows are not backed up, considered as non-critical data.
 
 On top of the Longhorn backups of its volume, a [CronJob](./cluster-manifests/db/postgres/pgdump-cronjob.yaml) dumps every database and the roles at 03:30 UTC, encrypts them with rclone crypt and uploads them to the OVH bucket `pgdumps` (Toronto). A dump restores one database alone, and into a newer Postgres.
 
-Set up once: the bucket, owned by `backups-admin` (its key only in the password manager), with a 30-day compliance object lock and an expiry rule at 31 days (S3 API only); the user `pgdumps-upload`, allowed only `s3:PutObject` on `pgdumps/*`; and the Secret `pgdump-secrets` in `db`, [sealed](#sealed-secrets) like the others. Keep both crypt passwords in the password manager: without them the dumps can't be read.
+Set up once: the bucket, owned by `backups-admin` (its key only in the password manager), with a 30-day compliance object lock and an expiry rule at 31 days (S3 API only); the user `pgdumps-upload`, allowed only `s3:PutObject` on `pgdumps/*`; `s3:GetObject` on `pgdumps/*` for `backups-admin` (OVH gives each object to the user that uploaded it: the bucket owner can only list them); and the Secret `pgdump-secrets` in `db`, [sealed](#sealed-secrets) like the others. Keep both crypt passwords in the password manager: without them the dumps can't be read.
 
 ```yaml
 stringData:
