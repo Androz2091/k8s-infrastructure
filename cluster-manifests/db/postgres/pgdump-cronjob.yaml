@@ -79,8 +79,9 @@ spec:
                     name: pgdump-secrets
               command: ["/bin/sh", "-ec"]
               args:
-                # the key can only write: no listing, no existence checks
-                - rclone copy /dumps "pgdumps:$(date -u +%F)" --no-check-dest --s3-no-check-bucket --s3-no-head
+                # the key can only write: no listing, no existence checks (--s3-no-head-object: without it
+                # rclone's startup HEAD is refused and it decides the destination "is a file")
+                - rclone copy /dumps "pgdumps:$(date -u +%F)" --no-check-dest --s3-no-check-bucket --s3-no-head --s3-no-head-object
               volumeMounts:
                 - name: dumps
                   mountPath: /dumps
