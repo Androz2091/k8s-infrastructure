@@ -143,6 +143,8 @@ go.simonlefort.ch {
 }
 
 ninja.androz2091.fr {
+    # PHP2Shell (CVE-2026-109618/109619): behind tinyauth until the image ships a patched PHP
+    import tinyauth_auth
     reverse_proxy http://invoiceninja.pro.svc.cluster.local:80
 }
 
