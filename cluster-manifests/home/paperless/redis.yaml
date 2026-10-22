@@ -25,7 +25,7 @@ spec:
 
       containers:
         - name: redis
-          image: bitnami/redis:6.2.14
+          image: soldevelo/redis:6.2.16
           ports:
             - name: redis
               containerPort: 6379
