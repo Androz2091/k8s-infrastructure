@@ -1,4 +1,4 @@
-# Good Company (https://github.com/Androz2091/goodcompany): the web app, a static site served by nginx.
+# Good Company (https://github.com/Androz2091/goodcompany): the web app at https://good-company.app, a static site served by nginx.
 # The backend runs on Convex cloud; this is only the site that the envelopes' QR codes and invitation links open.
 # The Release workflow pushes harbor.androz2091.fr/good-company/web:latest: restart the deployment to pick up a new release.
 # The Harbor project is public (the site's files are public anyway), so no pull secret.
