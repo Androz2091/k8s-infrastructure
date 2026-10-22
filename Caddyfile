@@ -39,6 +39,11 @@ airtrail.androz2091.fr {
     reverse_proxy http://airtrail.home.svc.cluster.local:80
 }
 
+goodcompany.androz2091.fr {
+    # Good Company's web app (static); its backend is on Convex cloud
+    reverse_proxy http://good-company-web.home.svc.cluster.local:80
+}
+
 superwaymo.androz2091.fr {
     import tinyauth_auth
     # /api/* → the node API (flush_interval -1 keeps the area-scan NDJSON stream live);

@@ -1,0 +1,40 @@
+# Good Company (https://github.com/Androz2091/goodcompany): the web app, a static site served by nginx.
+# The backend runs on Convex cloud; this is only the site that the envelopes' QR codes and invitation links open.
+# The Release workflow pushes harbor.androz2091.fr/good-company/web:latest: restart the deployment to pick up a new release.
+# The Harbor project is public (the site's files are public anyway), so no pull secret.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: good-company-web
+  namespace: home
+  labels:
+    app: good-company-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: good-company-web
+  template:
+    metadata:
+      labels:
+        app: good-company-web
+    spec:
+      containers:
+        - name: web
+          image: harbor.androz2091.fr/good-company/web:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { cpu: 200m, memory: 128Mi }
