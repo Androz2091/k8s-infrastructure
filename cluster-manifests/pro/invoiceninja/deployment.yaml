@@ -17,7 +17,7 @@ spec:
     spec:
       initContainers:
         - name: fix-permissions
-          image: invoiceninja/invoiceninja:latest
+          image: invoiceninja/invoiceninja:5.13.50
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -33,7 +33,7 @@ spec:
             runAsUser: 0
       containers:
         - name: invoiceninja
-          image: invoiceninja/invoiceninja:5.13
+          image: invoiceninja/invoiceninja:5.13.50
           imagePullPolicy: IfNotPresent
           # command: ["/bin/sh"]
           # args: ["-c", "sleep 999999"]
@@ -133,7 +133,7 @@ spec:
           resources: {}
 
         - name: scheduler
-          image: invoiceninja/invoiceninja:latest
+          image: invoiceninja/invoiceninja:5.13.50
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -230,7 +230,7 @@ spec:
           resources: {}
 
         - name: queue-worker
-          image: invoiceninja/invoiceninja:latest
+          image: invoiceninja/invoiceninja:5.13.50
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
