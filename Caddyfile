@@ -39,14 +39,9 @@ airtrail.androz2091.fr {
     reverse_proxy http://airtrail.home.svc.cluster.local:80
 }
 
-good-company.app {
-    # Good Company's web app (static); its backend is on Convex cloud
+# Good Company's web app (static); its backend is on Convex cloud. good-company.app and www are the Lovable site, not served here
+app.good-company.app, goodcompany.androz2091.fr {
     reverse_proxy http://good-company-web.home.svc.cluster.local:80
-}
-
-# its first address and www keep working: every path redirects to the same one on good-company.app
-www.good-company.app, goodcompany.androz2091.fr {
-    redir https://good-company.app{uri} permanent
 }
 
 superwaymo.androz2091.fr {
