@@ -19,8 +19,24 @@ helmCharts:
       kubeScheduler:
         enabled: false
       kubeEtcd:
-        # etcd only serves metrics on the VPS's 127.0.0.1: a scrape target would always be down (#55)
-        enabled: false
+        # etcd on the VPS also serves its metrics on the tunnel (kubeadm/cluster-config.yaml)
+        enabled: true
+        endpoints:
+          - 10.8.0.1
+      additionalPrometheusRulesMap:
+        etcd-disk:
+          groups:
+            - name: etcd-disk
+              rules:
+                # why etcd moved to the VPS (p99 was 128-256 ms on the HDDs): the chart's own alert waits for 500 ms
+                - alert: EtcdWalFsyncSlow
+                  expr: histogram_quantile(0.99, sum by (instance, le) (rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~".*etcd.*"}[5m]))) > 0.010
+                  for: 15m
+                  labels:
+                    severity: warning
+                  annotations:
+                    summary: etcd WAL fsync p99 above 10 ms for 15 minutes.
+                    description: Slow disk on the control plane; the scheduler and controller-manager lose their leases if it lasts.
       defaultRules:
         disabled:
           # one worker by design: losing it can never be "tolerated", so these would fire forever
