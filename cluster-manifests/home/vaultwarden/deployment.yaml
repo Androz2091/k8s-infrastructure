@@ -7,6 +7,9 @@ metadata:
     app: vaultwarden
 spec:
   replicas: 1
+  # one SQLite file: never two servers on it, even for the seconds of a rolling update
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: vaultwarden
@@ -17,14 +20,15 @@ spec:
     spec:
       containers:
         - name: vaultwarden
-          image: vaultwarden/server:1.37.0
+          image: vaultwarden/server:1.37.4
           imagePullPolicy: IfNotPresent
           # command: ["/bin/bash"]
           # args: ["-c", "sleep 999999"]
 
-          # env:
-          #   - name: ROCKET_PORT
-          #     value: "4000"
+          env:
+            # the server is public: nobody but me gets an account (the default is true)
+            - name: SIGNUPS_ALLOWED
+              value: "false"
 
           ports:
             - containerPort: 80
