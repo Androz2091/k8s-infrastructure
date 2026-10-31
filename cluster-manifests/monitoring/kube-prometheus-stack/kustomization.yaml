@@ -7,6 +7,24 @@ helmCharts:
     repo: https://prometheus-community.github.io/helm-charts
     valuesInline:
       namespaceOverride: monitoring
+      prometheus:
+        prometheusSpec:
+          # on a volume, so a restart or a node reboot keeps the 10 days (about 3.2 GB today)
+          retention: 10d
+          retentionSize: 12GB
+          storageSpec:
+            volumeClaimTemplate:
+              metadata:
+                labels:
+                  # metrics aren't worth an offsite copy every night
+                  recurring-job-group.longhorn.io/nobackup: enabled
+                  recurring-job.longhorn.io/source: enabled
+              spec:
+                storageClassName: longhorn
+                accessModes: [ReadWriteOnce]
+                resources:
+                  requests:
+                    storage: 15Gi
       kubeControllerManager:
         enabled: false
       kubeProxy:
@@ -28,7 +46,8 @@ helmCharts:
           KubeCPUOvercommit: true
       alertmanager:
         alertmanagerSpec:
-          replicas: 3
+          # one node: three replicas on it add nothing
+          replicas: 1
         config:
           global:
             resolve_timeout: 5m
