@@ -30,15 +30,17 @@ This cluster hosts personal services as well as client projects from my freelanc
 
 ## 🚀 Apps
 
-What do I host on this cluster?
+One namespace per kind of app, one ArgoCD app per folder of `cluster-manifests/<namespace>/`:
 
-* **Pro**: This namespace is for all the services hosted for me as a freelancer, such as Umami, HasteServer, Blog, DDPE, Diswho, Instaddict.
-* **Home**: This namespace is for all the services hosted for my personal use such as Vaultwarden, TimeTagger, Immich, Monica, Mealie, FileBrowser.
-* **Managed**: This namespace is for all the services hosted for my clients.
-* **Sushiflix**: This namespace is for all media services such as Plex, Radarr, Sonarr, Bazarr, Jackett, Qbittorrent, Sabnzbd, Tautulli, Overseerr.
-* **DB**: This namespace is for all the databases such as PostgreSQL, PgAdmin4.
-* **Workflows**: This namespace is for all the workflows such as Harbor.
-* **Monitoring**: This namespace is for all the monitoring services such as Grafana, Prometheus, Alertgram, Promtail and Loki.
+| Namespace | What runs there |
+|---|---|
+| `pro` | my freelance work: androz2091.fr, Invoice Ninja, Umami, Haste, Diswho, slash-commands-gui, flepguessr, AndrozDev bot |
+| `home` | personal: Vaultwarden, Immich, Paperless, FileBrowser, AirTrail, Bonds, Monica, Shlink, TimeTagger, PDFDing, changedetection, superwaymo, good-company, tinyauth |
+| `managed` | my clients' Discord bots |
+| `sushiflix` | media: Plex, Jellyfin, Radarr, Sonarr, qBittorrent, SABnzbd, Tautulli, Overseerr, h5ai |
+| `db` | the shared PostgreSQL, pgAdmin |
+| `workflows` | Harbor (the private image registry) |
+| `monitoring` | kube-prometheus-stack (Prometheus, Alertmanager, Grafana), Loki, Promtail, Alertgram (alerts to Telegram) |
 
 ## 📜 Wiki
 
@@ -126,7 +128,7 @@ Reading one back needs the controller's private key (the `sealed-secrets-customk
 ### Port forward (to a service or a pod)
 
 ```sh
-kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port`
+kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port
 ```
 
 ### Internal-only services (port-forward to access)
@@ -159,17 +161,17 @@ kubectl kustomize --enable-helm --helm-command "$(brew --prefix helm@3)/bin/helm
 
 #### Disable backups for a specific volume
 
-By default longhorn backups all volumes. Sometimes, for movies or other non-critical data, we don't want to backup the volume. In that case, you should add these labels to the volume:
+Every volume is in Longhorn's `default` group (snapshots + nightly offsite backups). To leave one out (media, other data that can be lost), label its PVC in git:
 
-```sh
+```yaml
 labels:
-    recurring-job-group.longhorn.io/nobackup: enabled
-    recurring-job.longhorn.io/source: enabled
+  recurring-job-group.longhorn.io/nobackup: enabled
+  recurring-job.longhorn.io/source: enabled
 ```
 
 ### Expand a Longhorn volume
 
-Use port forwarding to access the Longhorn UI. ⚠️ First, sync the new PVC with Argo before expanding on Longhorn UI (or you will get a sync failed - `Forbidden: field can not be less than previous value`). Then delete all deployments using the volume. Then expand it via Longhorn UI.
+Raise the size in the PVC in git and sync it first: expanding in the Longhorn UI alone makes the next sync fail with `Forbidden: field can not be less than previous value`. Then scale its workloads to 0 and expand the volume in the Longhorn UI (port-forward, [above](#install-longhorn)).
 
 ### Add a TimeTagger user
 
@@ -414,15 +416,7 @@ sudo kubeadm certs renew all
 
 #### OpenSSL error
 
-Understand why sometimes requests are terminated by a SSL error (1/5 requests for some services):
-```sh
-poca@localhost:~ (1) $ curl https://tautulli.androz2091.fr
-curl: (35) OpenSSL/1.1.1l-fips: error:14094438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error
-```
-
-Double check the `Caddyfile` and make sure that all the DNS are configured to the correct IP (sometimes when a SSL certificate fails to create/renew, such errors can occur **for all domains**).
-
-Also... double check that `Caddy` is not started twice (see https://serverfault.com/questions/1167816/openssl-routinesssl3-read-bytestlsv1-alert-internal-error-with-kubernetes-and/1168625#1168625).
+Some requests fail with `curl: (35) … tlsv1 alert internal error` (about 1 in 5, on any site): a certificate Caddy can't obtain or renew (a hostname whose DNS no longer points here), or two Caddy processes on the same ports ([serverfault](https://serverfault.com/questions/1167816/openssl-routinesssl3-read-bytestlsv1-alert-internal-error-with-kubernetes-and/1168625#1168625)).
 
 #### fsnotify watcher error
 
