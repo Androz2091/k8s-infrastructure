@@ -14,4 +14,4 @@ spec:
       protocol: TCP
       targetPort: postgresql
   selector:
-    app: postgresql
+    app: postgresql-17
