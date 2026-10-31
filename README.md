@@ -95,6 +95,16 @@ ssh -i ~/.ssh/mbp2024 debian@148.113.245.134 "sudo kubectl --kubeconfig /etc/kub
 k delete clusterrolebinding admin-<user>   # revoke
 ```
 
+### Postgres point-in-time restore
+
+`postgresql-17` sends every WAL segment to the OVH bucket `pgwal` (pgBackRest, encrypted with `PGBACKREST_REPO1_CIPHER_PASS`), and its `pgbackrest` container takes a full backup on Sundays and a differential the other days. So the shared Postgres can go back to any second of the last two weeks, not only to last night's dump. Its image is [`images/postgres-pgbackrest`](./images/postgres-pgbackrest), built to `ghcr.io/androz2091/postgres-pgbackrest`.
+
+```sh
+k -n db exec deploy/postgresql-17 -c pgbackrest -- pgbackrest --stanza=main info   # backups and the WAL range
+# restore into an empty data folder (a new volume, or the existing one with the server stopped):
+pgbackrest --stanza=main --type=time --target="2026-11-02 14:30:00+00" --target-action=promote restore
+```
+
 ### Postgres roles
 
 Each app in the shared `db/postgresql` connects with its own role, scoped to its own database(s). Never use the `postgres` superuser from a workload.

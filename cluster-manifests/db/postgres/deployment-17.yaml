@@ -28,7 +28,18 @@ spec:
 
       containers:
         - name: postgresql
-          image: postgres:17.11
+          image: ghcr.io/androz2091/postgres-pgbackrest:17.11-2.60.0 # postgres:17.11 + pgBackRest (images/)
+          # every WAL segment goes to S3 (at least every 5 min): restores to any point in time (#79)
+          args:
+            - -c
+            - archive_mode=on
+            - -c
+            - archive_command=pgbackrest --stanza=main archive-push %p
+            - -c
+            - archive_timeout=300
+          envFrom:
+            - secretRef:
+                name: pgbackrest-secrets
           ports:
             - name: postgresql
               containerPort: 5432
@@ -49,7 +60,45 @@ spec:
             # and the container default of 64 MB is too small for them
             - mountPath: /dev/shm
               name: dshm
+            - mountPath: /etc/pgbackrest
+              name: pgbackrest-config
+            - mountPath: /var/run/postgresql
+              name: socket
           resources: {}
+        # the base backups: a full one on Sundays, a differential the other days, at 04:15 UTC (after
+        # the pg_dump at 03:30). Same image, same data and socket as the server; runs as postgres
+        - name: pgbackrest
+          image: ghcr.io/androz2091/postgres-pgbackrest:17.11-2.60.0
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+          envFrom:
+            - secretRef:
+                name: pgbackrest-secrets
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while :; do
+                if [ "$(date -u +%H%M)" = 0415 ]; then
+                  [ "$(date -u +%u)" = 7 ] && type=full || type=diff
+                  pgbackrest --stanza=main --type=$type backup && echo "$(date -u +%FT%TZ) $type backup done" || echo "$(date -u +%FT%TZ) $type backup FAILED"
+                  sleep 60
+                fi
+                sleep 30
+              done
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: postgresql-v
+            - mountPath: /etc/pgbackrest
+              name: pgbackrest-config
+            - mountPath: /var/run/postgresql
+              name: socket
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 1Gi
         #
       volumes:
         - name: postgresql-v
@@ -59,3 +108,8 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 1Gi
+        - name: pgbackrest-config
+          configMap:
+            name: pgbackrest
+        - name: socket
+          emptyDir: {}
