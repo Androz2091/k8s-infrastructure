@@ -17,9 +17,11 @@ spec:
       labels:
         app: tinyauth
     spec:
+      # Kubernetes would inject TINYAUTH_PORT, TINYAUTH_SERVICE_HOST… (from the Service's name) into tinyauth's own config prefix
+      enableServiceLinks: false
       containers:
         - name: tinyauth
-          image: ghcr.io/tinyauthapp/tinyauth:v5
+          image: ghcr.io/tinyauthapp/tinyauth:v5.2.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -30,11 +32,31 @@ spec:
               value: "https://auth.androz2091.fr"
             - name: TINYAUTH_DATABASE_PATH
               value: "/data/tinyauth.db"
+            # tinyauth is also the OIDC provider of the apps below (#104): their client IDs and secrets
+            # are in tinyauth-oidc, the signing keys on the volume (created on first start)
+            - name: TINYAUTH_OIDC_PRIVATEKEYPATH
+              value: /data/oidc/private.pem
+            - name: TINYAUTH_OIDC_PUBLICKEYPATH
+              value: /data/oidc/public.pem
+            - name: TINYAUTH_OIDC_CLIENTS_AIRTRAIL_NAME
+              value: AirTrail
+            - name: TINYAUTH_OIDC_CLIENTS_AIRTRAIL_TRUSTEDREDIRECTURIS
+              value: https://airtrail.androz2091.fr/login
+            - name: TINYAUTH_OIDC_CLIENTS_PAPERLESS_NAME
+              value: Paperless
+            - name: TINYAUTH_OIDC_CLIENTS_PAPERLESS_TRUSTEDREDIRECTURIS
+              value: https://documents.androz2091.fr/accounts/oidc/tinyauth/login/callback/
+            - name: TINYAUTH_OIDC_CLIENTS_IMMICH_NAME
+              value: Immich
+            - name: TINYAUTH_OIDC_CLIENTS_IMMICH_TRUSTEDREDIRECTURIS
+              value: https://photos.androz2091.fr/auth/login,https://photos.androz2091.fr/user-settings,https://photos.androz2091.fr/api/oauth/mobile-redirect
             - name: TINYAUTH_UI_BACKGROUNDIMAGE
               value: "https://photos.androz2091.fr/api/assets/f555dced-a633-48be-b84b-ba475c8b2493/thumbnail?key=09zMecTGWSuy1epLVhWg1fXRhj8lJP1AdZ3-v2UGK-z3f2K7-_TDb1bjwIJIIcAKhOI&size=preview&c=mxgWDYJQindeh3iHeHeHh5z20ok%2F&edited=true"
           envFrom:
             - secretRef:
                 name: tinyauth-secrets
+            - secretRef:
+                name: tinyauth-oidc
           volumeMounts:
             - name: tinyauth-data
               mountPath: /data
