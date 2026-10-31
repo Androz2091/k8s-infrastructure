@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
         - name: jellyfin
-          image: docker.io/jellyfin/jellyfin:latest
+          # 10.10.3: the build ":latest" resolved to when the node cached it (same digest, nothing changes)
+          image: docker.io/jellyfin/jellyfin@sha256:040461da121ebe7f5055a385d0f1fc8e8260509041ff0fbce54ec52da2b6bf60
           imagePullPolicy: IfNotPresent
 
           env:

@@ -7,7 +7,7 @@ spec:
   priorityClassName: system-cluster-critical
   containers:
   - name: debug
-    image: busybox:latest
+    image: busybox:1.37.0
     command:
       - sleep
       - "infinity"
