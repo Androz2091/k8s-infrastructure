@@ -25,7 +25,8 @@ spec:
 
       containers:
         - name: redis
-          image: bitnami/redis:6.2.14
+          # bitnami/ dropped its versioned tags in 2025: same image (same digest) under bitnamilegacy/ (#89)
+          image: bitnamilegacy/redis:6.2.14@sha256:c5fff8af7b53b403e369f969c3541750bd3cefa7bc7a633db99fe937992640bd
           ports:
             - name: redis
               containerPort: 6379
