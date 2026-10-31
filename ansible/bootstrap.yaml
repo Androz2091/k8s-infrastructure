@@ -107,6 +107,20 @@
         - { name: fs.inotify.max_user_watches, value: "1048576" }
       tags: kernel
 
+    # kubelet's resolvConf (kubeadm/kubelet-config.yaml): a file of its own, because
+    # /run/systemd/resolve/resolv.conf disappears at boot where systemd-resolved is off (#58)
+    - name: Upstream DNS for kubelet's pods
+      ansible.builtin.copy:
+        dest: /etc/kubernetes/kubelet-resolv.conf
+        content: |
+          # Managed by ansible/bootstrap.yaml: OVH's resolver, then Cloudflare's
+          nameserver 213.186.33.99
+          nameserver 1.1.1.1
+        owner: root
+        group: root
+        mode: "0644"
+      tags: kubelet
+
     - name: Install WireGuard tools
       ansible.builtin.apt:
         name: wireguard-tools

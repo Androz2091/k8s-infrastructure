@@ -1,0 +1,63 @@
+# The cluster's kubelet configuration: kube-system/kubelet-config (key "kubelet"), keep the two identical.
+# Applied per node by `kubeadm upgrade node phase kubelet-config` (README > Reboot a node).
+apiVersion: kubelet.config.k8s.io/v1beta1
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 0s
+    enabled: true
+  x509:
+    clientCAFile: /etc/kubernetes/pki/ca.crt
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 0s
+    cacheUnauthorizedTTL: 0s
+cgroupDriver: systemd
+clusterDNS:
+- 10.96.0.10
+clusterDomain: cluster.local
+containerRuntimeEndpoint: ""
+cpuManagerReconcilePeriod: 0s
+evictionPressureTransitionPeriod: 0s
+fileCheckFrequency: 0s
+healthzBindAddress: 127.0.0.1
+healthzPort: 10248
+httpCheckFrequency: 0s
+imageMaximumGCAge: 0s
+imageMinimumGCAge: 0s
+kind: KubeletConfiguration
+logging:
+  flushFrequency: 0
+  options:
+    json:
+      infoBufferSize: "0"
+    text:
+      infoBufferSize: "0"
+  verbosity: 0
+memorySwap: {}
+nodeStatusReportFrequency: 0s
+nodeStatusUpdateFrequency: 0s
+# upstream DNS of host-network pods and of dnsPolicy Default (CoreDNS): kubelet can't create any pod
+# sandbox without this file, and /run/systemd/resolve/* only exists where systemd-resolved runs (#58)
+resolvConf: /etc/kubernetes/kubelet-resolv.conf
+rotateCertificates: true
+runtimeRequestTimeout: 0s
+shutdownGracePeriod: 0s
+shutdownGracePeriodCriticalPods: 0s
+# on any shutdown (reboot, power button, OVH maintenance) kubelet stops the pods by priority group,
+# lowest first: the apps flush and release their volumes before Longhorn goes, Longhorn before the network
+shutdownGracePeriodByPodPriority:
+  - priority: 0                   # the apps
+    shutdownGracePeriodSeconds: 120
+  - priority: 1000000000          # longhorn-critical
+    shutdownGracePeriodSeconds: 60
+  - priority: 2000000000          # system-cluster-critical: CoreDNS, the backup-*-pods
+    shutdownGracePeriodSeconds: 20
+  - priority: 2000001000          # system-node-critical: Flannel, kube-proxy, the control plane
+    shutdownGracePeriodSeconds: 20
+staticPodPath: /etc/kubernetes/manifests
+streamingConnectionIdleTimeout: 0s
+syncFrequency: 0s
+volumeStatsAggPeriod: 0s
