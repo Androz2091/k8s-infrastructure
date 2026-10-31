@@ -1,0 +1,28 @@
+# Builds images/postgres-pgbackrest and pushes it to ghcr.io (the db/postgresql-17 image).
+name: postgres-pgbackrest
+
+on:
+  push:
+    branches: [main]
+    paths: [images/postgres-pgbackrest/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        run: |
+          tag=ghcr.io/androz2091/postgres-pgbackrest:17.11-2.60.0
+          docker build images/postgres-pgbackrest -t "$tag"
+          docker push "$tag"

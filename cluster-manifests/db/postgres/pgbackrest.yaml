@@ -1,0 +1,28 @@
+# pgBackRest's settings for db/postgresql-17 (#79). Its keys and the encryption passphrase are in
+# pgbackrest-secrets (PGBACKREST_REPO1_S3_KEY, PGBACKREST_REPO1_S3_KEY_SECRET, PGBACKREST_REPO1_CIPHER_PASS).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbackrest
+  namespace: db
+data:
+  pgbackrest.conf: |
+    [global]
+    repo1-type=s3
+    repo1-s3-endpoint=s3.ca-east-tor.io.cloud.ovh.net
+    repo1-s3-region=ca-east-tor
+    repo1-s3-bucket=pgwal
+    repo1-s3-uri-style=host
+    repo1-path=/pgbackrest
+    # 2 weekly full backups, their daily diffs and every WAL in between: about 2 weeks to restore into
+    repo1-retention-full=2
+    repo1-cipher-type=aes-256-cbc
+    compress-type=zst
+    process-max=2
+    start-fast=y
+    log-level-console=info
+    log-level-file=off
+
+    [main]
+    pg1-path=/var/lib/postgresql/data/pgdata
+    pg1-socket-path=/var/run/postgresql
