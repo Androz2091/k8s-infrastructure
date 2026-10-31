@@ -1,25 +1,30 @@
-apiVersion: longhorn.io/v1beta1
+# Longhorn's recurring jobs, applied by hand: kubectl apply -f storage/longhorn-recurring-jobs.yaml
+apiVersion: longhorn.io/v1beta2
 kind: RecurringJob
 metadata:
   name: offsite-daily-data-config
   namespace: longhorn-system
 spec:
-  cron: "0 3 * * *" # every day at 3am, send data to S3 bucket
-  task: "backup"
+  cron: "0 2 * * *" # every day at 02:00 UTC, send data to S3
+  task: backup
   groups:
-  - default
+    - default
   retain: 30 # keep them for 30 days
   concurrency: 1 # upload them one by one to avoid overloading the network
+  parameters:
+    # every 30th run uploads every block again: each block in use gets a fresh object lock,
+    # so a key from the cluster can never delete what current backups still need (#72)
+    full-backup-interval: "30"
 ---
-apiVersion: longhorn.io/v1beta1
+apiVersion: longhorn.io/v1beta2
 kind: RecurringJob
 metadata:
   name: snapshot-classic-data-config
   namespace: longhorn-system
 spec:
-  cron: "0,30 * * * *" # every 30 minutes, take a snapshot
-  task: "snapshot"
+  cron: "15,45 * * * *" # every 30 minutes, take a snapshot (local only)
+  task: snapshot
   groups:
-  - default
+    - default
   retain: 48 # keep them for 24 hours
-  concurrency: 2
+  concurrency: 1
