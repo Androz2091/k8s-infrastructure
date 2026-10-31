@@ -241,18 +241,18 @@ kubectl -n kube-flannel patch ds kube-flannel-ds --type=json -p '[{"op":"add","p
 
 ### Install Caddy
 
+Caddy takes the public traffic on `ns561436` and proxies each site to its Service (`*.svc.cluster.local`, resolved by CoreDNS through the host's DNS). Its apt repository, once:
+
 ```sh
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update
-sudo apt install caddy
 ```
 
-Start Caddy (execute this command in the directory where the `Caddyfile` is located).
+The playbook installs it, puts the repo's [`Caddyfile`](./Caddyfile) in `/etc/caddy` (validated first) and runs `caddy.service`, which reloads on change. After editing the `Caddyfile`:
 
 ```sh
-sudo caddy start
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags caddy --diff
 ```
 
 ### Install Sealed Secrets
@@ -347,10 +347,10 @@ sudo systemctl stop systemd-resolved.service
 mv /etc/resolv.conf /etc/resolv.conf.bak
 ```
 
-* update `/etc/resolv.conf` as follows:
+* update `/etc/resolv.conf` as follows (CoreDNS first: the resolver only tries the next server on a timeout, not on "no such name"):
 ```sh
-nameserver 8.8.8.8
 nameserver 10.96.0.10
+nameserver 8.8.8.8
 ```
 
 Now we also need to update the cluster DNS so it does not loop back to the host.
