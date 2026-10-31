@@ -183,6 +183,32 @@
             state: started
             enabled: true
 
+    - name: Caddy, on the node that takes the public traffic
+      when: "'apps' in group_names"
+      tags: caddy
+      block:
+        - name: Install Caddy
+          ansible.builtin.apt:
+            name: caddy
+            state: present
+
+        - name: Caddy serves the repo's Caddyfile
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../Caddyfile"
+            dest: /etc/caddy/Caddyfile
+            owner: root
+            group: root
+            mode: "0644"
+            validate: caddy validate --adapter caddyfile --config %s
+          notify: Reload Caddy
+
+        - name: Caddy runs as a service, now and at every boot
+          ansible.builtin.systemd:
+            name: caddy
+            state: started
+            enabled: true
+          tags: caddy-start
+
     - name: kubelet uses the tunnel address as the node IP
       ansible.builtin.lineinfile:
         path: /etc/default/kubelet
@@ -203,3 +229,6 @@
       ansible.builtin.systemd:
         name: wg-quick@wg0
         state: restarted
+    # only when it runs: the first run installs the file before the switch from `caddy start` (#98)
+    - name: Reload Caddy
+      ansible.builtin.shell: if systemctl is-active --quiet caddy; then systemctl reload caddy; fi
