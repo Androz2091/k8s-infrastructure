@@ -397,6 +397,7 @@ kubelet's own configuration is the cluster's `kubelet-config` ConfigMap, mirrore
 ```sh
 kubectl -n kube-system patch cm kubelet-config --type merge -p "$(jq -n --rawfile k kubeadm/kubelet-config.yaml '{data: {kubelet: $k}}')"
 sudo kubeadm upgrade node phase kubelet-config && sudo systemctl restart kubelet   # on each node; running pods stay
+systemd-inhibit --list | grep kubelet   # "shutdown … delay": the lock that makes a reboot wait for the pods
 ```
 
 ### Control Plane Node

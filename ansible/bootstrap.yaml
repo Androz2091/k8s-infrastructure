@@ -121,6 +121,24 @@
         mode: "0644"
       tags: kubelet
 
+    # kubelet's graceful shutdown needs logind to allow its delay (220 s). kubelet writes
+    # 99-kubelet.conf, but unattended-upgrades' drop-in (InhibitDelayMaxSec=30) sorts after it and wins
+    - name: logind drop-in folder
+      ansible.builtin.file:
+        path: /etc/systemd/logind.conf.d
+        state: directory
+        mode: "0755"
+      tags: kubelet
+
+    - name: Mask unattended-upgrades' 30 s cap on shutdown delays
+      ansible.builtin.file:
+        src: /dev/null
+        dest: /etc/systemd/logind.conf.d/unattended-upgrades-logind-maxdelay.conf
+        state: link
+        force: true
+      notify: Restart logind, then kubelet
+      tags: kubelet
+
     - name: Install WireGuard tools
       ansible.builtin.apt:
         name: wireguard-tools
@@ -240,6 +258,11 @@
       ansible.builtin.systemd:
         name: ssh
         state: reloaded
+    # systemd 252's logind ignores kubelet's reload signal; kubelet takes its shutdown lock at start
+    - name: Restart logind, then kubelet
+      ansible.builtin.shell: >
+        systemctl restart systemd-logind &&
+        if systemctl is-active --quiet kubelet; then systemctl restart kubelet; fi
     - name: Load firewall rules
       ansible.builtin.command: /usr/sbin/nft -f /etc/nftables.conf
     - name: Restart WireGuard
