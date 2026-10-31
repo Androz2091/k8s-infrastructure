@@ -1,0 +1,20 @@
+# Failed runs already alert through the chart's KubeJobFailed; this catches a CronJob that stopped running.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: etcd-snapshot
+  namespace: kube-system
+  labels:
+    release: kube-prometheus-stack # the only rules Prometheus loads
+spec:
+  groups:
+    - name: etcd-snapshot
+      rules:
+        - alert: EtcdSnapshotTooOld
+          expr: time() - kube_cronjob_status_last_successful_time{namespace="kube-system", cronjob="etcd-snapshot"} > 7 * 3600
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: The last successful etcd snapshot is more than 7 hours old (one runs every 6 hours).
+            description: Check the kube-system/etcd-snapshot CronJob (kubectl -n kube-system get jobs).
