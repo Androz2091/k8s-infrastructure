@@ -4,3 +4,6 @@
 **/*/config.js
 
 previous-infra/*
+
+# charts that kustomize --enable-helm downloads next to a kustomization.yaml
+cluster-manifests/**/charts/
