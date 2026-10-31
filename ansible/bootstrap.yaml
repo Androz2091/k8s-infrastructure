@@ -35,6 +35,15 @@
       notify: Reload sshd
       tags: ssh
 
+    # ns561436 is administered as root with a key; its debian user had a password since 2024 (#62).
+    # The VPS keeps its own: it's the way in from OVH's KVM console
+    - name: The unused debian account can't log in with a password
+      ansible.builtin.user:
+        name: debian
+        password_lock: true
+      when: "'apps' in group_names"
+      tags: ssh
+
     - name: Install nftables
       ansible.builtin.apt:
         name: nftables
