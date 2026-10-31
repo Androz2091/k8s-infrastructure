@@ -1,6 +1,6 @@
-# Immich's database on PostgreSQL 17, with the extension versions of the 14 it replaces (vchord 0.3.0,
-# vector 0.8.0): the move is only a major upgrade (#107). POSTGRES_USER is a superuser here, so Immich
-# can update its extensions itself later.
+# Immich's database on PostgreSQL 17 (#107). Immich only rebuilds its newest image (PostgreSQL 17.10,
+# VectorChord 1.1.1, pgvector 0.8.5): the 0.3.0 one stopped at 17.6. The restore creates the extensions
+# at these versions. POSTGRES_USER is a superuser here, so Immich can update its extensions itself later.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: ghcr.io/immich-app/postgres:17-vectorchord0.3.0-pgvector0.8.0@sha256:9a669d9a0e3c1d68a10b9ba86157531539ee0cdbd71627a26c20850b88ca89b1
+          image: ghcr.io/immich-app/postgres:17-vectorchord1.1.1-pgvector0.8.5@sha256:7f0b786ed5a7a9d26522dacbf46114a76e043a515ce5e020690fc6702e987b72
           env:
             - name: POSTGRES_USER
               value: immich
