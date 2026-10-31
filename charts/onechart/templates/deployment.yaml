@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "robustName" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" . | nindent 4 }}
+  annotations:
+    kubectl.kubernetes.io/default-container: {{ template "robustName" .Release.Name }}
+    {{- if .Values.gitSha }}
+    gimlet.io/git-sha: {{ .Values.gitSha }}
+    v1alpha1.opensca.dev/version.sha: {{ .Values.gitSha }}
+    {{- end }}
+    {{- if .Values.gitBranch }}
+    gimlet.io/git-branch: {{ .Values.gitBranch }}
+    v1alpha1.opensca.dev/version.branch: {{ .Values.gitBranch }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "helm-chart.selectorLabels" . | nindent 6 }}
+  {{- $singleReplica := eq (.Values.replicas | int64) 1 }}
+  {{- $strategyNotDefined := not .Values.strategy }}
+  {{- if and (and .Values.volumes $singleReplica) $strategyNotDefined}}
+  strategy:
+    type: Recreate
+  {{- end }}
+  {{- if .Values.strategy }}
+  strategy:
+    type: {{ .Values.strategy }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.gitSha }}
+        gimlet.io/git-sha: {{ .Values.gitSha }}
+        {{- end }}
+        {{- if .Values.gitRepository }}
+        gimlet.io/git-repository: {{ .Values.gitRepository }}
+        {{- end }}
+      labels:
+        {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "helm-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- $podSpecTpl := include "common.podSpec.tpl" . | fromYaml }}
+      {{- $podSpec := mergeOverwrite $podSpecTpl .Values.podSpec }}
+      {{- toYaml $podSpec | nindent 6 }}

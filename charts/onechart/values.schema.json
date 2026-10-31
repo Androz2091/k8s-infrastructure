@@ -1,0 +1,1163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "title": "The root schema",
+  "description": "The root schema comprises the entire JSON document.",
+  "default": {},
+  "examples": [
+    {
+      "image": {
+        "repository": "nginx",
+        "tag": "latest"
+      },
+      "imagePullSecrets" : [],
+      "replicas": 1,
+      "nameOverride": "",
+      "fullnameOverride": "",
+      "podAnnotations": {},
+      "podLabels": {},
+      "podSecurityContext": {
+        "fsGroup": 999
+      },
+      "securityContext": {},
+      "containerPort": 80,
+      "resources": {
+        "requests": {
+          "cpu": "200m",
+          "memory": "200mi"
+        },
+        "limits": {
+          "cpu": "200m",
+          "memory": "200mi"
+        }
+      },
+      "nodeSelector": {},
+      "tolerations": [],
+      "affinity": {},
+      "probe": {
+        "enabled": false,
+        "path": "/"
+      },
+      "secret": {
+        "enabled": false
+      },
+      "shell": "/bin/sh"
+    }
+  ],
+  "required": [],
+  "properties": {
+    "image": {
+      "$id": "#/properties/image",
+      "type": "object",
+      "title": "Image",
+      "description": "The image to deploy",
+      "default": {},
+      "examples": [
+        {
+          "repository": "nginx",
+          "tag": "latest"
+        }
+      ],
+      "required": [],
+      "properties": {
+        "repository": {
+          "$id": "#/properties/image/properties/repository",
+          "type": "string",
+          "title": "Repository",
+          "description": "",
+          "default": "nginx",
+          "examples": [
+            "nginx"
+          ]
+        },
+        "tag": {
+          "$id": "#/properties/image/properties/tag",
+          "type": "string",
+          "title": "Tag",
+          "description": "",
+          "default": "1.19.3",
+          "examples": [
+            "latest"
+          ]
+        }
+      }
+    },
+    "initContainers": {
+      "$id": "#/properties/initcontainers",
+      "type": "array",
+      "title": "Init Containers",
+      "default": [],
+      "additionalItems": true,
+      "items": {
+        "$id": "#/properties/initcontainers/items",
+        "type": "object",
+        "anyOf": [
+          {
+            "id": "#/properties/volumes/oneOf/0",
+            "title": "InitContainer",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "The name of the init container"
+              },
+              "image": {
+                "type": "string",
+                "title": "Image"
+              },
+              "tag": {
+                "type": "string",
+                "title": "Tag"
+              },
+              "imagePullPolicy": {
+                "type": "string",
+                "title": "Command",
+                "default": "IfNotPresent"
+              },
+              "command": {
+                "type": "string",
+                "title": "Command"
+              }
+            },
+            "required": [
+              "name",
+              "image",
+              "tag"
+            ]
+          }
+        ]
+      }
+    },
+    "imagePullSecrets" : {
+      "$id": "#/properties/imagePullSecrets",
+      "type": "array",
+      "title": "ImagePull Secrets",
+      "description": "The name of the Kubernetes secret to use to pull an image from a private container registry.",
+      "default": [],
+      "examples": [
+        "regcred"
+      ],
+      "additionalItems": true,
+      "items": {
+        "$id": "#/properties/imagePullSecrets/items",
+        "type": "string",
+        "default": ""
+      }
+    },
+    "replicas": {
+      "$id": "#/properties/replicas",
+      "type": "integer",
+      "title": "Replicas",
+      "description": "",
+      "default": 1,
+      "minimum": 0,
+      "maximum": 16,
+      "examples": [
+        1
+      ]
+    },
+    "podDisruptionBudgetEnabled": {
+      "$id": "#/properties/podDisruptionBudgetEnabled",
+      "type": "boolean",
+      "title": "Pod Disruption Budget",
+      "description": "If pod disruption budgets is enabled, node maintenance won't affect the availability of your application",
+      "default": true
+    },
+    "spreadAcrossNodes": {
+      "$id": "#/properties/spreadAcrossNodes",
+      "type": "boolean",
+      "title": "Spread pods across nodes",
+      "description": "This setting prevents pods to be placed on the same node",
+      "default": true
+    },
+    "nameOverride": {
+      "$id": "#/properties/nameOverride",
+      "type": "string",
+      "title": "The nameOverride schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        ""
+      ]
+    },
+    "fullnameOverride": {
+      "$id": "#/properties/fullnameOverride",
+      "type": "string",
+      "title": "The fullnameOverride schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        ""
+      ]
+    },
+    "podAnnotations": {
+      "$id": "#/properties/podAnnotations",
+      "type": "object",
+      "title": "Pod annotations",
+      "description": "Annotations to place on pods",
+      "default": {},
+      "examples": [
+        {}
+      ],
+      "required": [],
+      "additionalProperties": true
+    },
+    "podLabels": {
+      "$id": "#/properties/podLabels",
+      "type": "object",
+      "title": "Pod labels",
+      "description": "Labels to place on pods",
+      "default": {},
+      "examples": [
+        {}
+      ],
+      "required": [],
+      "additionalProperties": true
+    },
+    "name": {
+      "$id": "#/properties/name",
+      "type": "string",
+      "title": "Service Name",
+      "description": "The service name for unique identification",
+      "default": ""
+    },
+    "description": {
+      "$id": "#/properties/description",
+      "type": "string",
+      "title": "Service Description",
+      "description": "Human readable text description of the service",
+      "default": ""
+    },
+    "ownerName": {
+      "$id": "#/properties/ownerName",
+      "type": "string",
+      "title": "Owner",
+      "description": "The person or team who is responsible for this service",
+      "default": ""
+    },
+    "ownerIm": {
+      "$id": "#/properties/ownerIm",
+      "type": "string",
+      "title": "Owner IM",
+      "description": "Instant messaging channel, or direct message handle of the owner. prefix with # for channels, prefix with @ for direct messages.",
+      "default": ""
+    },
+    "documentation": {
+      "$id": "#/properties/documentation",
+      "type": "string",
+      "title": "Link to Documentation",
+      "description": "Link to documentation. The link's preferred usage is in a href html tag.",
+      "default": ""
+    },
+    "logs": {
+      "$id": "#/properties/logs",
+      "type": "string",
+      "title": "Link to Logs",
+      "description": "Link to log aggregation platform. The link's preferred usage is in a href html tag.",
+      "default": ""
+    },
+    "metrics": {
+      "$id": "#/properties/metrics",
+      "type": "string",
+      "title": "Link to Metrics",
+      "description": "Link to metrics dashboard. The link's preferred usage is in a href html tag.",
+      "default": ""
+    },
+    "issues": {
+      "$id": "#/properties/issues",
+      "type": "string",
+      "title": "Link to Issues",
+      "description": "Link to issue tracker. The link's preferred usage is in a href html tag.",
+      "default": ""
+    },
+    "traces": {
+      "$id": "#/properties/traces",
+      "type": "string",
+      "title": "Link to Traces",
+      "description": "Link to application traces. The link's preferred usage is in a href html tag.",
+      "default": ""
+    },
+    "gitSha": {
+      "$id": "#/properties/gitSha",
+      "type": "string",
+      "title": "Commit Hash",
+      "description": "The git hash that you are deploying",
+      "default": ""
+    },
+    "gitRepository": {
+      "$id": "#/properties/gitRepository",
+      "type": "string",
+      "title": "GitHub Repository",
+      "description": "The git repository that you are deploying",
+      "default": ""
+    },
+    "podSecurityContext": {
+      "$id": "#/properties/podSecurityContext",
+      "type": "object",
+      "title": "The podSecurityContext schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "fsGroup": 999
+        }
+      ],
+      "required": [
+        "fsGroup"
+      ],
+      "properties": {
+        "fsGroup": {
+          "$id": "#/properties/podSecurityContext/properties/fsGroup",
+          "type": "integer",
+          "title": "The fsGroup schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": 0,
+          "examples": [
+            999
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "securityContext": {
+      "$id": "#/properties/securityContext",
+      "type": "object",
+      "title": "The securityContext schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {}
+      ],
+      "required": [],
+      "additionalProperties": true
+    },
+    "containerPort": {
+      "$id": "#/properties/containerPort",
+      "type": "integer",
+      "title": "Port",
+      "description": "The port your application is listening on",
+      "default": 80,
+      "examples": [
+        80
+      ]
+    },
+    "resources": {
+      "$id": "#/properties/resources",
+      "type": "object",
+      "title": "Resources",
+      "description": "",
+      "default": {},
+      "examples": [
+        {
+          "requests": {
+            "cpu": "200m",
+            "memory": "200mi"
+          },
+          "limits": {
+            "cpu": "200m",
+            "memory": "200mi"
+          }
+        }
+      ],
+      "required": [],
+      "properties": {
+        "ignore": {
+          "$id": "#/properties/resources/properties/ignore",
+          "type": "boolean",
+          "title": "Ignore",
+          "description": "If set to true, resource configuration will be ignored",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "ignoreLimits": {
+          "$id": "#/properties/resources/properties/ignoreLimits",
+          "type": "boolean",
+          "title": "Ignore limits",
+          "description": "If set to true, limits in resource configuration will be ignored",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "requests": {
+          "$id": "#/properties/resources/properties/requests",
+          "type": "object",
+          "title": "Requests",
+          "description": "The typical resources your app uses. The values help Kubernetes placing your application optimally.",
+          "default": {},
+          "examples": [
+            {
+              "cpu": "200m",
+              "memory": "200mi"
+            }
+          ],
+          "required": [
+            "cpu",
+            "memory"
+          ],
+          "properties": {
+            "cpu": {
+              "$id": "#/properties/resources/properties/requests/properties/cpu",
+              "type": "string",
+              "title": "CPU",
+              "description": "",
+              "default": "200m",
+              "examples": [
+                "200m"
+              ]
+            },
+            "memory": {
+              "$id": "#/properties/resources/properties/requests/properties/memory",
+              "type": "string",
+              "title": "Memory",
+              "description": "",
+              "default": "200Mi",
+              "examples": [
+                "200mi"
+              ]
+            }
+          }
+        },
+        "limits": {
+          "$id": "#/properties/resources/properties/limits",
+          "type": "object",
+          "title": "Limits",
+          "description": "The maximum resources your app may use. Reaching the limits impact your application's health.",
+          "default": {},
+          "examples": [
+            {
+              "cpu": "200m",
+              "memory": "200mi"
+            }
+          ],
+          "required": [
+            "cpu",
+            "memory"
+          ],
+          "properties": {
+            "cpu": {
+              "$id": "#/properties/resources/properties/limits/properties/cpu",
+              "type": "string",
+              "title": "CPU",
+              "description": "The hard ceiling for your app's CPU usage. The app will be throttled to this limit. 1000m = 1 CPU core",
+              "default": "200m",
+              "examples": [
+                "200m"
+              ]
+            },
+            "memory": {
+              "$id": "#/properties/resources/properties/limits/properties/memory",
+              "type": "string",
+              "title": "Memory",
+              "description": "The hard ceiling for your app's memory usage. The app will be RESTARTED if it reaches this limit",
+              "default": "200Mi",
+              "examples": [
+                "200mi"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "nodeSelector": {
+      "$id": "#/properties/nodeSelector",
+      "type": "object",
+      "title": "The nodeSelector schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {}
+      ],
+      "required": [],
+      "additionalProperties": true
+    },
+    "tolerations": {
+      "$id": "#/properties/tolerations",
+      "type": "array",
+      "title": "The tolerations schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": [],
+      "examples": [
+        []
+      ],
+      "additionalItems": true,
+      "items": {
+        "$id": "#/properties/tolerations/items"
+      }
+    },
+    "affinity": {
+      "$id": "#/properties/affinity",
+      "type": "object",
+      "title": "The affinity schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {}
+      ],
+      "required": [],
+      "additionalProperties": true
+    },
+    "probe": {
+      "$id": "#/properties/probe",
+      "type": "object",
+      "title": "Healthcheck",
+      "description": "The Kubernetes Readiness probe determines whether your app is healthy and if it should receive traffic",
+      "default": {},
+      "examples": [
+        {
+          "enabled": false,
+          "path": "/"
+        }
+      ],
+      "required": [
+        "enabled",
+        "path"
+      ],
+      "properties": {
+        "enabled": {
+          "$id": "#/properties/probe/properties/enabled",
+          "type": "boolean",
+          "title": "",
+          "description": "",
+          "default": false,
+          "examples": [
+            false
+          ]
+        },
+        "path": {
+          "$id": "#/properties/probe/properties/path",
+          "type": "string",
+          "title": "Path",
+          "description": "The web endpoint that returns HTTP 200 if your application is healthy",
+          "default": "/",
+          "examples": [
+            "/"
+          ]
+        },
+        "settings": {
+          "$id": "#/properties/probe/properties/settings",
+          "type": "object",
+          "title": "Probe thresholds",
+          "description": "Tune the probe behavior",
+          "examples": [
+            {
+              "failureThreshold": 3,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 10
+            }
+          ],
+          "properties": {
+            "initialDelaySeconds": {
+              "$id": "#/properties/probe/properties/settings/properties/initialDelaySeconds",
+              "type": "integer",
+              "title": "Initial Delay Seconds",
+              "description": "Number of seconds after the container has started before the probe is initiated",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 180
+            },
+            "periodSeconds": {
+              "$id": "#/properties/probe/properties/settings/properties/periodSeconds",
+              "type": "integer",
+              "title": "Period",
+              "description": "How often (in seconds) to perform the probe",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 60
+            },
+            "successThreshold": {
+              "$id": "#/properties/probe/properties/settings/properties/successThreshold",
+              "type": "integer",
+              "title": "Success Threshold",
+              "description": "Minimum consecutive successes for the probe to be considered successful after having failed",
+              "default": 1,
+              "minimum": 1,
+              "maximum": 15
+            },
+            "timeoutSeconds": {
+              "$id": "#/properties/probe/properties/settings/properties/timeoutSeconds",
+              "type": "integer",
+              "title": "Timeout",
+              "description": "Number of seconds after which the probe times out",
+              "default": 3,
+              "minimum": 1,
+              "maximum": 30
+            },
+            "failureThreshold": {
+              "$id": "#/properties/probe/properties/settings/properties/failureThreshold",
+              "type": "integer",
+              "title": "Failure Threshold",
+              "description": "When a probe fails, Kubernetes will try this many times before giving up. Giving up the pod will be marked Unready and won't get any traffic",
+              "default": 3,
+              "minimum": 1,
+              "maximum": 15
+            }
+          }
+        }
+      }
+    },
+    "livenessProbe": {
+      "$id": "#/properties/livenessProbe",
+      "type": "object",
+      "title": "Liveness check",
+      "description": "The Kubernetes Liveness probe determines whether your app is healthy and if it should be restarted",
+      "default": {},
+      "examples": [
+        {
+          "enabled": false,
+          "path": "/"
+        }
+      ],
+      "required": [
+        "enabled",
+        "path"
+      ],
+      "properties": {
+        "enabled": {
+          "$id": "#/properties/livenessProbe/properties/enabled",
+          "type": "boolean",
+          "title": "",
+          "description": "",
+          "default": false,
+          "examples": [
+            false
+          ]
+        },
+        "path": {
+          "$id": "#/properties/livenessProbe/properties/path",
+          "type": "string",
+          "title": "Path",
+          "description": "Fill in the description",
+          "default": "/",
+          "examples": [
+            "/"
+          ]
+        },
+        "settings": {
+          "$id": "#/properties/livenessProbe/properties/settings",
+          "type": "object",
+          "title": "Probe thresholds",
+          "description": "Tune the probe behavior",
+          "examples": [
+            {
+              "failureThreshold": 3,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 10
+            }
+          ],
+          "properties": {
+            "initialDelaySeconds": {
+              "$id": "#/properties/livenessProbe/properties/settings/properties/initialDelaySeconds",
+              "type": "integer",
+              "title": "Initial Delay Seconds",
+              "description": "Number of seconds after the container has started before the probe is initiated",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 180
+            },
+            "periodSeconds": {
+              "$id": "#/properties/livenessProbe/properties/settings/properties/periodSeconds",
+              "type": "integer",
+              "title": "Period",
+              "description": "How often (in seconds) to perform the probe",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 60
+            },
+            "successThreshold": {
+              "$id": "#/properties/livenessProbe/properties/settings/properties/successThreshold",
+              "type": "integer",
+              "title": "Success Threshold",
+              "description": "Minimum consecutive successes for the probe to be considered successful after having failed",
+              "default": 1,
+              "minimum": 1,
+              "maximum": 15
+            },
+            "timeoutSeconds": {
+              "$id": "#/properties/livenessProbe/properties/settings/properties/timeoutSeconds",
+              "type": "integer",
+              "title": "Timeout",
+              "description": "Number of seconds after which the probe times out",
+              "default": 3,
+              "minimum": 1,
+              "maximum": 30
+            },
+            "failureThreshold": {
+              "$id": "#/properties/livenessProbe/properties/settings/properties/failureThreshold",
+              "type": "integer",
+              "title": "Failure Threshold",
+              "description": "When a probe fails, Kubernetes will try this many times before giving up. Giving up the pod will be marked Unready and won't get any traffic",
+              "default": 3,
+              "minimum": 1,
+              "maximum": 15
+            }
+          }
+        }
+      }
+    },
+    "secretName": {
+      "$id": "#/properties/secretName",
+      "type": "string",
+      "title": "Existing Secret",
+      "description": "Reference an existing secret from your web application.",
+      "default": "",
+      "examples": []
+    },
+    "secret": {
+      "$id": "#/properties/secret",
+      "type": "object",
+      "title": "The secret schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "enabled": false
+        }
+      ],
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "$id": "#/properties/secret/properties/enabled",
+          "type": "boolean",
+          "title": "The enabled schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": false,
+          "examples": [
+            false
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "shell": {
+      "$id": "#/properties/shell",
+      "type": "string",
+      "title": "The shell schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": "",
+      "examples": [
+        "/bin/sh"
+      ]
+    },
+    "vars": {
+      "$id": "#/properties/vars",
+      "type": "object",
+      "title": "Environment variables",
+      "description": "",
+      "default": {},
+      "examples": [
+        {
+          "VAR_1": "value 1",
+          "VAR_2": "value 2"
+        }
+      ],
+      "required": [],
+      "properties": {},
+      "additionalProperties": true
+    },
+    "sealedSecrets": {
+      "$id": "#/properties/sealedSecrets",
+      "type": "object",
+      "title": "Encrypted secrets",
+      "description": "",
+      "default": {},
+      "examples": [
+        {
+          "VAR_1": "value 1",
+          "VAR_2": "value 2"
+        }
+      ],
+      "required": [],
+      "properties": {},
+      "additionalProperties": true
+    },
+    "ingress": {
+      "$id": "#/properties/ingress",
+      "type": "object",
+      "title": "Domain",
+      "description": "",
+      "default": {},
+      "examples": [
+        {
+          "tlsEnabled": false,
+          "annotations": {
+            "kubernetes.io/ingress.class": "nginx"
+          },
+          "host": "my-release.mycompany.com"
+        }
+      ],
+      "required": [],
+      "properties": {
+        "host": {
+          "$id": "#/properties/ingress/properties/host",
+          "type": "string",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$",
+          "title": "Domain",
+          "description": "Where your application will be accessible",
+          "default": "",
+          "examples": [
+            "my-release.mycompany.com"
+          ]
+        },
+        "tlsEnabled": {
+          "$id": "#/properties/ingress/properties/tlsEnabled",
+          "type": "boolean",
+          "title": "HTTPS",
+          "description": "",
+          "default": false,
+          "examples": [
+            false
+          ]
+        },
+        "nginxBasicAuth": {
+          "$id": "#/properties/ingress/properties/nginxBasicAuth",
+          "type": "object",
+          "title": "Protect with Nginx Basic Auth",
+          "description": "",
+          "default": {},
+          "required": [],
+          "properties": {
+            "user": {
+              "$id": "#/properties/ingress/properties/nginxBasicAuth/properties/user",
+              "type": "string",
+              "title": "Username",
+              "description": "",
+              "default": "",
+              "examples": []
+            },
+            "password": {
+              "$id": "#/properties/ingress/properties/nginxBasicAuth/properties/password",
+              "type": "string",
+              "title": "Password",
+              "description": "",
+              "default": "",
+              "examples": []
+            }
+          }
+        },
+        "annotations": {
+          "$id": "#/properties/ingress/properties/annotations",
+          "type": "object",
+          "title": "Annotations",
+          "description": "",
+          "default": {},
+          "examples": [
+            {
+              "kubernetes.io/ingress.class": "nginx"
+            }
+          ],
+          "additionalProperties": true
+        }
+      }
+    },
+    "existingFileSecrets": {
+      "$id": "#/properties/existingFileSecrets",
+      "type": "array",
+      "title": "Existing file secrets",
+      "description": "Allows to mount existing secrets into a container",
+      "default": [],
+      "additionalItems": true,
+      "items": {
+        "$id": "#/properties/existingFileSecrets/items",
+        "type": "object",
+        "anyOf": [
+          {
+            "id": "#/properties/existingFileSecrets/oneOf/0",
+            "title": "existingFileSecrets",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "The name of the existing secret to mount",
+                "default": "data"
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data"
+              },
+              "subPath": {
+                "type": "string",
+                "title": "SubPath",
+                "description": "The optinal mount subpath inside the container, to only mount a specific file but not a complete directory.",
+                "default": "config.yaml"
+              }
+            },
+            "required": [
+              "name",
+              "path"
+            ]
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "$id": "#/properties/volumes",
+      "type": "array",
+      "title": "Volumes",
+      "default": [],
+      "additionalItems": true,
+      "items": {
+        "$id": "#/properties/volumes/items",
+        "type": "object",
+        "anyOf": [
+          {
+            "id": "#/properties/volumes/oneOf/0",
+            "title": "Volume",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "The name of the volume. A unique identifier that also signals the intent of the volume.",
+                "default": "data"
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data"
+              },
+              "size": {
+                "type": "string",
+                "title": "Size",
+                "default": "10Gi"
+              },
+              "storageClass": {
+                "type": "string",
+                "title": "Storage Class",
+                "description": "The slug indicating the disk type in your cloud provider. `standard` on Google Cloud, `default` on Azure; `do-block-storage` on Digital Ocean"
+              },
+              "pvcAnnotations": {
+                "type": "object",
+                "title": "Annotations",
+                "description": "Annotations are used to control the persistance claim behavior.",
+                "default": {},
+                "examples": [
+                  {
+                    "rancher.io/local-path/volume-type": "local"
+                  }
+                ],
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "name",
+              "path",
+              "size"
+            ]
+          },
+          {
+            "id": "#/properties/volumes/oneOf/1",
+            "title": "Use an existing volume claim",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "The name of the volume. Used only to recognize the volumes purpose in the config later on",
+                "default": "data"
+              },
+              "existingClaim": {
+                "type": "string",
+                "title": "Existing Claim",
+                "description": "Use an existing PersistentVolumeClaim",
+                "default": "my-pvc"
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data"
+              }
+            },
+            "required": [
+              "name",
+              "path",
+              "existingClaim"
+            ]
+          },
+          {
+            "id": "#/properties/volumes/oneOf/2",
+            "title": "Use a path from the host",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "The name of the volume. Used only to recognize the volumes purpose in the config later on",
+                "default": "data"
+              },
+              "hostPath": {
+                "type": "object",
+                "title": "Path on the host",
+                "description": "Use a physical path on the host machine",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "title": "Path on Host",
+                    "description": "Use a physical path on the host machine",
+                    "default": "/somewhere/over/the/rainbow"
+                  },
+                  "type": {
+                    "type": "string",
+                    "title": "Path Type",
+                    "enum": [
+                      "DirectoryOrCreate",
+                      "Directory",
+                      "FileOrCreate",
+                      "File",
+                      "Socket",
+                      "CharDevice",
+                      "BlockDevice"
+                    ]
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data"
+              }
+            },
+            "required": [
+              "name",
+              "path",
+              "hostPath"
+            ]
+          },
+          {
+            "id": "#/properties/volumes/oneOf/3",
+            "title": "Use an ephemeral volume",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "default": "ephemeral-volume"
+              },
+              "emptyDir": {
+                "type": "boolean",
+                "title": "ephemeral volume (emptyDir)",
+                "description": "Enable to use a non-persistent disk",
+                "default": true
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data"
+              }
+            },
+            "required": [
+              "name",
+              "emptyDir",
+              "path"
+            ]
+          },
+          {
+            "id": "#/properties/volumes/oneOf/4",
+            "title": "Mount an existing configMap as a file",
+            "type": "object",
+            "properties": {
+              "existingConfigMap": {
+                "type": "string",
+                "title": "Name",
+                "description": "The name of the configMap to mount",
+                "default": "data"
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data/dummy.conf"
+              },
+              "subPath": {
+                "type": "string",
+                "title": "subPath",
+                "description": "Mount single file",
+                "default": "dummy.conf"
+              }
+            },
+            "required": [
+              "existingConfigMap",
+              "path"
+            ]
+          },
+          {
+            "id": "#/properties/volumes/oneOf/5",
+            "title": "Custom string to mount as a file",
+            "type": "object",
+            "properties": {
+              "fileName": {
+                "type": "string",
+                "title": "File name",
+                "default": "credentials.json"
+              },
+              "fileContent": {
+                "type": "string",
+                "title": "File content",
+                "default": "mysecretjsoncontent"
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data"
+              }
+            },
+            "required": [
+              "fileName",
+              "fileContent",
+              "path"
+            ]
+          },
+          {
+            "id": "#/properties/volumes/oneOf/6",
+            "title": "Mount an existing secret as a file",
+            "type": "object",
+            "properties": {
+              "existingSecret": {
+                "type": "string",
+                "title": "Name",
+                "description": "The name of the secret to mount",
+                "default": "data"
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount path inside the container",
+                "default": "/data/dummy.conf"
+              },
+              "subPath": {
+                "type": "string",
+                "title": "subPath",
+                "description": "Mount single file",
+                "default": "dummy.conf"
+              }
+            },
+            "required": [
+              "existingSecret",
+              "path"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": true
+}

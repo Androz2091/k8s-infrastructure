@@ -6,7 +6,9 @@ configs:
   ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml
   cm:
     application.resourceTrackingMethod: annotation
-    kustomize.buildOptions: --enable-helm # allow to kustomize Helm charts
+    # --enable-helm: kustomize Helm charts. LoadRestrictionsNone: the vendored onechart and its
+    # shared values sit in charts/, outside each app's folder (#59)
+    kustomize.buildOptions: --enable-helm --load-restrictor LoadRestrictionsNone
 
   params:
     server.insecure: true

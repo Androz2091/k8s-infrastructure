@@ -3,16 +3,13 @@ helmCharts:
     releaseName: androzdev-discord-bot
     namespace: pro
     version: 0.70.0
-    repo: https://chart.onechart.dev
+    valuesFile: ../../../charts/onechart-common-values.yaml
     valuesInline:
       secretName: androzdev-discord-bot-secrets
       image:
         repository: androz2091/androzdev-bot
         tag: sha-cdc6676
       resources:
-        limits:
-          cpu: "2000m"
-          memory: "2000Mi"
         requests:
           cpu: "200m"
           memory: "500Mi"
@@ -23,3 +20,7 @@ resources:
   - sealed-secrets.yaml
 
 patches: []
+
+# onechart is vendored in charts/ (its repository is gone, #59)
+helmGlobals:
+  chartHome: ../../../charts
