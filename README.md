@@ -390,6 +390,15 @@ kubectl -n longhorn-system create secret generic s3-secret --from-literal=AWS_AC
 
 A **snapshot** is the state of a volume at a point in time, stored in the cluster. A **backup** is a snapshot copied out of the cluster, to the backup target.
 
+### Reboot a node
+
+kubelet's own configuration is the cluster's `kubelet-config` ConfigMap, mirrored in [`kubeadm/kubelet-config.yaml`](./kubeadm/kubelet-config.yaml). On a shutdown it stops the pods by priority (apps, then Longhorn, then the network), so a plain reboot is clean: the apps come back by themselves, Caddy too (`caddy.service`). After changing the file:
+
+```sh
+kubectl -n kube-system patch cm kubelet-config --type merge -p "$(jq -n --rawfile k kubeadm/kubelet-config.yaml '{data: {kubelet: $k}}')"
+sudo kubeadm upgrade node phase kubelet-config && sudo systemctl restart kubelet   # on each node; running pods stay
+```
+
 ### Control Plane Node
 
 Since 2026-09-27 the control plane runs on the VPS and `ns561436` is a plain worker. The nodes are set up by [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), the cluster by [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml). Migration log: [README at `3cffd9d`](https://github.com/Androz2091/k8s-infrastructure/blob/3cffd9d/README.md#control-plane-node).
