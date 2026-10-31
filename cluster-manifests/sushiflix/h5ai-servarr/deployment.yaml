@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
         - name: h5ai-servarr
-          image: awesometic/h5ai
+          # latest as of 2026-10-29, pinned: an untagged image never updates with IfNotPresent (#115)
+          image: awesometic/h5ai:latest@sha256:f45fc5a8ec89a3b7045fe83dcddb44eade4a143eb490bd9bcefa69c0d13476e5
           imagePullPolicy: IfNotPresent
 
           env:
