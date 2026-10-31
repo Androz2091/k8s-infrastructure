@@ -1,18 +1,31 @@
 #!/usr/sbin/nft -f
-# Default-ACCEPT for now: this node runs production (Caddy 80/443, Plex 32400, SSH 22).
-# It only closes Flannel's unauthenticated VXLAN port (8472) to the internet; the port
-# stays open through the WireGuard tunnel. A full default-drop firewall is issue #56.
+# Installed by ansible/bootstrap.yaml. Default-drop on what reaches this node itself (the input
+# hook): kube-proxy's NodePorts are DNATed to pods and take the forward path, so they're unaffected.
 # Manages only its own table: never "flush ruleset" (kube-proxy and Flannel share nftables).
 
+# the table before #56, replaced by hostfw
 table inet vxlanguard
 delete table inet vxlanguard
 
-table inet vxlanguard {
-    chain input {
-        type filter hook input priority filter; policy accept;
+table inet hostfw
+delete table inet hostfw
 
-        iif "lo" accept
-        iifname "wg0" accept
-        udp dport 8472 drop   # block Flannel VXLAN from off-box (unauthenticated overlay)
+table inet hostfw {
+    chain input {
+        type filter hook input priority filter; policy drop;
+
+        ct state established,related accept       # replies + open sessions (keeps SSH alive on reload)
+        ct state invalid drop
+        iif "lo" accept                           # the machine talking to itself
+        meta l4proto { icmp, ipv6-icmp } accept   # ping (OVH's monitoring too) + IPv6 neighbour discovery
+        udp sport 67 udp dport 68 accept          # DHCP replies from OVH
+        tcp dport 22 accept                       # SSH
+
+        tcp dport { 80, 443, 32400 } accept       # Caddy (32400: Plex)
+        udp dport { 443, 32400 } accept           # Caddy's HTTP/3
+
+        ip saddr 148.113.245.134 udp dport 51820 accept   # WireGuard, only from the VPS
+        iifname "wg0" accept                              # the VPS: API server -> kubelet, Flannel's VXLAN
+        iifname { "cni0", "flannel.1" } accept            # pods -> this node (Prometheus -> kubelet, node-exporter)
     }
 }
