@@ -42,7 +42,7 @@ helmCharts:
                 CREATE EXTENSION vectors;
 
       env:
-        DB_HOSTNAME: immich-postgresql.home.svc.cluster.local
+        DB_HOSTNAME: immich-db.home.svc.cluster.local # PostgreSQL 17 (database-17.yaml), #107
         IMMICH_MEDIA_LOCATION: /usr/src/app/upload
         REDIS_HOSTNAME: immich-redis-master.home.svc.cluster.local
 
@@ -51,5 +51,6 @@ namespace: home
 resources:
   - pvc.yaml
   - backup-mnt-lib-pod.yaml
+  - database-17.yaml
 
 patches: []

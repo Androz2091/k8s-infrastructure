@@ -1,0 +1,79 @@
+# Immich's database on PostgreSQL 17 (#107). Immich only rebuilds its newest image (PostgreSQL 17.10,
+# VectorChord 1.1.1, pgvector 0.8.5): the 0.3.0 one stopped at 17.6. The restore creates the extensions
+# at these versions. POSTGRES_USER is a superuser here, so Immich can update its extensions itself later.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: immich-db
+  namespace: home
+  labels:
+    app: immich-db
+spec:
+  serviceName: immich-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-db
+  template:
+    metadata:
+      labels:
+        app: immich-db
+    spec:
+      containers:
+        - name: postgres
+          image: ghcr.io/immich-app/postgres:17-vectorchord1.1.1-pgvector0.8.5@sha256:7f0b786ed5a7a9d26522dacbf46114a76e043a515ce5e020690fc6702e987b72
+          env:
+            - name: POSTGRES_USER
+              value: immich
+            - name: POSTGRES_PASSWORD # the chart's DB_PASSWORD, already in kustomization.yaml
+              value: immich
+            - name: POSTGRES_DB
+              value: immich
+            - name: POSTGRES_INITDB_ARGS
+              value: --data-checksums
+            - name: DB_STORAGE_TYPE # Immich's image tunes Postgres for spinning disks
+              value: HDD
+            - name: PGDATA # a subfolder: the volume's root has lost+found
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - name: postgres
+              containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "immich", "-d", "immich"]
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 128Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          recurring-job.longhorn.io/source: enabled
+          recurring-job-group.longhorn.io/default: enabled
+      spec:
+        storageClassName: longhorn
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 8Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-db
+  namespace: home
+spec:
+  selector:
+    app: immich-db
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

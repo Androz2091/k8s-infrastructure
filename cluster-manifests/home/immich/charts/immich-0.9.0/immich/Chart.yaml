@@ -1,0 +1,35 @@
+annotations:
+  artifacthub.io/category: storage
+  artifacthub.io/changes: |-
+    - kind: deprecated
+      description: Deprecated postgres chart dependency
+      links:
+        - name: Details
+          url: https://github.com/immich-app/immich-charts/issues/149
+apiVersion: v2
+appVersion: v1.119.0
+dependencies:
+- name: common
+  repository: https://bjw-s.github.io/helm-charts
+  version: 1.4.0
+- condition: postgresql.enabled
+  name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.0.0
+- condition: redis.enabled
+  name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 19.5.3
+description: A chart to power Immich (immich.app) running on kubernetes
+home: https://immich.app/
+icon: https://raw.githubusercontent.com/immich-app/immich/main/design/immich-logo.svg
+maintainers:
+- email: 5434875+PixelJonas@users.noreply.github.com
+  name: PixelJonas
+- email: immich@bo0tzz.me
+  name: bo0tzz
+name: immich
+sources:
+- https://github.com/immich-app/immich-charts/tree/main/charts/immich
+- https://github.com/immich-app/immich
+version: 0.9.0
