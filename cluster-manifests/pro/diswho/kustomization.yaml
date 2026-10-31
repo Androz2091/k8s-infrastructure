@@ -3,7 +3,7 @@ helmCharts:
     releaseName: diswho
     namespace: pro
     version: 0.70.0
-    repo: https://chart.onechart.dev
+    valuesFile: ../../../charts/onechart-common-values.yaml
     valuesInline:
       image:
         repository: androz2091/diswho
@@ -14,9 +14,6 @@ helmCharts:
         name: http
         containerPort: 3050
       resources:
-        limits:
-          cpu: "2000m"
-          memory: "2000Mi"
         requests:
           cpu: "200m"
           memory: "500Mi"
@@ -27,3 +24,7 @@ resources:
   - sealed-secrets.yaml
 
 patches: []
+
+# onechart is vendored in charts/ (its repository is gone, #59)
+helmGlobals:
+  chartHome: ../../../charts

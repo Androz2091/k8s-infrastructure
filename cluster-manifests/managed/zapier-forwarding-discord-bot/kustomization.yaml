@@ -3,18 +3,12 @@ helmCharts:
     releaseName: zapier-forwarding-discord-bot
     namespace: managed
     version: 0.70.0
-    repo: https://chart.onechart.dev
+    valuesFile: ../../../charts/onechart-common-values.yaml
     valuesInline:
       image:
         repository: androz2091/zapier-forwarding-discord-bot
         tag: sha-558ff4e
       secretName: zapier-forwarding-discord-bot-secrets
-      resources:
-        limits:
-          cpu: "2000m"
-          memory: "2000Mi"
-        requests:
-          cpu: "50m"
 
 namespace: managed
 
@@ -22,3 +16,7 @@ resources:
   - sealed-secrets.yaml
 
 patches: []
+
+# onechart is vendored in charts/ (its repository is gone, #59)
+helmGlobals:
+  chartHome: ../../../charts

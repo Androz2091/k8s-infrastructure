@@ -3,7 +3,7 @@ helmCharts:
     releaseName: flepguessr-cs214
     namespace: pro
     version: 0.70.0
-    repo: https://chart.onechart.dev
+    valuesFile: ../../../charts/onechart-common-values.yaml
     valuesInline:
       image:
         repository: androz2091/flepguessr-cs214
@@ -23,3 +23,7 @@ helmCharts:
 namespace: pro
 
 patches: []
+
+# onechart is vendored in charts/ (its repository is gone, #59)
+helmGlobals:
+  chartHome: ../../../charts

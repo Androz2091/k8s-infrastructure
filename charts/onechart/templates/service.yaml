@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "robustName" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" . | nindent 4 }}
+  {{- if or (or (or (or (or (or .Values.gitRepository .Values.gitSha) .Values.serviceName) .Values.serviceDescription) .Values.ownerName) .Values.ownerIm) .Values.serviceAnnotations }}
+  annotations:
+    {{- if .Values.gitRepository }}
+    gimlet.io/git-repository: {{ .Values.gitRepository }}
+    {{- $parts := split "/" .Values.gitRepository }}
+    v1alpha1.opensca.dev/vcs.owner: {{ $parts._0 }}
+    v1alpha1.opensca.dev/vcs.name: {{ $parts._1 }}
+    {{- end }}
+    {{- if .Values.gitSha }}
+    gimlet.io/git-sha: {{ .Values.gitSha }}
+    v1alpha1.opensca.dev/version.sha: {{ .Values.gitSha }}
+    {{- end }}
+    {{- if .Values.gitBranch }}
+    gimlet.io/git-branch: {{ .Values.gitBranch }}
+    v1alpha1.opensca.dev/version.branch: {{ .Values.gitBranch }}
+    {{- end }}
+    {{- if .Values.serviceName }}
+    v1alpha1.opensca.dev/name: {{ .Values.serviceName | quote }}
+    {{- end }}
+    {{- if .Values.serviceDescription }}
+    v1alpha1.opensca.dev/description: {{ .Values.serviceDescription | quote }}
+    {{- end }}
+    {{- if .Values.ownerName }}
+    v1alpha1.opensca.dev/owner.name: {{ .Values.ownerName | quote }}
+    {{- end }}
+    {{- if .Values.ownerIm }}
+    v1alpha1.opensca.dev/owner.im: {{ .Values.ownerIm | quote }}
+    {{- end }}
+    {{- if .Values.documentation }}
+    v1alpha1.opensca.dev/documentation: {{ .Values.documentation | quote }}
+    {{- end }}
+    {{- if .Values.logs }}
+    v1alpha1.opensca.dev/logs: {{ .Values.logs | quote }}
+    {{- end }}
+    {{- if .Values.metrics }}
+    v1alpha1.opensca.dev/metrics: {{ .Values.metrics | quote }}
+    {{- end }}
+    {{- if .Values.issues }}
+    v1alpha1.opensca.dev/issues: {{ .Values.issues | quote }}
+    {{- end }}
+    {{- if .Values.traces }}
+    v1alpha1.opensca.dev/traces: {{ .Values.traces | quote }}
+    {{- end }}
+    {{- if .Values.serviceAnnotations }}
+      {{- with .Values.serviceAnnotations }}
+        {{- toYaml . | nindent 4 }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+spec:
+  type: {{ if .Values.nodePortEnabled }}NodePort{{ else if .Values.loadbalancerEnabled }}LoadBalancer{{ else }}ClusterIP{{ end }}
+  {{- if .Values.stickySessions }}
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  externalTrafficPolicy: Local
+  {{- end }}
+  ports:
+    {{- if not .Values.ports }}
+    - port: {{ if .Values.svcPort }}{{ .Values.svcPort }}{{ else }}{{ .Values.containerPort }}{{ end }}
+      targetPort: http
+      protocol: TCP
+      name: http
+      {{- if .Values.nodePort }}
+      nodePort: {{ .Values.nodePort }}
+      {{- end }}
+    {{- else }}
+    {{- range .Values.ports }}
+    - name: {{ .name }}
+      port: {{ if .svcPort }}{{ .svcPort }}{{ else }}{{ .containerPort }}{{ end }}
+      {{- if .nodePort }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+      targetPort: {{ .name }}
+      protocol: {{ if .protocol }}{{ .protocol }}{{ else }}TCP{{ end }}
+    {{- end }}
+    {{- end }}
+  selector:
+    {{- include "helm-chart.selectorLabels" . | nindent 4 }}
