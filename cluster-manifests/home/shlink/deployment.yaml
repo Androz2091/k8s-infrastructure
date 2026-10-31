@@ -17,8 +17,7 @@ spec:
     spec:
       containers:
         - name: shlink
-          # PHP 8.5.12: PHP2Shell is fixed (#115)
-          image: shlinkio/shlink:5.1.8@sha256:68a722f7677008a50ccf3a9e570966bc37d7627fe6a870b86be28c5dcf9085ee
+          image: shlinkio/shlink:4.4.6
           imagePullPolicy: IfNotPresent
           # command: ["/bin/bash"]
           # args: ["-c", "sleep 999999"]
@@ -34,9 +33,6 @@ spec:
               value: "true"
             - name: DB_DRIVER
               value: "postgres"
-            # Shlink 5 no longer guesses proxies: Caddy is the one in front, so visits keep the visitor's IP
-            - name: TRUSTED_PROXIES
-              value: "1"
           envFrom:
             - secretRef:
                 name: shlink-secrets
