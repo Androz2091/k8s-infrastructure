@@ -313,14 +313,19 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 apt-get install open-iscsi -y
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.7.3 --set persistence.defaultClassReplicaCount=1
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.8.2 --set persistence.defaultClassReplicaCount=1
 ```
 
-`defaultClassReplicaCount=1`: one node, so one copy per volume (the chart default is 3). Upgraded from 1.7.0 on 2026-09-27, mainly for the fix of a CSI race that could reformat a volume on mount (longhorn#10416). The volumes' engines were left on 1.7.0. There is no downgrade, and `--reuse-values` would keep the old images:
+`defaultClassReplicaCount=1`: one node, so one copy per volume (the chart default is 3). Upgrades go one minor at a time (Longhorn refuses to skip one, and there is no downgrade; `--reuse-values` would keep the old images), then every volume moves to the new engine, since the next minor only live-upgrades engines of the previous one (#96):
 
 ```sh
 helm repo update longhorn
-helm upgrade longhorn longhorn/longhorn --namespace longhorn-system --version 1.7.3 --set persistence.defaultClassReplicaCount=1 --timeout 15m
+helm upgrade longhorn longhorn/longhorn --namespace longhorn-system --version 1.8.2 --set persistence.defaultClassReplicaCount=1 --timeout 15m
+E=longhornio/longhorn-engine:v1.8.2   # one volume at a time, smallest first; live: the apps keep running
+for v in $(kubectl -n longhorn-system get volumes.longhorn.io -o json | jq -r --arg e $E '.items | sort_by(.spec.size|tonumber)[] | select(.spec.image != $e) | .metadata.name'); do
+  kubectl -n longhorn-system patch volumes.longhorn.io $v --type merge -p "{\"spec\":{\"image\":\"$E\"}}"
+  until [ "$(kubectl -n longhorn-system get volumes.longhorn.io $v -o jsonpath='{.status.currentImage} {.status.robustness}')" = "$E healthy" ]; do sleep 5; done; echo "$v done"
+done
 ```
 
 (optional) forward the Longhorn UI to the host.
