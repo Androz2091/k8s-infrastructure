@@ -7,6 +7,9 @@ metadata:
     app: sabnzbd
 spec:
   replicas: 1
+  # one process at a time on its config database (it migrates at start)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: sabnzbd
@@ -32,7 +35,7 @@ spec:
 
       containers:
         - name: sabnzbd
-          image: lscr.io/linuxserver/sabnzbd:4.3.3
+          image: lscr.io/linuxserver/sabnzbd:5.1.3
           imagePullPolicy: IfNotPresent
 
           env:
