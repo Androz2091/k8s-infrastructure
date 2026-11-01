@@ -291,7 +291,7 @@ ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags caddy --
 ```sh
 helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo update
-helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1
+helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.22.0
 ```
 
 The secrets in git only open with the existing key (public half: [`sealed-secrets.crt`](./sealed-secrets.crt)). Restore the [backup](#sealed-secrets), then restart the controller so it loads it:
