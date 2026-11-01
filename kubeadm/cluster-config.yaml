@@ -1,7 +1,7 @@
 
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
-kubernetesVersion: v1.31.14
+kubernetesVersion: v1.32.13
 clusterName: kubernetes
 controlPlaneEndpoint: api.k8s.internal:6443
 apiServer:

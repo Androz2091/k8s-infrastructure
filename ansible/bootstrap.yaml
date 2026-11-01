@@ -3,10 +3,13 @@
   become: true
 
   vars:
-    kubernetes_repo: v1.31
-    kubernetes_version: 1.31.14-1.1
-    crio_repo: v1.30
-    crio_version: 1.30.10-1.1
+    # one minor at a time (README > Upgrade Kubernetes); CRI-O follows Kubernetes' minor
+    kubernetes_repo: v1.32
+    kubernetes_version: 1.32.13-1.1
+    crio_repo: v1.32
+    crio_version: 1.32.13-1.1
+    # the PauseVersion of this kubeadm minor (kubeadm's preflight warns when CRI-O's differs)
+    pause_image: registry.k8s.io/pause:3.10
 
   tasks:
 
@@ -215,9 +218,10 @@
       loop:
         - name: kubernetes
           url: "https://pkgs.k8s.io/core:/stable:/{{ kubernetes_repo }}/deb/"
+        # CRI-O left pkgs.k8s.io in 2025 (its v1.33+ are only here)
         - name: cri-o
-          url: "https://pkgs.k8s.io/addons:/cri-o:/stable:/{{ crio_repo }}/deb/"
-      tags: packages
+          url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/{{ crio_repo }}/deb/"
+      tags: [packages, repos]
 
     - name: CRI-O and Kubernetes
       tags: packages
@@ -250,6 +254,30 @@
             state: started
             enabled: true
 
+    - name: CRI-O's pause image is the one kubeadm expects
+      ansible.builtin.copy:
+        dest: /etc/crio/crio.conf.d/20-pause-image.conf
+        content: |
+          # Managed by ansible/bootstrap.yaml
+          [crio.image]
+          pause_image = "{{ pause_image }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart CRI-O
+      tags: packages
+
+    # kubeadm up to 1.34 writes this flag on init/join; kubelet 1.35 refuses to start with it.
+    # Since 1.27 it only kept the pause image from being garbage-collected (CRI-O pins its own)
+    - name: kubelet runs without --pod-infra-container-image
+      ansible.builtin.replace:
+        path: /var/lib/kubelet/kubeadm-flags.env
+        regexp: ' --pod-infra-container-image=[^" ]*'
+        replace: ''
+      failed_when: false   # no such file before kubeadm init/join
+      notify: Restart kubelet
+      tags: kubelet
+
     - name: kubelet uses the tunnel address as the node IP
       ansible.builtin.lineinfile:
         path: /etc/default/kubelet
@@ -277,4 +305,14 @@
     - name: Restart WireGuard
       ansible.builtin.systemd:
         name: wg-quick@wg0
+        state: restarted
+    # neither restart touches running containers: each container's conmon lives in its own
+    # crio-conmon-*.scope, outside crio.service's cgroup, and kubelet just reattaches
+    - name: Restart CRI-O
+      ansible.builtin.systemd:
+        name: crio
+        state: restarted
+    - name: Restart kubelet
+      ansible.builtin.systemd:
+        name: kubelet
         state: restarted

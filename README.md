@@ -410,6 +410,25 @@ What the playbook doesn't do:
 - starting the apps in small batches after a full restart (the HDDs saturate). Don't fully sync `immich` to restart its backup pod: the chart regenerates its Postgres password.
 
 
+### Upgrade Kubernetes
+
+One minor version per hop (kubeadm can't skip one), control plane first. Set the playbook's `vars:` to the next minor (CRI-O follows Kubernetes' minor; `pause_image` is the kubeadm minor's) and `kubernetesVersion` in `kubeadm/cluster-config.yaml`, then:
+
+```sh
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags repos --diff   # the new apt repositories only
+# VPS: kubeadm first, then the control plane (1-3 min without API)
+sudo apt-mark unhold kubeadm && sudo apt-get update && sudo apt-get install -y kubeadm=$K && sudo apt-mark hold kubeadm
+sudo kubeadm upgrade plan && sudo kubeadm upgrade apply v${K%-*} -y
+# ns561436: kubeadm, then its kubelet config
+sudo apt-mark unhold kubeadm && sudo apt-get update && sudo apt-get install -y kubeadm=$K && sudo apt-mark hold kubeadm && sudo kubeadm upgrade node
+# each node, VPS first
+sudo apt-mark unhold cri-o kubelet kubectl && sudo apt-get install -y -o Dpkg::Options::=--force-confold cri-o=$C kubelet=$K kubectl=$K && sudo apt-mark hold cri-o kubelet kubectl
+sudo systemctl daemon-reload && sudo systemctl restart crio kubelet
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                # converges the rest; a second run: changed=0
+```
+
+Restarting CRI-O and kubelet leaves the running containers alone (each container's `conmon` lives outside `crio.service`'s cgroup), so `ns561436` is never drained.
+
 ### Troubleshooting
 
 #### Prometheus KubeClientCertificateExpiration
