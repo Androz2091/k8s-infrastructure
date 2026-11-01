@@ -3,7 +3,7 @@ helmCharts:
     releaseName: theproptrade-giveaways-discord-bot
     namespace: managed
     version: 0.70.0
-    repo: https://chart.onechart.dev
+    valuesFile: ../../../charts/onechart-common-values.yaml
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/theproptrade-giveaways-discord-bot
@@ -15,12 +15,6 @@ helmCharts:
       - svcPort: 80
         name: http
         containerPort: 3000
-      resources:
-        limits:
-          cpu: "2000m"
-          memory: "2000Mi"
-        requests:
-          cpu: "50m"
 
 namespace: managed
 
@@ -28,3 +22,7 @@ resources:
   - sealed-secrets.yaml
 
 patches: []
+
+# onechart is vendored in charts/ (its repository is gone, #59)
+helmGlobals:
+  chartHome: ../../../charts

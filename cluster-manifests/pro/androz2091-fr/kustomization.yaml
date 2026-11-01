@@ -3,7 +3,7 @@ helmCharts:
     releaseName: androz2091-fr
     namespace: pro
     version: 0.70.0
-    repo: https://chart.onechart.dev
+    valuesFile: ../../../charts/onechart-common-values.yaml
     valuesInline:
       image:
         repository: androz2091/androz2091-fr
@@ -13,9 +13,6 @@ helmCharts:
           name: http
           containerPort: 80
       resources:
-        limits:
-          cpu: "2000m"
-          memory: "2000Mi"
         requests:
           cpu: "200m"
           memory: "500Mi"
@@ -23,3 +20,7 @@ helmCharts:
 namespace: pro
 
 patches: []
+
+# onechart is vendored in charts/ (its repository is gone, #59)
+helmGlobals:
+  chartHome: ../../../charts

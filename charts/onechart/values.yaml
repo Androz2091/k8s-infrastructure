@@ -1,0 +1,82 @@
+image:
+  repository: nginx
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# ingress:
+#   host: chart-example.local
+#   ingressClassName: nginx
+#   tlsEnabled: true
+#   annotations:
+#     cert-manager.io/cluster-issuer: letsencrypt-staging
+#   nginxBasicAuth:
+#     user: admin
+#     password: secret
+
+# vars:
+#   MY_VAR: "value"
+
+replicas: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 999
+
+securityContext: {}
+
+containerPort: 80
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "200Mi"
+  limits:
+    cpu: "200m"
+    memory: "200Mi"
+
+nodeSelector: {}
+
+tolerations: []
+
+probe:
+  enabled: false
+  path: "/"
+  settings:
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# Before you use a liveness probe: https://srcco.de/posts/kubernetes-liveness-probes-are-dangerous.html
+livenessProbe:
+  enabled: false
+  path: "/"
+  settings:
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+secretEnabled: false
+
+shell: "/bin/sh"
+
+podDisruptionBudgetEnabled: true
+spreadAcrossNodes: false
+
+nodePortEnabled: false
+
+# Set true to enable service monitor.
+monitor:
+  enabled: false
+
+container: {}
+podSpec: {}

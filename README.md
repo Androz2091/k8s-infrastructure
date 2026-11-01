@@ -156,12 +156,14 @@ kubectl -n somenamespace exec --stdin --tty somepod -- /bin/bash
 helm template my-app repo-url/app -f values.yaml
 ```
 
-Same for a `kustomization.yaml`. kubectl's kustomize still expects Helm 3 (it calls a flag Helm 4 removed), so point it at one:
+Same for a `kustomization.yaml`. kubectl's kustomize still expects Helm 3 (it calls a flag Helm 4 removed), so point it at one. The onechart apps read the chart and its shared values from [`charts/`](./charts), outside their folder, hence the load restrictor (ArgoCD runs with the same options):
 
 ```sh
 brew install helm@3   # once, next to Helm 4
-kubectl kustomize --enable-helm --helm-command "$(brew --prefix helm@3)/bin/helm" .
+kubectl kustomize --enable-helm --load-restrictor LoadRestrictionsNone --helm-command "$(brew --prefix helm@3)/bin/helm" .
 ```
+
+`charts/onechart` is onechart 0.70.0, vendored from [gimlet-io/onechart](https://github.com/gimlet-io/onechart/tree/v0.70.0/charts/onechart) (Apache-2.0, archived; its Helm repository is gone). [`charts/onechart-common-values.yaml`](./charts/onechart-common-values.yaml) holds what the apps share; each `kustomization.yaml` only keeps its own values.
 
 #### Disable backups for a specific volume
 
@@ -283,7 +285,7 @@ A brand-new key is only for a cluster with no secret yet: [bring your own certif
 kubectl create namespace argocd
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
-helm install argocd argo/argo-cd --namespace argocd --create-namespace --values https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/argocd-values.yaml --version 7.0.0
+helm install argocd argo/argo-cd --namespace argocd --create-namespace --values https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/argocd-values.yaml --version 9.5.14
 ```
 
 Get ArgoCD password.
