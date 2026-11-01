@@ -17,5 +17,6 @@ table inet hostfw {
 
         ip saddr 54.39.102.76 udp dport 51820 accept   # WireGuard, only from ns561436
         iifname "wg0" accept
+        iifname "cni0" tcp dport 6443 accept      # this node's pods (CoreDNS, Promtail) to the API server
     }
 }
