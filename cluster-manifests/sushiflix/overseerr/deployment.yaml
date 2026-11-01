@@ -7,6 +7,9 @@ metadata:
     app: overseerr
 spec:
   replicas: 1
+  # one Overseerr at a time on its SQLite database (it migrates at start)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: overseerr
@@ -17,7 +20,7 @@ spec:
     spec:
       containers:
         - name: overseerr
-          image: lscr.io/linuxserver/overseerr:1.33.2
+          image: lscr.io/linuxserver/overseerr:1.35.0 # the last release: Overseerr is archived, Seerr continues it
           imagePullPolicy: IfNotPresent
 
           env:
