@@ -7,6 +7,9 @@ metadata:
     app: changedetection
 spec:
   replicas: 1
+  # one process at a time on the JSON datastore (it migrates it at start)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: changedetection
@@ -17,7 +20,7 @@ spec:
     spec:
       containers:
         - name: changedetection
-          image: dgtlmoon/changedetection.io:0.50.3
+          image: dgtlmoon/changedetection.io:0.60.10
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: changedetection-data
