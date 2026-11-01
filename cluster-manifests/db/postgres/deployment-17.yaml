@@ -29,6 +29,20 @@ spec:
       containers:
         - name: postgresql
           image: postgres:17.11
+          # sized for the 64 GB worker it shares with the apps; command-line
+          # settings win over postgresql.conf in the volume.
+          # random_page_cost stays at the default 4: the disks are HDDs (RAID 1)
+          args:
+            - "-c"
+            - "shared_buffers=2GB"
+            - "-c"
+            - "effective_cache_size=16GB"
+            - "-c"
+            - "work_mem=16MB"
+            - "-c"
+            - "maintenance_work_mem=256MB"
+            - "-c"
+            - "effective_io_concurrency=2"
           ports:
             - name: postgresql
               containerPort: 5432
@@ -49,7 +63,11 @@ spec:
             # and the container default of 64 MB is too small for them
             - mountPath: /dev/shm
               name: dshm
-          resources: {}
+          # a request makes the pod Burstable instead of BestEffort,
+          # so the kubelet evicts it after the BestEffort pods under memory pressure
+          resources:
+            requests:
+              memory: 3Gi
         #
       volumes:
         - name: postgresql-v
