@@ -35,9 +35,9 @@ spec:
             # log in through tinyauth (#104): the provider (with its secret) is in paperless-oidc
             - name: PAPERLESS_APPS
               value: allauth.socialaccount.providers.openid_connect
-            # "true" once your account is linked (Profile > Connect): it skips the password page
+            # the account is linked to tinyauth (2026-11-01): the login page goes there directly
             - name: PAPERLESS_REDIRECT_LOGIN_TO_SSO
-              value: "false"
+              value: "true"
           envFrom:
             - secretRef:
                 name: paperless-secrets
