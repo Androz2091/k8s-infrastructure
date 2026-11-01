@@ -50,6 +50,7 @@ One namespace per kind of app, one ArgoCD app per folder of `cluster-manifests/<
 - 1 local snapshot of each volume every 30 minutes. Retained for 24 hours.
 - 1 offsite backup (S3) of each volume every night. Retained for 30 days.
 - 1 `pg_dump` of every Postgres database every night ([below](#postgres-backups)). Retained for 30 days.
+- 1 etcd snapshot every 6 hours ([below](#etcd-snapshots)). Retained for 3 days on the VPS, and 30 days in S3 once its bucket exists (#54).
 
 Movies and TV shows are not backed up, considered as non-critical data.
 
@@ -74,6 +75,27 @@ rclone lsd pgdumps:
 rclone copy pgdumps:<date>/<db>.dump .
 k -n db cp <db>.dump <postgres pod>:/tmp/
 k -n db exec <postgres pod> -- pg_restore -U postgres --clean --if-exists -d <db> /tmp/<db>.dump   # replaces its content
+```
+
+### etcd snapshots
+
+etcd holds everything the cluster knows that isn't in git: hand-made Secrets, PV bindings, Longhorn's volume list. A [CronJob](./cluster-manifests/kube-system/etcd-snapshot/cronjob.yaml) on the VPS saves it every 6 hours and keeps 3 days of copies in `/var/lib/etcd-snapshots` (root only: a snapshot holds every Secret in clear). Once `etcd-snapshot-secrets` exists, it also encrypts each one with rclone crypt and uploads it to the OVH bucket `etcdsnapshots` (Toronto). Its image is kubeadm's etcd one: after a Kubernetes upgrade, set it to the new `sudo crictl ps --name '^etcd$' -o yaml | grep image:`.
+
+Set up once, like `pgdumps`: the bucket, owned by `backups-admin`, with a 30-day compliance object lock and an expiry rule at 31 days; the user `etcd-snapshot-upload`, allowed only `s3:PutObject`, `s3:AbortMultipartUpload` and `s3:ListMultipartUploadParts` on `etcdsnapshots/*`; `s3:GetObject` on `etcdsnapshots/*` for `backups-admin`; and the Secret `etcd-snapshot-secrets` in `kube-system` (`RCLONE_CONFIG_OVH_ACCESS_KEY_ID`, `RCLONE_CONFIG_OVH_SECRET_ACCESS_KEY`, `RCLONE_CONFIG_ETCD_PASSWORD`, `RCLONE_CONFIG_ETCD_PASSWORD2`), [sealed](#sealed-secrets). Keep both crypt passwords in the password manager.
+
+Restore, on the VPS (the API is down until the last step; a Mac copy comes from `rclone copy etcd:<date>/etcd-<time>.db .` with the `backups-admin` key). `etcdutl` comes from the release of the server's version:
+
+```sh
+curl -LO https://github.com/etcd-io/etcd/releases/download/v3.6.6/etcd-v3.6.6-linux-amd64.tar.gz
+echo "887afaa4a99f22d802ccdfbe65730a5e79aa5c9ce2c8799c67e9d804c50ecedb  etcd-v3.6.6-linux-amd64.tar.gz" | sha256sum -c
+tar xzf etcd-v3.6.6-linux-amd64.tar.gz etcd-v3.6.6-linux-amd64/etcdutl
+sudo mkdir /root/manifests.off && sudo mv /etc/kubernetes/manifests/*.yaml /root/manifests.off/   # stops etcd and the control plane
+sudo mv /var/lib/etcd /var/lib/etcd.before-restore
+# --bump-revision/--mark-compacted: controllers and kubelets resync instead of trusting their watch caches
+sudo ./etcd-v3.6.6-linux-amd64/etcdutl snapshot restore <snapshot.db> --data-dir /var/lib/etcd \
+  --name vps-ab240c42 --initial-cluster vps-ab240c42=https://10.8.0.1:2380 --initial-advertise-peer-urls https://10.8.0.1:2380 \
+  --bump-revision 1000000000 --mark-compacted
+sudo mv /root/manifests.off/*.yaml /etc/kubernetes/manifests/
 ```
 
 ### Admin access

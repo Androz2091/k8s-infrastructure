@@ -1,0 +1,41 @@
+# kube-system is created by kubeadm: no Namespace here, and only the namespaced things in
+# cluster-manifests/kube-system/* (no cluster-wide resources)
+kind: AppProject
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: kube-system
+  namespace: argocd
+spec:
+  sourceRepos:
+    - https://github.com/Androz2091/k8s-infrastructure.git
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: "kube-system"
+  namespaceResourceBlacklist: []
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kube-system-cluster-manifests
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+      revision: HEAD
+      directories:
+      - path: cluster-manifests/kube-system/*
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: "kube-system"
+      source:
+        repoURL: https://github.com/Androz2091/k8s-infrastructure.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: kube-system

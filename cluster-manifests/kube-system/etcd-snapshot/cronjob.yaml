@@ -1,0 +1,160 @@
+# Setup and restore: README > etcd snapshots.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-snapshot
+  namespace: kube-system
+spec:
+  schedule: "15 */6 * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          # etcd only listens on the control plane: its client port on the VPS's 127.0.0.1
+          hostNetwork: true
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: ""
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
+          volumes:
+            # only the client certificate and the CA, not the CA key nor the server/peer keys
+            - name: etcd-ca
+              hostPath:
+                path: /etc/kubernetes/pki/etcd/ca.crt
+                type: File
+            - name: etcd-client-crt
+              hostPath:
+                path: /etc/kubernetes/pki/etcd/healthcheck-client.crt
+                type: File
+            - name: etcd-client-key
+              hostPath:
+                path: /etc/kubernetes/pki/etcd/healthcheck-client.key
+                type: File
+            - name: snapshot
+              emptyDir:
+                sizeLimit: 2Gi
+            # a few days on the VPS itself, for a restore without S3
+            - name: local-copies
+              hostPath:
+                path: /var/lib/etcd-snapshots
+                type: DirectoryOrCreate
+          initContainers:
+            # kubeadm's own etcd image: etcdctl and etcdutl of the server's version (no shell inside).
+            # A Kubernetes upgrade can change it: `sudo crictl ps --name '^etcd$' -o yaml | grep image:`
+            - name: save
+              image: registry.k8s.io/etcd:3.6.6-0
+              command:
+                - etcdctl
+                - --endpoints=https://127.0.0.1:2379
+                - --cacert=/pki/ca.crt
+                - --cert=/pki/healthcheck-client.crt
+                - --key=/pki/healthcheck-client.key
+                - snapshot
+                - save
+                - /snapshot/etcd.db
+              volumeMounts:
+                - name: etcd-ca
+                  mountPath: /pki/ca.crt
+                  readOnly: true
+                - name: etcd-client-crt
+                  mountPath: /pki/healthcheck-client.crt
+                  readOnly: true
+                - name: etcd-client-key
+                  mountPath: /pki/healthcheck-client.key
+                  readOnly: true
+                - name: snapshot
+                  mountPath: /snapshot
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+            # fails the job on a truncated or corrupt file; prints hash, revision and key count
+            - name: check
+              image: registry.k8s.io/etcd:3.6.6-0
+              command: ["etcdutl", "snapshot", "status", "/snapshot/etcd.db", "-w", "table"]
+              volumeMounts:
+                - name: snapshot
+                  mountPath: /snapshot
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+            # the snapshot holds every Secret in clear: root-only on the VPS (any shell does; this image
+            # is pulled for the upload anyway)
+            - name: keep
+              image: rclone/rclone:1.75.1
+              command: ["/bin/sh", "-ec"]
+              args:
+                - |
+                  now=$(date -u +%Y-%m-%dT%H%MZ)
+                  umask 077; chmod 700 /local
+                  cp /snapshot/etcd.db "/local/etcd-$now.db"
+                  find /local -name 'etcd-*.db' -mmin +4320 -delete
+                  ls -la /local
+              volumeMounts:
+                - name: snapshot
+                  mountPath: /snapshot
+                  readOnly: true
+                - name: local-copies
+                  mountPath: /local
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+          containers:
+            - name: upload
+              image: rclone/rclone:1.75.1
+              env:
+                - name: RCLONE_CONFIG_OVH_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_OVH_PROVIDER
+                  value: Other
+                - name: RCLONE_CONFIG_OVH_ENDPOINT
+                  value: https://s3.ca-east-tor.io.cloud.ovh.net
+                - name: RCLONE_CONFIG_OVH_REGION
+                  value: ca-east-tor
+                - name: RCLONE_CONFIG_ETCD_TYPE
+                  value: crypt
+                - name: RCLONE_CONFIG_ETCD_REMOTE
+                  value: ovh:etcdsnapshots
+              envFrom:
+                # optional: the local copies start without it, the offsite one once it exists (#54)
+                - secretRef:
+                    name: etcd-snapshot-secrets
+                    optional: true
+              command: ["/bin/sh", "-ec"]
+              args:
+                # encrypted before it leaves. The key can only write (same flags as the pg_dump upload,
+                # README > Postgres backups)
+                - |
+                  [ -n "${RCLONE_CONFIG_ETCD_PASSWORD:-}" ] || { echo "no etcd-snapshot-secrets: offsite copy skipped (#54)"; exit 0; }
+                  now=$(date -u +%Y-%m-%dT%H%MZ)
+                  rclone copyto /snapshot/etcd.db "etcd:${now%%T*}/etcd-$now.db" --no-check-dest --s3-no-check-bucket --s3-no-head --s3-no-head-object
+              volumeMounts:
+                - name: snapshot
+                  mountPath: /snapshot
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
