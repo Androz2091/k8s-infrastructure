@@ -106,8 +106,9 @@ helmCharts:
             login_attribute_path: email
             email_attribute_path: email
             name_attribute_path: name
-            # every tinyauth user is a Grafana admin (today: only you)
-            role_attribute_path: "'Admin'"
+            # every tinyauth user is a Grafana admin (today: only you). Not "'Admin'": the INI parser
+            # strips quotes around a whole value, leaving a field lookup that falls back to Viewer
+            role_attribute_path: email && 'Admin'
       alertmanager:
         alertmanagerSpec:
           # one node: three replicas on it add nothing
