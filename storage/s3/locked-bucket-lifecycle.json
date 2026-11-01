@@ -1,0 +1,10 @@
+{
+  "Rules": [
+    { "ID": "old-versions-once-unlocked", "Status": "Enabled", "Filter": { "Prefix": "" },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 1 } },
+    { "ID": "lone-delete-markers", "Status": "Enabled", "Filter": { "Prefix": "" },
+      "Expiration": { "ExpiredObjectDeleteMarker": true } },
+    { "ID": "unfinished-uploads", "Status": "Enabled", "Filter": { "Prefix": "" },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 7 } }
+  ]
+}
