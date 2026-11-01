@@ -5,8 +5,17 @@
 }
 
 (tinyauth_auth) {
-    forward_auth tinyauth.home.svc.cluster.local:3000 {
-        uri /api/auth/caddy
+    # in this order: drop the identity headers a visitor may send, then copy tinyauth's.
+    # FileBrowser trusts Remote-User (auth method "proxy")
+    route {
+        request_header -Remote-User
+        request_header -Remote-Name
+        request_header -Remote-Email
+        request_header -Remote-Groups
+        forward_auth tinyauth.home.svc.cluster.local:3000 {
+            uri /api/auth/caddy
+            copy_headers Remote-User Remote-Name Remote-Email Remote-Groups
+        }
     }
 }
 
@@ -23,7 +32,17 @@ harbor.androz2091.fr {
 }
 
 cloud.androz2091.fr {
-    reverse_proxy http://filebrowser.home.svc.cluster.local:80
+    # share links stay public: the page, its assets and the public API
+    @share path /share/* /api/public/* /static/*
+    handle @share {
+        request_header -Remote-User
+        reverse_proxy http://filebrowser.home.svc.cluster.local:80
+    }
+    # the rest through tinyauth, which tells FileBrowser who is logged in: no second password
+    handle {
+        import tinyauth_auth
+        reverse_proxy http://filebrowser.home.svc.cluster.local:80
+    }
 }
 
 vault.androz2091.fr {
@@ -120,8 +139,15 @@ auth.androz2091.fr {
 }
 
 documents.androz2091.fr {
-    import tinyauth_auth
-    reverse_proxy http://paperless.home.svc.cluster.local:80
+    # Paperless share links stay public; the rest through tinyauth
+    @share path /share/*
+    handle @share {
+        reverse_proxy http://paperless.home.svc.cluster.local:80
+    }
+    handle {
+        import tinyauth_auth
+        reverse_proxy http://paperless.home.svc.cluster.local:80
+    }
 }
 
 stratos-gaming-club-adminjs.androz2091.fr {
