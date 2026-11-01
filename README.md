@@ -40,7 +40,7 @@ One namespace per kind of app, one ArgoCD app per folder of `cluster-manifests/<
 | `sushiflix` | media: Plex, Jellyfin, Radarr, Sonarr, qBittorrent, SABnzbd, Tautulli, Overseerr, h5ai |
 | `db` | the shared PostgreSQL, pgAdmin |
 | `workflows` | Harbor (the private image registry) |
-| `monitoring` | kube-prometheus-stack (Prometheus, Alertmanager, Grafana), Loki, Promtail, Alertgram (alerts to Telegram) |
+| `monitoring` | kube-prometheus-stack (Prometheus, Alertmanager, Grafana), Loki, Alloy, Alertgram (alerts to Telegram) |
 
 ## 📜 Wiki
 
@@ -219,7 +219,7 @@ The Plex server has to be accessed locally to be claimed. Use port forwarding to
 
 ### View logs
 
-Logs are collected by Promtail/Loki and can be access via the dashboard available at [grafana/loki-dashboard.json](./grafana/loki-dashboard.json).
+Logs are collected by Alloy (a DaemonSet on both nodes, replacing Promtail since #149) into Loki, and can be accessed via the dashboard available at [grafana/loki-dashboard.json](./grafana/loki-dashboard.json).
 
 ⚠️ Onechart labels all its apps with `onechart` so we have to differentiate them using the `instance` label.
 
