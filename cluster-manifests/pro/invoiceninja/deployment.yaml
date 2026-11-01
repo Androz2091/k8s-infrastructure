@@ -135,7 +135,7 @@ spec:
         # the image's supervisord already runs schedule:work and 2 queue:work in the container above:
         # no scheduler/queue-worker containers next to it (they ran every task twice, #110)
         - name: nginx
-          image: nginx:1.25-alpine
+          image: nginx:1.30.6-alpine # stable branch
           imagePullPolicy: IfNotPresent
           
           ports:
