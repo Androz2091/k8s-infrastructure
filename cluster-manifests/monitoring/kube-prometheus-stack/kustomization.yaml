@@ -74,9 +74,6 @@ helmCharts:
         # uses that account any more, so the binding grants nothing
         serviceAccount:
           name: grafana
-        # one Grafana at a time on its SQLite volume
-        deploymentStrategy:
-          type: Recreate
         sidecar:
           # every dashboard and the datasource are ConfigMaps in monitoring
           dashboards:
