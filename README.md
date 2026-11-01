@@ -302,18 +302,23 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 apt-get install open-iscsi -y
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.8.2 --set persistence.defaultClassReplicaCount=1
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.13.0 --set persistence.defaultClassReplicaCount=1
 ```
 
 `defaultClassReplicaCount=1`: one node, so one copy per volume (the chart default is 3). Upgrades go one minor at a time (Longhorn refuses to skip one, and there is no downgrade; `--reuse-values` would keep the old images), then every volume moves to the new engine, since the next minor only live-upgrades engines of the previous one (#96):
 
 ```sh
+V=1.13.1   # the next one
 helm repo update longhorn
-helm upgrade longhorn longhorn/longhorn --namespace longhorn-system --version 1.8.2 --set persistence.defaultClassReplicaCount=1 --timeout 15m
-E=longhornio/longhorn-engine:v1.8.2   # one volume at a time, smallest first; live: the apps keep running
+helm upgrade longhorn longhorn/longhorn --namespace longhorn-system --version $V --set persistence.defaultClassReplicaCount=1 --timeout 15m
+# the engine image as Longhorn names it (1.10+ adds a docker.io/ prefix), once its state is "deployed"
+E=$(kubectl -n longhorn-system get engineimages.longhorn.io -o json | jq -r --arg v ":v$V" '.items[] | select(.spec.image|endswith($v)) | .spec.image')
+# one volume at a time, smallest first; live: the apps keep running. A detached volume switches offline at once
 for v in $(kubectl -n longhorn-system get volumes.longhorn.io -o json | jq -r --arg e $E '.items | sort_by(.spec.size|tonumber)[] | select(.spec.image != $e) | .metadata.name'); do
+  s=$(kubectl -n longhorn-system get volumes.longhorn.io $v -o jsonpath='{.status.state}')
   kubectl -n longhorn-system patch volumes.longhorn.io $v --type merge -p "{\"spec\":{\"image\":\"$E\"}}"
-  until [ "$(kubectl -n longhorn-system get volumes.longhorn.io $v -o jsonpath='{.status.currentImage} {.status.robustness}')" = "$E healthy" ]; do sleep 5; done; echo "$v done"
+  want="$E healthy"; [ "$s" = attached ] || want="$E unknown"
+  until [ "$(kubectl -n longhorn-system get volumes.longhorn.io $v -o jsonpath='{.status.currentImage} {.status.robustness}')" = "$want" ]; do sleep 5; done; echo "$v done"
 done
 ```
 
@@ -433,7 +438,7 @@ Restarting CRI-O and kubelet on the same version leaves the running containers a
 - installing the package restarts `crio` by itself (the old package's `postrm`), so `apt-get install` is already the switch
 - the new minor removes the old pod sandboxes at start, and kubelet recreates them all
 
-The containers get a normal stop (Postgres shut down cleanly on 2026-11-01), and the apps take about 10 minutes to come back. So on `ns561436`, install CRI-O in a quiet hour. Then `kubectl uncordon vps-ab240c42`.
+The containers get a normal stop (Postgres shut down cleanly on 2026-11-01), and the apps take 20 to 40 minutes to come back: every volume reattaches on the HDDs, Harbor comes back last, and the apps that pull from it wait in crash-loop backoff. So on `ns561436`, install CRI-O in a quiet hour. Then `kubectl uncordon vps-ab240c42`.
 
 ### Troubleshooting
 
