@@ -1,0 +1,18 @@
+# Longhorn's manager metrics (volumes, nodes, disks, backups) for Prometheus: Longhorn is installed by
+# Helm by hand, so its scrape config lives here, next to the rest of the monitoring.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: longhorn
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack # the only monitors Prometheus loads
+spec:
+  namespaceSelector:
+    matchNames: [longhorn-system]
+  selector:
+    matchLabels:
+      app: longhorn-manager
+  endpoints:
+    - port: manager
+      interval: 60s
