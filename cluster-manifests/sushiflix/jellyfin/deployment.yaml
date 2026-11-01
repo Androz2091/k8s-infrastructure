@@ -7,6 +7,9 @@ metadata:
     app: jellyfin
 spec:
   replicas: 1
+  # one Jellyfin at a time on /config (SQLite)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: jellyfin
@@ -17,8 +20,8 @@ spec:
     spec:
       containers:
         - name: jellyfin
-          # 10.10.3: the build ":latest" resolved to when the node cached it (same digest, nothing changes)
-          image: docker.io/jellyfin/jellyfin@sha256:040461da121ebe7f5055a385d0f1fc8e8260509041ff0fbce54ec52da2b6bf60
+          # 10.10.7, the last 10.10 (same database schema as 10.10.3) and the step 12.0 asks for
+          image: docker.io/jellyfin/jellyfin:10.10.7@sha256:7ae36aab93ef9b6aaff02b37f8bb23df84bb2d7a3f6054ec8fc466072a648ce2
           imagePullPolicy: IfNotPresent
 
           env:
