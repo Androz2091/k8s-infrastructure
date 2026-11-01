@@ -20,8 +20,9 @@ spec:
     spec:
       containers:
         - name: jellyfin
-          # 10.10.7, the last 10.10 (same database schema as 10.10.3) and the step 12.0 asks for
-          image: docker.io/jellyfin/jellyfin:10.10.7@sha256:7ae36aab93ef9b6aaff02b37f8bb23df84bb2d7a3f6054ec8fc466072a648ce2
+          # 12.x migrates the database for good (back to 10.10 only by restoring /config) and needs a
+          # full library scan after its first start
+          image: docker.io/jellyfin/jellyfin:12.4@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771
           imagePullPolicy: IfNotPresent
 
           env:
