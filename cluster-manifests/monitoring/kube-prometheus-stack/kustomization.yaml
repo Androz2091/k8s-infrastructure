@@ -42,6 +42,22 @@ helmCharts:
           # one worker by design: losing it can never be "tolerated", so these would fire forever
           KubeMemoryOvercommit: true
           KubeCPUOvercommit: true
+      grafana:
+        admin:
+          # sealed in sealed-secrets.yaml: the chart's own Secret holds its public default password (#81)
+          existingSecret: grafana-admin
+        rbac:
+          # a Role in monitoring that only reads ConfigMaps (grafana-sidecar-role.yaml): the chart's
+          # own rules always add Secrets, in every namespace unless namespaced (#87)
+          namespaced: true
+          useExistingRole: grafana-sidecar
+        sidecar:
+          # every dashboard and the datasource are ConfigMaps in monitoring
+          dashboards:
+            resource: configmap
+            searchNamespace: null
+          datasources:
+            resource: configmap
       alertmanager:
         alertmanagerSpec:
           replicas: 3
@@ -68,5 +84,9 @@ helmCharts:
             #   - url: 'http://alertgram:8080/alerts?chat-id=-1001111111111'
 
 namespace: monitoring
+
+resources:
+  - grafana-sidecar-role.yaml
+  - sealed-secrets.yaml
 
 patches: []

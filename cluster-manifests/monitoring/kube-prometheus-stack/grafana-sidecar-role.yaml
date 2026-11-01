@@ -1,0 +1,11 @@
+# What Grafana's dashboard and datasource sidecars may read: ConfigMaps in monitoring, nothing else.
+# Bound by the chart (grafana.rbac.useExistingRole in kustomization.yaml).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-sidecar
+  namespace: monitoring
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "watch", "list"]
