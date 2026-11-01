@@ -203,8 +203,7 @@ apt-get install -y software-properties-common curl jq
 Turn off swap.
 
 ```sh
-swapoff -a
-systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
+swapoff -a   # Ansible then comments the swap lines out of /etc/fstab, so it stays off after a reboot
 ```
 
 Prepare the node with Ansible. Always `--check --diff` first. Tasks are idempotent so a second run must report `changed=0`.
