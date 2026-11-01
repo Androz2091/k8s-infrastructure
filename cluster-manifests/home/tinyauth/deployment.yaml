@@ -50,6 +50,10 @@ spec:
               value: Immich
             - name: TINYAUTH_OIDC_CLIENTS_IMMICH_TRUSTEDREDIRECTURIS
               value: https://photos.androz2091.fr/auth/login,https://photos.androz2091.fr/user-settings,https://photos.androz2091.fr/api/oauth/mobile-redirect
+            - name: TINYAUTH_OIDC_CLIENTS_GRAFANA_NAME
+              value: Grafana
+            - name: TINYAUTH_OIDC_CLIENTS_GRAFANA_TRUSTEDREDIRECTURIS
+              value: https://prometheus-grafana.androz2091.fr/login/generic_oauth
             - name: TINYAUTH_UI_BACKGROUNDIMAGE
               value: "https://photos.androz2091.fr/api/assets/f555dced-a633-48be-b84b-ba475c8b2493/thumbnail?key=09zMecTGWSuy1epLVhWg1fXRhj8lJP1AdZ3-v2UGK-z3f2K7-_TDb1bjwIJIIcAKhOI&size=preview&c=mxgWDYJQindeh3iHeHeHh5z20ok%2F&edited=true"
           envFrom:
@@ -57,6 +61,8 @@ spec:
                 name: tinyauth-secrets
             - secretRef:
                 name: tinyauth-oidc
+            - secretRef:
+                name: tinyauth-oidc-grafana   # Grafana's client ID and secret (#104 part 2)
           volumeMounts:
             - name: tinyauth-data
               mountPath: /data
