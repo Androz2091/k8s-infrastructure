@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
         - name: monica
-          image: monica:5.0.0-beta.4-apache
+          # rebuilt 2026-10-28 with PHP 8.3.36: PHP2Shell is fixed (#115). The tag is rebuilt in place, hence the digest
+          image: monica:5.0.0-beta.5-apache@sha256:722ea85f1c08b94c4b81346d4b647e93b55c2a54e05c7d3d15af7b937517fc24
           imagePullPolicy: IfNotPresent
 
           env:
