@@ -25,8 +25,10 @@ spec:
 
       containers:
         - name: redis
-          # bitnami/ dropped its versioned tags in 2025: same image (same digest) under bitnamilegacy/ (#89)
-          image: bitnamilegacy/redis:6.2.14@sha256:c5fff8af7b53b403e369f969c3541750bd3cefa7bc7a633db99fe937992640bd
+          # Valkey, as in Paperless's own compose: the bitnamilegacy/redis image is frozen (#89). Only
+          # Celery's queue lives here, in memory, as before (no volume)
+          image: valkey/valkey:9.1.3-alpine@sha256:bf09d58e96d6b4524a15396b65b242bbe18beebbcc15a04d8ee75ddac62fae0b
+          args: ["--requirepass", "$(REDIS_PASSWORD)", "--save", "", "--appendonly", "no"]
           ports:
             - name: redis
               containerPort: 6379
