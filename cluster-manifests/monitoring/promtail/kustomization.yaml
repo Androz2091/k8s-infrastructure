@@ -3,7 +3,7 @@ helmCharts:
     includeCRDs: true
     releaseName: promtail
     namespace: monitoring
-    version: 6.16.6
+    version: 6.17.1
     repo: https://grafana.github.io/helm-charts
     valuesInline:
       serviceMonitor:
