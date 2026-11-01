@@ -78,7 +78,9 @@ helmCharts:
           # every dashboard and the datasource are ConfigMaps in monitoring
           dashboards:
             resource: configmap
-            searchNamespace: null
+            # named explicitly: null doesn't clear the parent chart's "ALL", and the grafana account
+            # may only read ConfigMaps in monitoring
+            searchNamespace: monitoring
           datasources:
             resource: configmap
         # login through tinyauth (#104): Grafana is already behind it, so opening it logs you in.
