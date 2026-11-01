@@ -1,5 +1,12 @@
 # Values : https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
+# The chart follows the latest Argo CD minor only: it stopped at v3.4.6 when 3.5 came out. v3.4.12
+# has the October 2026 security fixes (Kustomize/Helm and Jsonnet in the repo-server, hooks
+# bypassing AppProject limits); same CRDs as v3.4.2
+global:
+  image:
+    tag: v3.4.12
+
 ## Argo Configs
 configs:
   # General Argo CD configuration
