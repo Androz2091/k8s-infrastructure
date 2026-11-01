@@ -19,6 +19,15 @@
         fail_msg: "Expected Debian 12 with swap off, refusing to continue"
       tags: always
 
+    # kubelet refuses to start with swap on, and the OVH install lists both disks' swap partitions
+    # in /etc/fstab: `swapoff -a` alone lasts until the next boot (#58)
+    - name: No swap at boot
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^(\s*[^#\s]+\s+\S+\s+swap\s.*)$'
+        replace: '# \1'
+      tags: kubelet
+
     - name: SSH accepts keys only and sheds bots quickly
       ansible.builtin.copy:
         dest: /etc/ssh/sshd_config.d/00-hardening.conf
