@@ -49,8 +49,8 @@ spec:
               value: https://auth.androz2091.fr/.well-known/openid-configuration
             - name: OAUTH_SCOPE
               value: openid profile email
-            - name: OAUTH_AUTO_LOGIN
-              value: "true"
+            - name: OAUTH_AUTO_LOGIN   # "true" once the account is linked (step 3), like Paperless's redirect
+              value: "false"
             - name: OAUTH_AUTO_REGISTER
               value: "false"
             - name: OAUTH_BUTTON_TEXT
