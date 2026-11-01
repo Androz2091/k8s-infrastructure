@@ -4,10 +4,10 @@
 
   vars:
     # one minor at a time (README > Upgrade Kubernetes); CRI-O follows Kubernetes' minor
-    kubernetes_repo: v1.32
-    kubernetes_version: 1.32.13-1.1
-    crio_repo: v1.32
-    crio_version: 1.32.13-1.1
+    kubernetes_repo: v1.33
+    kubernetes_version: 1.33.13-1.1
+    crio_repo: v1.33
+    crio_version: 1.33.13-1.1
     # the PauseVersion of this kubeadm minor (kubeadm's preflight warns when CRI-O's differs)
     pause_image: registry.k8s.io/pause:3.10
 
