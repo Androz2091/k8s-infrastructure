@@ -15,7 +15,9 @@ spec:
     spec:
       containers:
         - name: loki
-          image: grafana/loki:3.1.2
+          # 3.5.x: the last line on AWS SDK v1 for S3 (3.6 moves to v2, untested against OVH). No shell
+          # in the image since 3.5.8
+          image: grafana/loki:3.5.12@sha256:c2a6860c2f94ecc98fffce7c10e6c8b350cf25e2ea3daa255dff27d7c6a4dffc
           args:
             - "-config.file=/etc/loki/loki-config.yaml"
             - "-config.expand-env=true"
@@ -91,6 +93,15 @@ data:
           index:
             prefix: index_
             period: 24h
+        # TSDB + v13 from 2026-11-03 (#117): boltdb-shipper is deprecated. The old period ages out
+        # with the 7-day retention; then it can go
+        - from: 2026-11-03
+          store: tsdb
+          object_store: s3
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
 
     storage_config:
       aws:
@@ -102,16 +113,15 @@ data:
       boltdb_shipper:
         active_index_directory: /data/loki/boltdb-shipper-active
         cache_location: /data/loki/boltdb-shipper-cache
+      tsdb_shipper:
+        active_index_directory: /data/loki/tsdb-index
+        cache_location: /data/loki/tsdb-cache
 
     limits_config:
       retention_period: 168h
       allow_structured_metadata: false
 
     chunk_store_config: {}
-
-    table_manager:
-      retention_deletes_enabled: true
-      retention_period: 168h
 
     compactor:
       working_directory: /data/loki/compactor
