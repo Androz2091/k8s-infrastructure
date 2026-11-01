@@ -399,6 +399,11 @@ sudo kubeadm upgrade node phase kubelet-config && sudo systemctl restart kubelet
 systemd-inhibit --list | grep kubelet   # "shutdown … delay": the lock that makes a reboot wait for the pods
 ```
 
+After a restart of `ns561436` (2026-11-01: about 45 min until every app was back on the HDDs):
+- **The `backup-*-pod`s** are bare Pods and don't come back: `argocd app sync <app> --resource :Pod:<pod>` (filebrowser, immich, paperless).
+- **CoreDNS** moves to the VPS while `ns561436` is down. Until #130 is applied, it can't reach the API there and the whole cluster loses DNS: `kubectl cordon vps-ab240c42` before a reboot, `uncordon` after.
+- **Plex** once came back hung (no HTTP, even inside its pod): `kubectl -n sushiflix delete pod -l app=plex`.
+
 ### Control Plane Node
 
 Since 2026-09-27 the control plane runs on the VPS and `ns561436` is a plain worker. The nodes are set up by [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), the cluster by [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml). Migration log: [README at `3cffd9d`](https://github.com/Androz2091/k8s-infrastructure/blob/3cffd9d/README.md#control-plane-node).
@@ -416,7 +421,9 @@ One minor version per hop (kubeadm can't skip one), control plane first. Set the
 
 ```sh
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags repos --diff   # the new apt repositories only
-# VPS: kubeadm first, then the control plane (1-3 min without API)
+# VPS: kubeadm first, then the control plane (1-3 min without API). Cordoned meanwhile, so the CoreDNS
+# that kubeadm re-applies stays on ns561436 (its pods can't reach the API from the VPS before #130)
+kubectl cordon vps-ab240c42
 sudo apt-mark unhold kubeadm && sudo apt-get update && sudo apt-get install -y kubeadm=$K && sudo apt-mark hold kubeadm
 sudo kubeadm upgrade plan && sudo kubeadm upgrade apply v${K%-*} -y
 # ns561436: kubeadm, then its kubelet config
@@ -427,7 +434,11 @@ sudo systemctl daemon-reload && sudo systemctl restart crio kubelet
 ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                # converges the rest; a second run: changed=0
 ```
 
-Restarting CRI-O and kubelet leaves the running containers alone (each container's `conmon` lives outside `crio.service`'s cgroup), so `ns561436` is never drained.
+Restarting CRI-O and kubelet on the same version leaves the running containers alone (each container's `conmon` lives outside `crio.service`'s cgroup). **A new CRI-O minor restarts every container on the node:**
+- installing the package restarts `crio` by itself (the old package's `postrm`), so `apt-get install` is already the switch
+- the new minor removes the old pod sandboxes at start, and kubelet recreates them all
+
+The containers get a normal stop (Postgres shut down cleanly on 2026-11-01), and the apps take about 10 minutes to come back. So on `ns561436`, install CRI-O in a quiet hour. Then `kubectl uncordon vps-ab240c42`.
 
 ### Troubleshooting
 
