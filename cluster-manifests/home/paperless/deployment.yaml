@@ -20,8 +20,9 @@ spec:
     spec:
       containers:
         - name: webserver
-          # the last 2.x: 3.0 has breaking changes (docs.paperless-ngx.com, migration to v3)
-          image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
+          # 3.x (docs/migration-v3.md, from 2.20.15 only): rebuilds the search index (Tantivy) at
+          # first start, no way back but the database dump
+          image: ghcr.io/paperless-ngx/paperless-ngx:3.4.1
           imagePullPolicy: IfNotPresent
           env:
             - name: USERMAP_UID
@@ -36,6 +37,9 @@ spec:
             # Django refuses to start: same fixed UTC-5, without DST (POSIX sign: GMT+5 is UTC-5)
             - name: PAPERLESS_TIME_ZONE
               value: "Etc/GMT+5"
+            # v3 accepts duplicates by default: keep v2's rejection
+            - name: PAPERLESS_CONSUMER_DELETE_DUPLICATES
+              value: "true"
             - name: PAPERLESS_PORT
               value: "8000"
             # log in through tinyauth (#104): the provider (with its secret) is in paperless-oidc
