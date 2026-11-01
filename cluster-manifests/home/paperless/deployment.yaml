@@ -37,6 +37,9 @@ spec:
             # Django refuses to start: same fixed UTC-5, without DST (POSIX sign: GMT+5 is UTC-5)
             - name: PAPERLESS_TIME_ZONE
               value: "Etc/GMT+5"
+            # v3 only accepts "postgresql" (paperless-secrets has v2's "postgres"); env wins over envFrom
+            - name: PAPERLESS_DBENGINE
+              value: postgresql
             # v3 accepts duplicates by default: keep v2's rejection
             - name: PAPERLESS_CONSUMER_DELETE_DUPLICATES
               value: "true"
