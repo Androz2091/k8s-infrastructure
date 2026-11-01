@@ -19,10 +19,10 @@ helmCharts:
       kubeScheduler:
         enabled: false
       kubeEtcd:
-        # etcd on the VPS also serves its metrics on the tunnel (kubeadm/cluster-config.yaml)
+        # etcd on the VPS also serves its metrics on the tunnel (kubeadm/cluster-config.yaml). The Service
+        # selects the static pod (component: etcd, host network, 10.8.0.1): ArgoCD never applies the
+        # Endpoints object the chart writes for `endpoints:`, since Endpoints are in its resource exclusions
         enabled: true
-        endpoints:
-          - 10.8.0.1
       additionalPrometheusRulesMap:
         etcd-disk:
           groups:
