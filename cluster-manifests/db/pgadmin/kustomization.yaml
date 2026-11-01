@@ -2,9 +2,12 @@ helmCharts:
   - name: pgadmin4
     releaseName: pgadmin
     namespace: db
-    version: 1.28.0
+    version: 1.70.4
     repo: https://helm.runix.net
     valuesInline:
+      # pgAdmin migrates its SQLite config database at start: never two pods on it
+      strategy:
+        type: Recreate
       env:
         email: smnlefort@gmail.com
         password: this-must-be-changed # updated in the UI at first login
