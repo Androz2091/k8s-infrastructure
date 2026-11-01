@@ -7,6 +7,9 @@ metadata:
     app: tautulli
 spec:
   replicas: 1
+  # one process at a time on its config database (it migrates at start)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: tautulli
@@ -17,7 +20,7 @@ spec:
     spec:
       containers:
         - name: tautulli
-          image: lscr.io/linuxserver/tautulli:2.16.0
+          image: lscr.io/linuxserver/tautulli:2.18.2
           imagePullPolicy: IfNotPresent
 
           env:
