@@ -32,8 +32,10 @@ spec:
               value: "/consume"
             - name: "PAPERLESS_URL"
               value: "https://documents.androz2091.fr"
+            # EST itself is gone from the image's tzdata (Debian moved it to tzdata-legacy) and
+            # Django refuses to start: same fixed UTC-5, without DST (POSIX sign: GMT+5 is UTC-5)
             - name: PAPERLESS_TIME_ZONE
-              value: "EST"
+              value: "Etc/GMT+5"
             - name: PAPERLESS_PORT
               value: "8000"
             # log in through tinyauth (#104): the provider (with its secret) is in paperless-oidc
