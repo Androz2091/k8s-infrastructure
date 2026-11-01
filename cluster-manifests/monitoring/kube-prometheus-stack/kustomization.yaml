@@ -69,6 +69,14 @@ helmCharts:
           # own rules always add Secrets, in every namespace unless namespaced (#87)
           namespaced: true
           useExistingRole: grafana-sidecar
+        # its own ServiceAccount name: the previous one (kube-prometheus-stack-grafana) is still bound
+        # to every Secret by the old ClusterRoleBinding, which only a prune removes (#87). No pod
+        # uses that account any more, so the binding grants nothing
+        serviceAccount:
+          name: grafana
+        # one Grafana at a time on its SQLite volume
+        deploymentStrategy:
+          type: Recreate
         sidecar:
           # every dashboard and the datasource are ConfigMaps in monitoring
           dashboards:
