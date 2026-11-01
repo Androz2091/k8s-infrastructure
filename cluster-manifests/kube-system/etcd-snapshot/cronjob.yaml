@@ -50,9 +50,10 @@ spec:
                 path: /var/lib/etcd-snapshots
                 type: DirectoryOrCreate
           initContainers:
-            # kubeadm's own etcd image: etcdctl and etcdutl of the server's version (no shell inside)
+            # kubeadm's own etcd image: etcdctl and etcdutl of the server's version (no shell inside).
+            # A Kubernetes upgrade can change it: `sudo crictl ps --name '^etcd$' -o yaml | grep image:`
             - name: save
-              image: registry.k8s.io/etcd:3.5.24-0
+              image: registry.k8s.io/etcd:3.6.6-0
               command:
                 - etcdctl
                 - --endpoints=https://127.0.0.1:2379
@@ -82,12 +83,36 @@ spec:
                   memory: 256Mi
             # fails the job on a truncated or corrupt file; prints hash, revision and key count
             - name: check
-              image: registry.k8s.io/etcd:3.5.24-0
+              image: registry.k8s.io/etcd:3.6.6-0
               command: ["etcdutl", "snapshot", "status", "/snapshot/etcd.db", "-w", "table"]
               volumeMounts:
                 - name: snapshot
                   mountPath: /snapshot
                   readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+            # the snapshot holds every Secret in clear: root-only on the VPS (any shell does; this image
+            # is pulled for the upload anyway)
+            - name: keep
+              image: rclone/rclone:1.75.1
+              command: ["/bin/sh", "-ec"]
+              args:
+                - |
+                  now=$(date -u +%Y-%m-%dT%H%MZ)
+                  umask 077; chmod 700 /local
+                  cp /snapshot/etcd.db "/local/etcd-$now.db"
+                  find /local -name 'etcd-*.db' -mmin +4320 -delete
+                  ls -la /local
+              volumeMounts:
+                - name: snapshot
+                  mountPath: /snapshot
+                  readOnly: true
+                - name: local-copies
+                  mountPath: /local
               resources:
                 requests:
                   cpu: 50m
@@ -111,25 +136,22 @@ spec:
                 - name: RCLONE_CONFIG_ETCD_REMOTE
                   value: ovh:etcdsnapshots
               envFrom:
+                # optional: the local copies start without it, the offsite one once it exists (#54)
                 - secretRef:
                     name: etcd-snapshot-secrets
+                    optional: true
               command: ["/bin/sh", "-ec"]
               args:
-                # the snapshot holds every Secret in clear: encrypted before it leaves, root-only on the VPS.
-                # The key can only write (same flags as the pg_dump upload, README > Postgres backups)
+                # encrypted before it leaves. The key can only write (same flags as the pg_dump upload,
+                # README > Postgres backups)
                 - |
+                  [ -n "${RCLONE_CONFIG_ETCD_PASSWORD:-}" ] || { echo "no etcd-snapshot-secrets: offsite copy skipped (#54)"; exit 0; }
                   now=$(date -u +%Y-%m-%dT%H%MZ)
                   rclone copyto /snapshot/etcd.db "etcd:${now%%T*}/etcd-$now.db" --no-check-dest --s3-no-check-bucket --s3-no-head --s3-no-head-object
-                  umask 077; chmod 700 /local
-                  cp /snapshot/etcd.db "/local/etcd-$now.db"
-                  find /local -name 'etcd-*.db' -mmin +4320 -delete
-                  ls -la /local
               volumeMounts:
                 - name: snapshot
                   mountPath: /snapshot
                   readOnly: true
-                - name: local-copies
-                  mountPath: /local
               resources:
                 requests:
                   cpu: 50m
