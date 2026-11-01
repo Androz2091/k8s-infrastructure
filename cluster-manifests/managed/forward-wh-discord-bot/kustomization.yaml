@@ -3,7 +3,7 @@ helmCharts:
     releaseName: forward-wh-discord-bot
     namespace: managed
     version: 0.70.0
-    repo: https://chart.onechart.dev
+    valuesFile: ../../../charts/onechart-common-values.yaml
     valuesInline:
       image:
         repository: androz2091/forward-wh-discord-bot
@@ -15,13 +15,19 @@ helmCharts:
         filesToMount:
           - name: config.json
             source: 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
-        resources:
-        limits:
-          cpu: "2000m"
-          memory: "2000Mi"
+      # the chart's defaults, as before: its old block sat inside sealedFileSecrets and never applied
+      resources:
         requests:
-          cpu: "50m"
+          cpu: "200m"
+          memory: "200Mi"
+        limits:
+          cpu: "200m"
+          memory: "200Mi"
 
 namespace: managed
 
 patches: []
+
+# onechart is vendored in charts/ (its repository is gone, #59)
+helmGlobals:
+  chartHome: ../../../charts

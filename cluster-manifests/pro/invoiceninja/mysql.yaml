@@ -7,6 +7,9 @@ metadata:
     app: invoiceninja-mysql
 spec:
   replicas: 1
+  # never two mysqld on one data folder, even for the seconds of a rolling update
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: invoiceninja-mysql
@@ -17,7 +20,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:8.0
+          image: mysql:8.4.13 # 8.0 is end of life since 2026-04-30 (#110)
           imagePullPolicy: IfNotPresent
           
           env:

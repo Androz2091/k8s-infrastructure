@@ -25,7 +25,7 @@ spec:
                 sizeLimit: 10Gi
           initContainers:
             - name: dump
-              image: postgres:15.18 # pg_dump must be at least the server's major version
+              image: postgres:17.11 # pg_dump must be at least the server's major version
               env:
                 - name: PGHOST
                   value: postgresql

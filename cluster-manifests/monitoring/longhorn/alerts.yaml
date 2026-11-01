@@ -1,0 +1,67 @@
+# What should wake me up about storage: the data of every app lives in these volumes, one replica each.
+# Full filesystems inside a volume are already covered by the chart's KubePersistentVolumeFillingUp,
+# the RAID under them by NodeRAIDDegraded / NodeRAIDDiskFailure.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: longhorn
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack # the only rules Prometheus loads
+spec:
+  groups:
+    - name: longhorn
+      rules:
+        - alert: LonghornVolumeFaulted
+          expr: longhorn_volume_robustness == 3
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Longhorn volume {{ $labels.pvc_namespace }}/{{ $labels.pvc }} is faulted: its only replica failed."
+            description: "Its app is down or read-only. Don't delete the replica or the volume in the UI; check longhorn-manager's logs first."
+        - alert: LonghornVolumeDegraded
+          expr: longhorn_volume_robustness == 2
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn volume {{ $labels.pvc_namespace }}/{{ $labels.pvc }} is degraded."
+        - alert: LonghornNodeNotReady
+          expr: longhorn_node_status{condition="ready"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Longhorn considers node {{ $labels.node }} not ready: its volumes can't attach."
+        - alert: LonghornDiskNotSchedulable
+          expr: longhorn_disk_status{condition="schedulable"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn disk {{ $labels.disk }} on {{ $labels.node }} takes no new replicas (full or unhealthy)."
+        - alert: LonghornStorageAlmostFull
+          expr: longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes > 0.8
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn's disk on {{ $labels.node }} is {{ $value | humanizePercentage }} full."
+            description: "The disk holds every volume and its snapshots (/var/lib/longhorn, on the root RAID)."
+        - alert: LonghornBackupFailed
+          expr: longhorn_backup_state == 4
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "A Longhorn backup of volume {{ $labels.volume }} failed ({{ $labels.backup }})."
+            description: "Delete that Backup once looked at (kubectl -n longhorn-system delete backups.longhorn.io {{ $labels.backup }}), or this keeps firing."
+        - alert: LonghornOffsiteBackupTooOld
+          expr: time() - kube_cronjob_status_last_successful_time{namespace="longhorn-system", cronjob="offsite-daily-data-config"} > 26 * 3600
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "The last complete offsite Longhorn backup run is more than 26 hours old."
+            description: "Check longhorn-system's offsite-daily-data-config jobs (longhorn/longhorn#14226 makes a run fail now and then)."

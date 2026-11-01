@@ -18,8 +18,8 @@ spec:
           - sh
           - -c
           - chown -R 1000:1000 /opt/_timetagger
-          image: busybox
-          imagePullPolicy: Always
+          image: busybox:1.37.0 # pinned: no pull from Docker Hub at every start
+          imagePullPolicy: IfNotPresent
           name: init-container
           resources: {}
           volumeMounts:

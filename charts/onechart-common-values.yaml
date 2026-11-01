@@ -1,0 +1,8 @@
+# What every onechart app in cluster-manifests/ starts from (helmCharts valuesFile): its own
+# valuesInline overrides these key by key, and the chart's values.yaml fills the rest.
+resources:
+  limits:
+    cpu: "2000m"
+    memory: "2000Mi"
+  requests:
+    cpu: "50m"

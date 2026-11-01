@@ -3,10 +3,28 @@ helmCharts:
     releaseName: kube-prometheus-stack
     includeCRDs: true
     namespace: monitoring
-    version: 62.3.1
+    version: 92.16.1
     repo: https://prometheus-community.github.io/helm-charts
     valuesInline:
       namespaceOverride: monitoring
+      prometheus:
+        prometheusSpec:
+          # on a volume, so a restart or a node reboot keeps the 10 days (about 3.2 GB today)
+          retention: 10d
+          retentionSize: 12GB
+          storageSpec:
+            volumeClaimTemplate:
+              metadata:
+                labels:
+                  # metrics aren't worth an offsite copy every night
+                  recurring-job-group.longhorn.io/nobackup: enabled
+                  recurring-job.longhorn.io/source: enabled
+              spec:
+                storageClassName: longhorn
+                accessModes: [ReadWriteOnce]
+                resources:
+                  requests:
+                    storage: 15Gi
       kubeControllerManager:
         enabled: false
       kubeProxy:
@@ -19,16 +37,49 @@ helmCharts:
       kubeScheduler:
         enabled: false
       kubeEtcd:
-        # etcd only serves metrics on the VPS's 127.0.0.1: a scrape target would always be down (#55)
-        enabled: false
+        # etcd on the VPS also serves its metrics on the tunnel (kubeadm/cluster-config.yaml). The Service
+        # selects the static pod (component: etcd, host network, 10.8.0.1): ArgoCD never applies the
+        # Endpoints object the chart writes for `endpoints:`, since Endpoints are in its resource exclusions
+        enabled: true
+      additionalPrometheusRulesMap:
+        etcd-disk:
+          groups:
+            - name: etcd-disk
+              rules:
+                # why etcd moved to the VPS (p99 was 128-256 ms on the HDDs): the chart's own alert waits for 500 ms
+                - alert: EtcdWalFsyncSlow
+                  expr: histogram_quantile(0.99, sum by (instance, le) (rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~".*etcd.*"}[5m]))) > 0.010
+                  for: 15m
+                  labels:
+                    severity: warning
+                  annotations:
+                    summary: etcd WAL fsync p99 above 10 ms for 15 minutes.
+                    description: Slow disk on the control plane; the scheduler and controller-manager lose their leases if it lasts.
       defaultRules:
         disabled:
           # one worker by design: losing it can never be "tolerated", so these would fire forever
           KubeMemoryOvercommit: true
           KubeCPUOvercommit: true
+      grafana:
+        admin:
+          # sealed in sealed-secrets.yaml: the chart's own Secret holds its public default password (#81)
+          existingSecret: grafana-admin
+        rbac:
+          # a Role in monitoring that only reads ConfigMaps (grafana-sidecar-role.yaml): the chart's
+          # own rules always add Secrets, in every namespace unless namespaced (#87)
+          namespaced: true
+          useExistingRole: grafana-sidecar
+        sidecar:
+          # every dashboard and the datasource are ConfigMaps in monitoring
+          dashboards:
+            resource: configmap
+            searchNamespace: null
+          datasources:
+            resource: configmap
       alertmanager:
         alertmanagerSpec:
-          replicas: 3
+          # one node: three replicas on it add nothing
+          replicas: 1
         config:
           global:
             resolve_timeout: 5m
@@ -52,5 +103,9 @@ helmCharts:
             #   - url: 'http://alertgram:8080/alerts?chat-id=-1001111111111'
 
 namespace: monitoring
+
+resources:
+  - grafana-sidecar-role.yaml
+  - sealed-secrets.yaml
 
 patches: []

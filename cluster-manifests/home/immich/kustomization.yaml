@@ -14,6 +14,11 @@ helmCharts:
             existingClaim: immich-library-pvc
       redis:
         enabled: true
+        # bitnami/ dropped its versioned tags in 2025: same image (same digest) under bitnamilegacy/ (#89)
+        image:
+          repository: bitnamilegacy/redis
+          tag: 7.2.5-debian-12-r0
+          digest: sha256:5261cae9e4076b75d114e6bb032a0699c50b004ea06a680a5304c4c08d286adb
         architecture: standalone
         auth:
           enabled: false
@@ -42,7 +47,7 @@ helmCharts:
                 CREATE EXTENSION vectors;
 
       env:
-        DB_HOSTNAME: immich-postgresql.home.svc.cluster.local
+        DB_HOSTNAME: immich-db.home.svc.cluster.local # PostgreSQL 17 (database-17.yaml), #107
         IMMICH_MEDIA_LOCATION: /usr/src/app/upload
         REDIS_HOSTNAME: immich-redis-master.home.svc.cluster.local
 
@@ -51,5 +56,6 @@ namespace: home
 resources:
   - pvc.yaml
   - backup-mnt-lib-pod.yaml
+  - database-17.yaml
 
 patches: []

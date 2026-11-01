@@ -2,7 +2,7 @@ helmCharts:
   - name: harbor
     releaseName: harbor
     namespace: workflows
-    version: 1.15.0
+    version: 1.19.4 # Harbor 2.15.4: the 2026-10-06 advisories (#120)
     repo: https://helm.goharbor.io
     valuesInline:
       externalURL: https://harbor.androz2091.fr

@@ -30,15 +30,17 @@ This cluster hosts personal services as well as client projects from my freelanc
 
 ## 🚀 Apps
 
-What do I host on this cluster?
+One namespace per kind of app, one ArgoCD app per folder of `cluster-manifests/<namespace>/`:
 
-* **Pro**: This namespace is for all the services hosted for me as a freelancer, such as Umami, HasteServer, Blog, DDPE, Diswho, Instaddict.
-* **Home**: This namespace is for all the services hosted for my personal use such as Vaultwarden, TimeTagger, Immich, Monica, Mealie, FileBrowser.
-* **Managed**: This namespace is for all the services hosted for my clients.
-* **Sushiflix**: This namespace is for all media services such as Plex, Radarr, Sonarr, Bazarr, Jackett, Qbittorrent, Sabnzbd, Tautulli, Overseerr.
-* **DB**: This namespace is for all the databases such as PostgreSQL, PgAdmin4.
-* **Workflows**: This namespace is for all the workflows such as Harbor.
-* **Monitoring**: This namespace is for all the monitoring services such as Grafana, Prometheus, Alertgram, Promtail and Loki.
+| Namespace | What runs there |
+|---|---|
+| `pro` | my freelance work: androz2091.fr, Invoice Ninja, Umami, Haste, Diswho, slash-commands-gui, flepguessr, AndrozDev bot |
+| `home` | personal: Vaultwarden, Immich, Paperless, FileBrowser, AirTrail, Bonds, Monica, Shlink, TimeTagger, PDFDing, changedetection, superwaymo, good-company, tinyauth |
+| `managed` | my clients' Discord bots |
+| `sushiflix` | media: Plex, Jellyfin, Radarr, Sonarr, qBittorrent, SABnzbd, Tautulli, Overseerr, h5ai |
+| `db` | the shared PostgreSQL, pgAdmin |
+| `workflows` | Harbor (the private image registry) |
+| `monitoring` | kube-prometheus-stack (Prometheus, Alertmanager, Grafana), Loki, Promtail, Alertgram (alerts to Telegram) |
 
 ## 📜 Wiki
 
@@ -121,12 +123,18 @@ Onechart's `sealedFileSecrets` take a raw value, sealed `cluster-wide`:
 kubeseal --scope cluster-wide --cert "$(git rev-parse --show-toplevel)/sealed-secrets.crt" --raw --from-file=config.json
 ```
 
-Reading one back needs the controller's private key (the `sealed-secrets-customkeys` Secret in `kube-system`): `kubeseal --recovery-unseal --recovery-private-key <key file> -o yaml < sealed-secrets.yaml`.
+The private key only exists in the cluster (`kube-system/sealed-secrets-customkeys`) and in etcd snapshots, so keep a copy outside: without it, a rebuilt cluster can't open any secret in git. Export every key the controller holds (mode 600, never in the repo):
+
+```sh
+(umask 077; kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key -o json | jq '{apiVersion: "v1", kind: "List", items: [.items[] | {apiVersion, kind, type, data, metadata: {name: .metadata.name, namespace: .metadata.namespace, labels: .metadata.labels}}]}' > ~/cluster-backup/sealed-secrets-keys-$(date +%F).json)
+```
+
+Reading a secret back: `kubeseal --recovery-unseal --recovery-private-key ~/cluster-backup/sealed-secrets-keys-<date>.json -o yaml < sealed-secrets.yaml`.
 
 ### Port forward (to a service or a pod)
 
 ```sh
-kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port`
+kubectl -n somenamespace port-forward svc/someservice host-port:cluster-port
 ```
 
 ### Internal-only services (port-forward to access)
@@ -150,26 +158,28 @@ kubectl -n somenamespace exec --stdin --tty somepod -- /bin/bash
 helm template my-app repo-url/app -f values.yaml
 ```
 
-Same for a `kustomization.yaml`. kubectl's kustomize still expects Helm 3 (it calls a flag Helm 4 removed), so point it at one:
+Same for a `kustomization.yaml`. kubectl's kustomize still expects Helm 3 (it calls a flag Helm 4 removed), so point it at one. The onechart apps read the chart and its shared values from [`charts/`](./charts), outside their folder, hence the load restrictor (ArgoCD runs with the same options):
 
 ```sh
 brew install helm@3   # once, next to Helm 4
-kubectl kustomize --enable-helm --helm-command "$(brew --prefix helm@3)/bin/helm" .
+kubectl kustomize --enable-helm --load-restrictor LoadRestrictionsNone --helm-command "$(brew --prefix helm@3)/bin/helm" .
 ```
+
+`charts/onechart` is onechart 0.70.0, vendored from [gimlet-io/onechart](https://github.com/gimlet-io/onechart/tree/v0.70.0/charts/onechart) (Apache-2.0, archived; its Helm repository is gone). [`charts/onechart-common-values.yaml`](./charts/onechart-common-values.yaml) holds what the apps share; each `kustomization.yaml` only keeps its own values.
 
 #### Disable backups for a specific volume
 
-By default longhorn backups all volumes. Sometimes, for movies or other non-critical data, we don't want to backup the volume. In that case, you should add these labels to the volume:
+Every volume is in Longhorn's `default` group (snapshots + nightly offsite backups). To leave one out (media, other data that can be lost), label its PVC in git:
 
-```sh
+```yaml
 labels:
-    recurring-job-group.longhorn.io/nobackup: enabled
-    recurring-job.longhorn.io/source: enabled
+  recurring-job-group.longhorn.io/nobackup: enabled
+  recurring-job.longhorn.io/source: enabled
 ```
 
 ### Expand a Longhorn volume
 
-Use port forwarding to access the Longhorn UI. ⚠️ First, sync the new PVC with Argo before expanding on Longhorn UI (or you will get a sync failed - `Forbidden: field can not be less than previous value`). Then delete all deployments using the volume. Then expand it via Longhorn UI.
+Raise the size in the PVC in git and sync it first: expanding in the Longhorn UI alone makes the next sync fail with `Forbidden: field can not be less than previous value`. Then scale its workloads to 0 and expand the volume in the Longhorn UI (port-forward, [above](#install-longhorn)).
 
 ### Add a TimeTagger user
 
@@ -203,8 +213,7 @@ apt-get install -y software-properties-common curl jq
 Turn off swap.
 
 ```sh
-swapoff -a
-systemctl mask dev-sdb?.swap && systemctl stop dev-sdb?.swap # Debian special, check dans htop`
+swapoff -a   # Ansible then comments the swap lines out of /etc/fstab, so it stays off after a reboot
 ```
 
 Prepare the node with Ansible. Always `--check --diff` first. Tasks are idempotent so a second run must report `changed=0`.
@@ -241,56 +250,36 @@ kubectl -n kube-flannel patch ds kube-flannel-ds --type=json -p '[{"op":"add","p
 
 ### Install Caddy
 
+Caddy takes the public traffic on `ns561436` and proxies each site to its Service (`*.svc.cluster.local`, resolved by CoreDNS through the host's DNS). Its apt repository, once:
+
 ```sh
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update
-sudo apt install caddy
 ```
 
-Start Caddy (execute this command in the directory where the `Caddyfile` is located).
+The playbook installs it, puts the repo's [`Caddyfile`](./Caddyfile) in `/etc/caddy` (validated first) and runs `caddy.service`, which reloads on change. After editing the `Caddyfile`:
 
 ```sh
-sudo caddy start
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags caddy --diff
 ```
 
 ### Install Sealed Secrets
 
 ```sh
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo update
 helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1
 ```
 
-Create a public and private key.
+The secrets in git only open with the existing key (public half: [`sealed-secrets.crt`](./sealed-secrets.crt)). Restore the [backup](#sealed-secrets), then restart the controller so it loads it:
 
 ```sh
-export PRIVATEKEY="mytls.key"
-export PUBLICKEY="mytls.crt"
-export NAMESPACE="kube-system"
-export SECRETNAME="sealed-secrets-customkeys"
+kubectl apply -f ~/cluster-backup/sealed-secrets-keys-<date>.json
+kubectl -n kube-system rollout restart deploy/sealed-secrets
 ```
 
-⚠️ You may want to change the number of days for the expiration date.
-```sh
-openssl req -x509 -days 365 -nodes -newkey rsa:4096 -keyout "$PRIVATEKEY" -out "$PUBLICKEY" -subj "/CN=sealed-secret/O=sealed-secret"
-```
-
-Create the secret.
-
-```sh
-kubectl -n "$NAMESPACE" create secret tls "$SECRETNAME" --cert="$PUBLICKEY" --key="$PRIVATEKEY"
-kubectl -n "$NAMESPACE" label secret "$SECRETNAME" sealedsecrets.bitnami.com/sealed-secrets-key=active
-```
-
-Delete the sealed-secrets controller pod to refresh the keys.
-
-```sh
-kubectl -n "$NAMESPACE" delete pod -l name=sealed-secrets-controller
-```
-
-See [bitnami-labs/sealed-secrets](https://github.com/bitnami-labs/sealed-secrets/blob/main/docs/bring-your-own-certificates.md#generate-a-new-rsa-key-pair-certificates).
+A brand-new key is only for a cluster with no secret yet: [bring your own certificate](https://github.com/bitnami-labs/sealed-secrets/blob/main/docs/bring-your-own-certificates.md), label it `sealedsecrets.bitnami.com/sealed-secrets-key=active` and commit its public half as `sealed-secrets.crt`.
 
 ### Install ArgoCD
 
@@ -298,7 +287,7 @@ See [bitnami-labs/sealed-secrets](https://github.com/bitnami-labs/sealed-secrets
 kubectl create namespace argocd
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
-helm install argocd argo/argo-cd --namespace argocd --create-namespace --values https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/argocd-values.yaml --version 7.0.0
+helm install argocd argo/argo-cd --namespace argocd --create-namespace --values https://raw.githubusercontent.com/Androz2091/k8s-infrastructure/main/argocd-values.yaml --version 9.5.14
 ```
 
 Get ArgoCD password.
@@ -347,10 +336,10 @@ sudo systemctl stop systemd-resolved.service
 mv /etc/resolv.conf /etc/resolv.conf.bak
 ```
 
-* update `/etc/resolv.conf` as follows:
+* update `/etc/resolv.conf` as follows (CoreDNS first: the resolver only tries the next server on a timeout, not on "no such name"):
 ```sh
-nameserver 8.8.8.8
 nameserver 10.96.0.10
+nameserver 8.8.8.8
 ```
 
 Now we also need to update the cluster DNS so it does not loop back to the host.
@@ -390,6 +379,21 @@ kubectl -n longhorn-system create secret generic s3-secret --from-literal=AWS_AC
 
 A **snapshot** is the state of a volume at a point in time, stored in the cluster. A **backup** is a snapshot copied out of the cluster, to the backup target.
 
+### Reboot a node
+
+kubelet's own configuration is the cluster's `kubelet-config` ConfigMap, mirrored in [`kubeadm/kubelet-config.yaml`](./kubeadm/kubelet-config.yaml). On a shutdown it stops the pods by priority (apps, then Longhorn, then the network), so a plain reboot is clean: the apps come back by themselves, Caddy too (`caddy.service`). After changing the file:
+
+```sh
+kubectl -n kube-system patch cm kubelet-config --type merge -p "$(jq -n --rawfile k kubeadm/kubelet-config.yaml '{data: {kubelet: $k}}')"
+sudo kubeadm upgrade node phase kubelet-config && sudo systemctl restart kubelet   # on each node; running pods stay
+systemd-inhibit --list | grep kubelet   # "shutdown … delay": the lock that makes a reboot wait for the pods
+```
+
+After a restart of `ns561436` (2026-11-01: about 45 min until every app was back on the HDDs):
+- **The `backup-*-pod`s** are bare Pods and don't come back: `argocd app sync <app> --resource :Pod:<pod>` (filebrowser, immich, paperless).
+- **CoreDNS** moves to the VPS while `ns561436` is down. Until #130 is applied, it can't reach the API there and the whole cluster loses DNS: `kubectl cordon vps-ab240c42` before a reboot, `uncordon` after.
+- **Plex** once came back hung (no HTTP, even inside its pod): `kubectl -n sushiflix delete pod -l app=plex`.
+
 ### Control Plane Node
 
 Since 2026-09-27 the control plane runs on the VPS and `ns561436` is a plain worker. The nodes are set up by [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), the cluster by [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml). Migration log: [README at `3cffd9d`](https://github.com/Androz2091/k8s-infrastructure/blob/3cffd9d/README.md#control-plane-node).
@@ -400,6 +404,31 @@ What the playbook doesn't do:
 - restarting kube-proxy after `k8s_api_address` changes;
 - starting the apps in small batches after a full restart (the HDDs saturate). Don't fully sync `immich` to restart its backup pod: the chart regenerates its Postgres password.
 
+
+### Upgrade Kubernetes
+
+One minor version per hop (kubeadm can't skip one), control plane first. Set the playbook's `vars:` to the next minor (CRI-O follows Kubernetes' minor; `pause_image` is the kubeadm minor's) and `kubernetesVersion` in `kubeadm/cluster-config.yaml`, then:
+
+```sh
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags repos --diff   # the new apt repositories only
+# VPS: kubeadm first, then the control plane (1-3 min without API). Cordoned meanwhile, so the CoreDNS
+# that kubeadm re-applies stays on ns561436 (its pods can't reach the API from the VPS before #130)
+kubectl cordon vps-ab240c42
+sudo apt-mark unhold kubeadm && sudo apt-get update && sudo apt-get install -y kubeadm=$K && sudo apt-mark hold kubeadm
+sudo kubeadm upgrade plan && sudo kubeadm upgrade apply v${K%-*} -y
+# ns561436: kubeadm, then its kubelet config
+sudo apt-mark unhold kubeadm && sudo apt-get update && sudo apt-get install -y kubeadm=$K && sudo apt-mark hold kubeadm && sudo kubeadm upgrade node
+# each node, VPS first
+sudo apt-mark unhold cri-o kubelet kubectl && sudo apt-get install -y -o Dpkg::Options::=--force-confold cri-o=$C kubelet=$K kubectl=$K && sudo apt-mark hold cri-o kubelet kubectl
+sudo systemctl daemon-reload && sudo systemctl restart crio kubelet
+ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --diff                # converges the rest; a second run: changed=0
+```
+
+Restarting CRI-O and kubelet on the same version leaves the running containers alone (each container's `conmon` lives outside `crio.service`'s cgroup). **A new CRI-O minor restarts every container on the node:**
+- installing the package restarts `crio` by itself (the old package's `postrm`), so `apt-get install` is already the switch
+- the new minor removes the old pod sandboxes at start, and kubelet recreates them all
+
+The containers get a normal stop (Postgres shut down cleanly on 2026-11-01), and the apps take about 10 minutes to come back. So on `ns561436`, install CRI-O in a quiet hour. Then `kubectl uncordon vps-ab240c42`.
 
 ### Troubleshooting
 
@@ -414,15 +443,7 @@ sudo kubeadm certs renew all
 
 #### OpenSSL error
 
-Understand why sometimes requests are terminated by a SSL error (1/5 requests for some services):
-```sh
-poca@localhost:~ (1) $ curl https://tautulli.androz2091.fr
-curl: (35) OpenSSL/1.1.1l-fips: error:14094438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error
-```
-
-Double check the `Caddyfile` and make sure that all the DNS are configured to the correct IP (sometimes when a SSL certificate fails to create/renew, such errors can occur **for all domains**).
-
-Also... double check that `Caddy` is not started twice (see https://serverfault.com/questions/1167816/openssl-routinesssl3-read-bytestlsv1-alert-internal-error-with-kubernetes-and/1168625#1168625).
+Some requests fail with `curl: (35) … tlsv1 alert internal error` (about 1 in 5, on any site): a certificate Caddy can't obtain or renew (a hostname whose DNS no longer points here), or two Caddy processes on the same ports ([serverfault](https://serverfault.com/questions/1167816/openssl-routinesssl3-read-bytestlsv1-alert-internal-error-with-kubernetes-and/1168625#1168625)).
 
 #### fsnotify watcher error
 

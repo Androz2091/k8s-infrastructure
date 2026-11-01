@@ -19,8 +19,8 @@ spec:
     spec:
       initContainers:
         - name: init-uploads
-          image: busybox
-          imagePullPolicy: Always
+          image: busybox:1.37.0 # pinned: no pull from Docker Hub at every start
+          imagePullPolicy: IfNotPresent
           command:
             - sh
             - -c

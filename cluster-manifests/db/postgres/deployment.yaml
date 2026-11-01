@@ -6,7 +6,8 @@ metadata:
   labels:
     app: postgresql
 spec:
-  replicas: 1
+  # PostgreSQL 15, replaced by postgresql-17 (#13): kept stopped with its volume for a rollback
+  replicas: 0
   strategy:
     type: Recreate
   selector:

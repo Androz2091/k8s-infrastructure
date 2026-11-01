@@ -1,0 +1,17 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgresql-17-pvc
+  namespace: db
+  labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # 60G rounded up by Longhorn to whole 2 MiB blocks (= 57222Mi). A PVC can
+      # never shrink, so anything smaller makes every ArgoCD sync fail.
+      storage: 60001615872

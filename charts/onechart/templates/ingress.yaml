@@ -1,0 +1,78 @@
+{{/* OneChart ingress snippet */}}
+{{- define "onechart.ingress" }}
+{{- $robustName := include "robustName" .root.Release.Name -}}
+{{- $resourceName := $robustName -}}
+{{- if .longName }}
+{{- $resourceName = printf "%s-%s" $robustName (include "robustName" .ingress.host) -}}
+{{- end }}
+{{- $svcPort := .root.Values.svcPort -}}
+{{- $containerPort := .root.Values.containerPort -}}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $resourceName }}
+  namespace: {{ .root.Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" .root | nindent 4 }}
+  {{- if or (or (or .root.Values.gitSha .ingress.nginxBasicAuth) .ingress.annotations) .root.Values.gitRepository }}
+  annotations:
+    {{- if .ingress.nginxBasicAuth }}
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: {{ $resourceName }}-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - basic'
+    {{- end }}
+    {{- if .ingress.annotations }}
+      {{- toYaml .ingress.annotations | nindent 4 }}
+    {{- end }}
+    {{- if .root.Values.gitSha }}
+    gimlet.io/git-sha: {{ .root.Values.gitSha }}
+    {{- end }}
+    {{- if .root.Values.gitRepository }}
+    gimlet.io/git-repository: {{ .root.Values.gitRepository }}
+    {{- end }}
+  {{- end }}
+spec:
+  {{- if .ingress.ingressClassName }}
+  ingressClassName: {{ .ingress.ingressClassName }}
+  {{- end }}
+  {{- if default false .ingress.tlsEnabled }}
+  tls:
+    - hosts:
+        - {{ .ingress.host | quote }}
+      secretName: {{ .ingress.secretName | default (printf "tls-%s" $resourceName) }}
+  {{- end }}
+  rules:
+    - host: {{ .ingress.host | quote }}
+      http:
+        {{- if not .ingress.paths }}
+        paths:
+          - path: {{ .ingress.path | default "/" | quote }}
+            pathType: {{ .ingress.pathType | default "Prefix" | quote }}
+            backend:
+              service:
+                name: {{ $robustName }}
+                port:
+                  number: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
+        {{- else }}
+        paths:
+          {{- range .ingress.paths }}
+          - path: {{ .path | quote }}
+            pathType: {{ .pathType | default "Prefix" | quote }}
+            backend:
+              service:
+                name: {{ $robustName }}
+                port:
+                  number: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
+          {{- end }}
+        {{- end }}
+{{- end }}
+
+{{- with .Values.ingress }}
+  {{- template "onechart.ingress" (dict "root" $ "ingress" .) }}
+{{- end }}
+
+{{- range .Values.ingresses }}
+{{template "onechart.ingress" (dict "root" $ "ingress" . "longName" true) }}
+{{- end }}
