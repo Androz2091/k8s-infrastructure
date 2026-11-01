@@ -1,5 +1,6 @@
 # Grafana Alloy ships the pods' logs to Loki, replacing Promtail (end of life). Its config was
 # converted from Promtail's own (alloy convert --source-format=promtail), same labels (#117)
+# (the converted node filter reads HOSTNAME: the chart already sets it to the node name)
 helmCharts:
   - name: alloy
     releaseName: alloy
@@ -34,12 +35,6 @@ helmCharts:
               readOnly: true
             - name: alloy-data
               mountPath: /var/lib/alloy
-        extraEnv:
-          # the converted config filters pods on HOSTNAME, which Promtail's chart set to the node name
-          - name: HOSTNAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
         configMap:
           content: |
               discovery.kubernetes "kubernetes_pods" {
