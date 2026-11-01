@@ -16,6 +16,10 @@ encryptionAlgorithm: RSA-2048
 etcd:
   local:
     dataDir: /var/lib/etcd
+    extraArgs:
+      # metrics also on the tunnel, for Prometheus on ns561436 (plain HTTP, no secret; the VPS firewall only opens wg0)
+      - name: listen-metrics-urls
+        value: http://127.0.0.1:2381,http://10.8.0.1:2381
 imageRepository: registry.k8s.io
 networking:
   dnsDomain: cluster.local
