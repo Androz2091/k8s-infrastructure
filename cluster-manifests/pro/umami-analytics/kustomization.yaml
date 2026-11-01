@@ -4,20 +4,27 @@
 # Before bumping the chart, scale to 0 and run the migrations in a one-shot pod:
 #
 #   kubectl -n pro scale deploy umami-analytics --replicas=0
-#   DB_URL=$(kubectl -n pro get secret umami-analytics-secrets -o jsonpath='{.data.DATABASE_URL}' | base64 -d)
-#   kubectl run umami-migrate --rm -it -n pro --image=ghcr.io/umami-software/umami:postgresql-vX.Y.Z \
-#     --restart=Never --env="DATABASE_URL=$DB_URL" --command -- npx prisma migrate deploy
-#   kubectl -n pro scale deploy umami-analytics --replicas=1
+#   kubectl run umami-migrate --rm -i -n pro --restart=Never --image=ghcr.io/umami-software/umami:X.Y.Z \
+#     --overrides='{"spec":{"containers":[{"name":"umami-migrate","image":"ghcr.io/umami-software/umami:X.Y.Z",
+#       "envFrom":[{"secretRef":{"name":"umami-analytics-secrets"}}],
+#       "command":["sh","-c","export PATH=$PWD/node_modules/.bin:$PATH && node scripts/check-db.js"]}]}}'
+#   argocd app sync umami-analytics   # the new image, back to 1 replica
+#
+# check-db.js is the image's own startup check: DB version, then `prisma migrate deploy`. v3 images
+# are tagged X.Y.Z (no more postgresql-vX.Y.Z, v3 only supports PostgreSQL) and have no npx.
 #
 # After a failed attempt: check the schema by hand (columns, indexes, _prisma_migrations), finish
-# the missing SQL, then `npx prisma migrate resolve --applied <migration_name>` from such a pod.
+# the missing SQL, then `prisma migrate resolve --applied <migration_name>` from such a pod (same PATH).
 helmCharts:
   - name: umami
     releaseName: umami-analytics
     namespace: pro
-    version: 7.9.0
-    repo: https://christianhuth.github.io/helm-charts
+    version: 8.1.0
+    repo: https://charts.christianhuth.de
     valuesInline:
+      # one version at a time against the database
+      deploymentStrategy:
+        type: Recreate
       postgresql:
         enabled: false
       database:
