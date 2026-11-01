@@ -79,6 +79,15 @@ helmCharts:
         # login through tinyauth (#104): Grafana is already behind it, so opening it logs you in.
         # Client ID and secret from grafana-oauth (oauth-sealed-secrets.yaml)
         envFromSecret: grafana-oauth
+        # its SQLite on a volume: on an emptyDir every restart rebuilt it from scratch (~700 migrations,
+        # minutes on the HDDs). Dashboards and datasources still come from ConfigMaps
+        persistence:
+          enabled: true
+          storageClassName: longhorn
+          size: 2Gi
+          extraPvcLabels:
+            recurring-job-group.longhorn.io/nobackup: enabled
+            recurring-job.longhorn.io/source: enabled
         grafana.ini:
           server:
             root_url: https://prometheus-grafana.androz2091.fr
@@ -92,7 +101,9 @@ helmCharts:
             auth_url: https://auth.androz2091.fr/authorize
             token_url: https://auth.androz2091.fr/api/oidc/token
             api_url: https://auth.androz2091.fr/api/oidc/userinfo
-            login_attribute_path: preferred_username
+            # tinyauth's username is "admin", which the local admin (#88) already uses: Grafana refuses
+            # to merge them ("unable to create user"), and auto_login then loops. The email is unique
+            login_attribute_path: email
             email_attribute_path: email
             name_attribute_path: name
             # every tinyauth user is a Grafana admin (today: only you)
