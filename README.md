@@ -121,7 +121,13 @@ Onechart's `sealedFileSecrets` take a raw value, sealed `cluster-wide`:
 kubeseal --scope cluster-wide --cert "$(git rev-parse --show-toplevel)/sealed-secrets.crt" --raw --from-file=config.json
 ```
 
-Reading one back needs the controller's private key (the `sealed-secrets-customkeys` Secret in `kube-system`): `kubeseal --recovery-unseal --recovery-private-key <key file> -o yaml < sealed-secrets.yaml`.
+The private key only exists in the cluster (`kube-system/sealed-secrets-customkeys`) and in etcd snapshots, so keep a copy outside: without it, a rebuilt cluster can't open any secret in git. Export every key the controller holds (mode 600, never in the repo):
+
+```sh
+(umask 077; kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key -o json | jq '{apiVersion: "v1", kind: "List", items: [.items[] | {apiVersion, kind, type, data, metadata: {name: .metadata.name, namespace: .metadata.namespace, labels: .metadata.labels}}]}' > ~/cluster-backup/sealed-secrets-keys-$(date +%F).json)
+```
+
+Reading a secret back: `kubeseal --recovery-unseal --recovery-private-key ~/cluster-backup/sealed-secrets-keys-<date>.json -o yaml < sealed-secrets.yaml`.
 
 ### Port forward (to a service or a pod)
 
@@ -257,39 +263,19 @@ ansible-playbook -i ansible/inventory.ini ansible/bootstrap.yaml --tags caddy --
 ### Install Sealed Secrets
 
 ```sh
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo update
 helm install sealed-secrets sealed-secrets/sealed-secrets --namespace kube-system --create-namespace --version 2.16.1
 ```
 
-Create a public and private key.
+The secrets in git only open with the existing key (public half: [`sealed-secrets.crt`](./sealed-secrets.crt)). Restore the [backup](#sealed-secrets), then restart the controller so it loads it:
 
 ```sh
-export PRIVATEKEY="mytls.key"
-export PUBLICKEY="mytls.crt"
-export NAMESPACE="kube-system"
-export SECRETNAME="sealed-secrets-customkeys"
+kubectl apply -f ~/cluster-backup/sealed-secrets-keys-<date>.json
+kubectl -n kube-system rollout restart deploy/sealed-secrets
 ```
 
-⚠️ You may want to change the number of days for the expiration date.
-```sh
-openssl req -x509 -days 365 -nodes -newkey rsa:4096 -keyout "$PRIVATEKEY" -out "$PUBLICKEY" -subj "/CN=sealed-secret/O=sealed-secret"
-```
-
-Create the secret.
-
-```sh
-kubectl -n "$NAMESPACE" create secret tls "$SECRETNAME" --cert="$PUBLICKEY" --key="$PRIVATEKEY"
-kubectl -n "$NAMESPACE" label secret "$SECRETNAME" sealedsecrets.bitnami.com/sealed-secrets-key=active
-```
-
-Delete the sealed-secrets controller pod to refresh the keys.
-
-```sh
-kubectl -n "$NAMESPACE" delete pod -l name=sealed-secrets-controller
-```
-
-See [bitnami-labs/sealed-secrets](https://github.com/bitnami-labs/sealed-secrets/blob/main/docs/bring-your-own-certificates.md#generate-a-new-rsa-key-pair-certificates).
+A brand-new key is only for a cluster with no secret yet: [bring your own certificate](https://github.com/bitnami-labs/sealed-secrets/blob/main/docs/bring-your-own-certificates.md), label it `sealedsecrets.bitnami.com/sealed-secrets-key=active` and commit its public half as `sealed-secrets.crt`.
 
 ### Install ArgoCD
 
