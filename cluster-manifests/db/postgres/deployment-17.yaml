@@ -1,0 +1,61 @@
+# PostgreSQL 17, migrated from postgresql (15) by dump/restore (#13). The Service points here.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql-17
+  namespace: db
+  labels:
+    app: postgresql-17
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgresql-17
+  template:
+    metadata:
+      labels:
+        app: postgresql-17
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: postgresql-17
+              topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: postgresql
+          image: postgres:17.11
+          ports:
+            - name: postgresql
+              containerPort: 5432
+          env:
+            - name: "PGDATA"
+              value: "/var/lib/postgresql/data/pgdata"
+            - name: "POSTGRES_USER"
+              value: "postgres"
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  key: postgres-password
+                  name: postgresql-secrets
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: postgresql-v
+            # parallel query workers share memory through /dev/shm,
+            # and the container default of 64 MB is too small for them
+            - mountPath: /dev/shm
+              name: dshm
+          resources: {}
+        #
+      volumes:
+        - name: postgresql-v
+          persistentVolumeClaim:
+            claimName: postgresql-17-pvc
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
