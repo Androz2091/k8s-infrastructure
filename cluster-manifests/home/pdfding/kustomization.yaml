@@ -2,15 +2,13 @@ helmCharts:
   - name: pdfding
     releaseName: pdfding
     namespace: home
-    version: 0.1.14
+    version: 0.2.13
     repo: https://charts.pdfding.com
     valuesInline:
       pdfding:
         # the chart reads pdfding.existingSecret (a name): the old top-level existingSecret.name was
         # ignored, so SECRET_KEY was the chart's public default "some_secret"
         existingSecret: pdfding-secrets
-        image:
-          tag: v1.5.0
         config:
           accountEmailVerification:
             enabled: false
@@ -27,6 +25,13 @@ helmCharts:
             providerName: tinyauth
             oidc_only:
               enabled: true
+      # the chart reads the top-level image.tag (pdfding.image.tag was always ignored: it ran the
+      # chart's appVersion). PdfDing moved to codeberg.org/mrmn/PdfDing
+      image:
+        tag: v1.14.1
+      # one process at a time on the SQLite database (it migrates at start)
+      deploymentStrategy:
+        type: Recreate
       persistence:
         enabled: true
         storageClassName: longhorn
