@@ -2,54 +2,38 @@ helmCharts:
   - name: immich
     releaseName: immich
     namespace: home
-    version: 0.9.0
-    repo: https://immich-app.github.io/immich-charts
+    version: 0.13.4
+    repo: oci://ghcr.io/immich-app/immich-charts
     valuesInline:
-      useDeprecatedPostgresChart: true
-      image:
-        tag: v3.3.5
+      # server and machine-learning
+      controllers:
+        main:
+          containers:
+            main:
+              image:
+                tag: v3.3.5
+              env:
+                DB_HOSTNAME: immich-db.home.svc.cluster.local # PostgreSQL 17 (database-17.yaml), #107
+                DB_USERNAME: immich
+                DB_PASSWORD: immich
+                DB_DATABASE_NAME: immich
+                IMMICH_MEDIA_LOCATION: /usr/src/app/upload
       immich:
         persistence:
           library:
             existingClaim: immich-library-pvc
-      redis:
+      server:
+        persistence:
+          data:
+            # the chart's default moved to /data in 0.10.0, and Immich would rewrite every asset path
+            # in the database to follow it: the library stays where it is
+            type: persistentVolumeClaim
+            existingClaim: immich-library-pvc
+            globalMounts:
+              - path: /usr/src/app/upload
+      # replaces the frozen bitnamilegacy/redis (#89); a queue and cache only, kept in an emptyDir
+      valkey:
         enabled: true
-        # bitnami/ dropped its versioned tags in 2025: same image (same digest) under bitnamilegacy/ (#89)
-        image:
-          repository: bitnamilegacy/redis
-          tag: 7.2.5-debian-12-r0
-          digest: sha256:5261cae9e4076b75d114e6bb032a0699c50b004ea06a680a5304c4c08d286adb
-        architecture: standalone
-        auth:
-          enabled: false
-
-      postgresql:
-        enabled: true
-        image:
-          registry: ghcr.io
-          repository: immich-app/postgres
-          tag: 14-vectorchord0.3.0-pgvectors0.2.0
-        global:
-          postgresql:
-            auth:
-              username: immich
-              database: immich
-              password: immich
-        primary:
-          resourcesPreset: large
-          containerSecurityContext:
-            readOnlyRootFilesystem: false
-          initdb:
-            scripts:
-              create-extensions.sql: |
-                CREATE EXTENSION cube;
-                CREATE EXTENSION earthdistance;
-                CREATE EXTENSION vectors;
-
-      env:
-        DB_HOSTNAME: immich-db.home.svc.cluster.local # PostgreSQL 17 (database-17.yaml), #107
-        IMMICH_MEDIA_LOCATION: /usr/src/app/upload
-        REDIS_HOSTNAME: immich-redis-master.home.svc.cluster.local
 
 namespace: home
 
@@ -58,4 +42,12 @@ resources:
   - backup-mnt-lib-pod.yaml
   - database-17.yaml
 
-patches: []
+# chart 0.10+ adds app.kubernetes.io/controller to the Deployments' selectors, which Kubernetes can't
+# change in place: keep the 0.9.0 selectors (the pods still carry the label, the Services select on it)
+patches:
+  - target:
+      kind: Deployment
+      name: immich-(server|machine-learning)
+    patch: |
+      - op: remove
+        path: /spec/selector/matchLabels/app.kubernetes.io~1controller

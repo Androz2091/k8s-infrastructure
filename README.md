@@ -434,7 +434,7 @@ What the playbook doesn't do:
 
 - each node's WireGuard key pair, generated once on the node (the public key goes in the inventory);
 - restarting kube-proxy after `k8s_api_address` changes;
-- starting the apps in small batches after a full restart (the HDDs saturate). Don't fully sync `immich` to restart its backup pod: the chart regenerates its Postgres password.
+- starting the apps in small batches after a full restart (the HDDs saturate).
 
 
 ### Upgrade Kubernetes
