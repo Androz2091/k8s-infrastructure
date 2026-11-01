@@ -7,6 +7,9 @@ metadata:
     app: paperless
 spec:
   replicas: 1
+  # the new version migrates the database at start: never two of them at once
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: paperless
@@ -17,7 +20,8 @@ spec:
     spec:
       containers:
         - name: webserver
-          image: ghcr.io/paperless-ngx/paperless-ngx:2.14.7
+          # the last 2.x: 3.0 has breaking changes (docs.paperless-ngx.com, migration to v3)
+          image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
           imagePullPolicy: IfNotPresent
           env:
             - name: USERMAP_UID
