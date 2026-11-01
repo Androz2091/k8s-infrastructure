@@ -36,6 +36,9 @@ logging:
     text:
       infoBufferSize: "0"
   verbosity: 0
+# the default 110 was nearly reached on ns561436 (107 pods on 2026-11-01); each node's /24 pod CIDR
+# has 254 addresses
+maxPods: 160
 memorySwap: {}
 nodeStatusReportFrequency: 0s
 nodeStatusUpdateFrequency: 0s
