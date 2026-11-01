@@ -54,6 +54,10 @@ spec:
               value: Grafana
             - name: TINYAUTH_OIDC_CLIENTS_GRAFANA_TRUSTEDREDIRECTURIS
               value: https://prometheus-grafana.androz2091.fr/login/generic_oauth
+            - name: TINYAUTH_OIDC_CLIENTS_PDFDING_NAME
+              value: PDFDing
+            - name: TINYAUTH_OIDC_CLIENTS_PDFDING_TRUSTEDREDIRECTURIS
+              value: https://pdfding.androz2091.fr/accountoidc/login/callback/
             - name: TINYAUTH_UI_BACKGROUNDIMAGE
               value: "https://photos.androz2091.fr/api/assets/f555dced-a633-48be-b84b-ba475c8b2493/thumbnail?key=09zMecTGWSuy1epLVhWg1fXRhj8lJP1AdZ3-v2UGK-z3f2K7-_TDb1bjwIJIIcAKhOI&size=preview&c=mxgWDYJQindeh3iHeHeHh5z20ok%2F&edited=true"
           envFrom:
