@@ -76,6 +76,27 @@ helmCharts:
             searchNamespace: null
           datasources:
             resource: configmap
+        # login through tinyauth (#104): Grafana is already behind it, so opening it logs you in.
+        # Client ID and secret from grafana-oauth (oauth-sealed-secrets.yaml)
+        envFromSecret: grafana-oauth
+        grafana.ini:
+          server:
+            root_url: https://prometheus-grafana.androz2091.fr
+          auth.generic_oauth:
+            enabled: true
+            name: tinyauth
+            auto_login: true
+            allow_sign_up: true
+            use_pkce: true
+            scopes: openid profile email
+            auth_url: https://auth.androz2091.fr/authorize
+            token_url: https://auth.androz2091.fr/api/oidc/token
+            api_url: https://auth.androz2091.fr/api/oidc/userinfo
+            login_attribute_path: preferred_username
+            email_attribute_path: email
+            name_attribute_path: name
+            # every tinyauth user is a Grafana admin (today: only you)
+            role_attribute_path: "'Admin'"
       alertmanager:
         alertmanagerSpec:
           # one node: three replicas on it add nothing
@@ -107,5 +128,6 @@ namespace: monitoring
 resources:
   - grafana-sidecar-role.yaml
   - sealed-secrets.yaml
+  - oauth-sealed-secrets.yaml
 
 patches: []
