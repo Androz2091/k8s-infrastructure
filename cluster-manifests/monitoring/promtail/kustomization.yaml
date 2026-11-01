@@ -8,6 +8,10 @@ helmCharts:
     valuesInline:
       serviceMonitor:
         enabled: true
+      # replaced by Alloy (monitoring/alloy, #117): a nodeSelector no node has keeps the DaemonSet at
+      # 0 pods (its positions stay on the host for Alloy). Delete this folder and the app afterwards
+      nodeSelector:
+        replaced-by-alloy: "never"
       config:
         clients:
           - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
