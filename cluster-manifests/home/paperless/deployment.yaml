@@ -32,9 +32,17 @@ spec:
               value: "EST"
             - name: PAPERLESS_PORT
               value: "8000"
+            # log in through tinyauth (#104): the provider (with its secret) is in paperless-oidc
+            - name: PAPERLESS_APPS
+              value: allauth.socialaccount.providers.openid_connect
+            # "true" once your account is linked (Profile > Connect): it skips the password page
+            - name: PAPERLESS_REDIRECT_LOGIN_TO_SSO
+              value: "false"
           envFrom:
             - secretRef:
                 name: paperless-secrets
+            - secretRef:
+                name: paperless-oidc   # PAPERLESS_SOCIALACCOUNT_PROVIDERS
           volumeMounts:
             - name: paperless-data
               mountPath: /usr/src/paperless/data

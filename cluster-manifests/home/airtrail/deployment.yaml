@@ -42,6 +42,22 @@ spec:
                 secretKeyRef:
                   name: airtrail-secrets
                   key: DB_URL
+            # log in through tinyauth (#104); the password form stays as a fallback
+            - name: OAUTH_ENABLED
+              value: "true"
+            - name: OAUTH_ISSUER_URL
+              value: https://auth.androz2091.fr/.well-known/openid-configuration
+            - name: OAUTH_SCOPE
+              value: openid profile email
+            - name: OAUTH_AUTO_LOGIN   # "true" once the account is linked (step 3), like Paperless's redirect
+              value: "false"
+            - name: OAUTH_AUTO_REGISTER
+              value: "false"
+            - name: OAUTH_BUTTON_TEXT
+              value: Log in with tinyauth
+          envFrom:
+            - secretRef:
+                name: airtrail-oauth   # OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
           ports:
             - containerPort: 3000
               name: http
