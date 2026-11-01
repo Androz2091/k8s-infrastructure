@@ -7,6 +7,9 @@ metadata:
     app: radarr
 spec:
   replicas: 1
+  # one process at a time on its config database (it migrates at start)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: radarr
@@ -17,7 +20,7 @@ spec:
     spec:
       containers:
         - name: radarr
-          image: lscr.io/linuxserver/radarr:5.11.0
+          image: lscr.io/linuxserver/radarr:6.4.4
           imagePullPolicy: IfNotPresent
 
           env:
