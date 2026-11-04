@@ -1,0 +1,28 @@
+# Disk health (SMART) of the worker's two physical disks: nothing watched it, and a disk failing
+# SMART went unnoticed until it stalled the whole server (#180). Only sda and sdb: the Longhorn
+# volumes show up as /dev/sdX too, but they are virtual disks.
+helmCharts:
+  - name: prometheus-smartctl-exporter
+    releaseName: smartctl-exporter
+    namespace: monitoring
+    version: 0.19.0
+    repo: https://prometheus-community.github.io/helm-charts
+    valuesInline:
+      common:
+        config:
+          devices:
+            - /dev/sda
+            - /dev/sdb
+      # the VPS's disk is virtual: no SMART there
+      nodeSelector:
+        kubernetes.io/hostname: ns561436
+      serviceMonitor:
+        enabled: true
+        extraLabels:
+          release: kube-prometheus-stack
+      prometheusRules:
+        enabled: true
+        extraLabels:
+          release: kube-prometheus-stack
+
+namespace: monitoring
