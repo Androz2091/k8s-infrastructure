@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: androz2091/customgpt-discord-bot
-        tag: sha-9cce4a1
+        tag: sha-55aa021
       secretName: docs-docent-discord-bot-secrets
 
 namespace: managed
