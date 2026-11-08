@@ -17,9 +17,6 @@ helmCharts:
             effect: NoSchedule
         volumes:
           extra:
-            - name: promtail-positions
-              hostPath:
-                path: /run/promtail
             - name: alloy-data
               hostPath:
                 path: /var/lib/alloy
@@ -30,9 +27,6 @@ helmCharts:
         mounts:
           varlog: true
           extra:
-            - name: promtail-positions   # read once: Alloy continues where Promtail stopped
-              mountPath: /run/promtail
-              readOnly: true
             - name: alloy-data
               mountPath: /var/lib/alloy
         configMap:
@@ -128,7 +122,6 @@ helmCharts:
                 file_match {
                   enabled = true
                 }
-                legacy_positions_file = "/run/promtail/positions.yaml"
               }
 
               loki.write "default" {
