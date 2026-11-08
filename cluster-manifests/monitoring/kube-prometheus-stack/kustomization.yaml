@@ -120,6 +120,10 @@ helmCharts:
         alertmanagerSpec:
           # one node: three replicas on it add nothing
           replicas: 1
+          # mounted at /etc/alertmanager/secrets/<name>/: the dead man's switch URL (#189). The pod
+          # doesn't start while this secret is missing
+          secrets:
+            - alertmanager-deadmansswitch
         config:
           global:
             resolve_timeout: 5m
@@ -128,12 +132,27 @@ helmCharts:
             group_interval: 5m
             repeat_interval: 3h
             receiver: 'telegram'
+            # replaces the chart's default list, which sent Watchdog to 'null'
+            routes:
+            # Watchdog always fires on purpose: healthchecks.io expects it every ~6 min and alerts on
+            # Telegram when it stops, i.e. when this server, Prometheus or Alertmanager is down (#189)
+            - receiver: deadmansswitch
+              matchers:
+                - alertname = "Watchdog"
+              group_wait: 0s
+              group_interval: 1m
+              repeat_interval: 5m
             # routes:
             # - match_re:
             #     severity: ^(oncall|critical)$
             #   receiver: telegram-oncall
           receivers:
           - name: 'null'
+          - name: deadmansswitch
+            webhook_configs:
+            # the ping URL is enough to fake the heartbeat, so it stays in a sealed secret
+            - url_file: /etc/alertmanager/secrets/alertmanager-deadmansswitch/url
+              send_resolved: false
           - name: telegram
             webhook_configs:
             - url: 'http://alertgram.monitoring.svc.cluster.local:8080/alerts'
@@ -148,5 +167,6 @@ resources:
   - grafana-sidecar-role.yaml
   - sealed-secrets.yaml
   - oauth-sealed-secrets.yaml
+  - deadmansswitch-sealed-secrets.yaml
 
 patches: []
