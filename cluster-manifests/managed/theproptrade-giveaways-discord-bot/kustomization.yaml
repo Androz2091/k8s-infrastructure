@@ -7,7 +7,7 @@ helmCharts:
     valuesInline:
       image:
         repository: harbor.androz2091.fr/fiverr-discord-bots/theproptrade-giveaways-discord-bot
-        tag: acfdf276
+        tag: 775e86cf
       secretName: theproptrade-giveaways-discord-bot-secrets
       imagePullSecrets:
       - regcred
