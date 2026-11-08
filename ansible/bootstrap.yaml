@@ -117,7 +117,7 @@
         - net.ipv4.ip_forward
       tags: kernel
 
-    - name: Let containers watch many files (kubectl logs -f, Promtail)
+    - name: Let containers watch many files (kubectl logs -f, Alloy)
       ansible.posix.sysctl:
         name: "{{ item.name }}"
         value: "{{ item.value }}"
