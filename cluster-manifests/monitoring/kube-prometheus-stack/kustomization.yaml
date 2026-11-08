@@ -42,6 +42,22 @@ helmCharts:
         # Endpoints object the chart writes for `endpoints:`, since Endpoints are in its resource exclusions
         enabled: true
       additionalPrometheusRulesMap:
+        node-disk:
+          groups:
+            - name: node-disk
+              rules:
+                # the chart's rule minus md.+: the kernel's I/O time on md3 is inflated (queue 21 on
+                # average, peaks above 1,000, 330 ms per write) while sda/sdb under it stay at ~1 and
+                # 10-14 ms and Longhorn volumes see 3-16 ms. The member disks are still covered
+                - alert: NodeDiskIOSaturation
+                  expr: rate(node_disk_io_time_weighted_seconds_total{device=~"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|dasd.+)",job="node-exporter"}[5m]) > 10
+                  for: 30m
+                  labels:
+                    severity: warning
+                  annotations:
+                    summary: Disk IO queue is high.
+                    description: Disk IO queue (aqu-sq) is high on {{ $labels.device }} at {{ $labels.instance }}, has been above 10 for the last 30 minutes, is currently at {{ printf "%.2f" $value }}.
+                    runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodediskiosaturation
         etcd-disk:
           groups:
             - name: etcd-disk
@@ -60,6 +76,8 @@ helmCharts:
           # one worker by design: losing it can never be "tolerated", so these would fire forever
           KubeMemoryOvercommit: true
           KubeCPUOvercommit: true
+          # replaced by the copy in additionalPrometheusRulesMap (node-disk), without md devices
+          NodeDiskIOSaturation: true
       grafana:
         admin:
           # sealed in sealed-secrets.yaml: the chart's own Secret holds its public default password (#81)
