@@ -426,6 +426,25 @@ After a restart of `ns561436` (2026-11-01: about 45 min until every app was back
 - **CoreDNS** moves to the VPS while `ns561436` is down. Until #130 is applied, it can't reach the API there and the whole cluster loses DNS: `kubectl cordon vps-ab240c42` before a reboot, `uncordon` after.
 - **Plex** once came back hung (no HTTP, even inside its pod): `kubectl -n sushiflix delete pod -l app=plex`.
 
+### Replace a failed disk
+
+`ns561436` mirrors its two HDDs with mdadm (RAID 1): `md2` is `/boot`, `md3` is `/`. Each disk also has its own EFI partition (`sdX1`, mounted by its label `EFI_SYSPART`) and an unused swap partition (`sdX4`). SMART alerts come from `smartctl-exporter` (#183). OVH ticket: Incident > Serveur dédié > panne matériel > disque défectueux, with the serial of the disk to replace and a cold swap allowed. On 2026-11-07 OVH replaced `sda` (#182). After the reboot, as root:
+
+```sh
+lsblk -d -o NAME,SIZE,SERIAL,MODEL   # names can swap at boot: find the kept disk by its serial
+cat /proc/mdstat; mdadm --detail /dev/md3   # which disk the arrays still run on ([_U])
+wipefs -n /dev/sda; blockdev --getsize64 /dev/sda /dev/sdb   # the new disk: blank, at least as big
+sgdisk --replicate=/dev/sda /dev/sdb && sgdisk -G /dev/sda && blockdev --rereadpt /dev/sda   # the kept disk's partition table, new GUIDs (no partprobe here)
+dd if=/dev/sdb1 of=/dev/sda1 bs=1M conv=fsync   # the EFI partition
+sysctl -w dev.raid.speed_limit_max=20000   # KB/s, while the apps come back
+mdadm --manage /dev/md2 --add /dev/sda2
+mdadm --manage /dev/md3 --add /dev/sda3
+sysctl -w dev.raid.speed_limit_max=160000   # once IO pressure is down: above that the rebuild isn't faster, IO pressure keeps rising
+watch cat /proc/mdstat
+```
+
+The rebuild of `md3` (8 TB) took 23.5 h at 75–135 MB/s, with about 5% IO pressure. The sysctl doesn't survive a reboot.
+
 ### Control Plane Node
 
 Since 2026-09-27 the control plane runs on the VPS and `ns561436` is a plain worker. The nodes are set up by [`ansible/bootstrap.yaml`](./ansible/bootstrap.yaml), the cluster by [`kubeadm/cluster-config.yaml`](./kubeadm/cluster-config.yaml). Migration log: [README at `3cffd9d`](https://github.com/Androz2091/k8s-infrastructure/blob/3cffd9d/README.md#control-plane-node).
