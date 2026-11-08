@@ -58,9 +58,9 @@ airtrail.androz2091.fr {
     reverse_proxy http://airtrail.home.svc.cluster.local:80
 }
 
-# Good Company's web app (static); its backend is on Convex cloud. good-company.app and www are the Lovable site, not served here
-app.good-company.app, goodcompany.androz2091.fr {
-    reverse_proxy http://good-company-web.home.svc.cluster.local:80
+# Good Company's web app moved to GitHub Pages (app.good-company.app, November 7); links made with this older address still work
+goodcompany.androz2091.fr {
+    redir https://app.good-company.app{uri} permanent
 }
 
 superwaymo.androz2091.fr {

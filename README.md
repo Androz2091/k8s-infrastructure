@@ -35,7 +35,7 @@ One namespace per kind of app, one ArgoCD app per folder of `cluster-manifests/<
 | Namespace | What runs there |
 |---|---|
 | `pro` | my freelance work: androz2091.fr, Invoice Ninja, Umami, Haste, Diswho, slash-commands-gui, flepguessr, AndrozDev bot |
-| `home` | personal: Vaultwarden, Immich, Paperless, FileBrowser, AirTrail, Bonds, Monica, Shlink, TimeTagger, PDFDing, changedetection, superwaymo, good-company, tinyauth |
+| `home` | personal: Vaultwarden, Immich, Paperless, FileBrowser, AirTrail, Bonds, Monica, Shlink, TimeTagger, PDFDing, changedetection, superwaymo, tinyauth |
 | `managed` | my clients' Discord bots |
 | `sushiflix` | media: Plex, Jellyfin, Radarr, Sonarr, qBittorrent, SABnzbd, Tautulli, Overseerr, h5ai |
 | `db` | the shared PostgreSQL, pgAdmin |
