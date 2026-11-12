@@ -72,8 +72,16 @@ spec:
               mountPath: /data
             - name: qbittorrent-config-v
               mountPath: /config
+            # startup script: through Caddy, tinyauth is the only login (see configmap.yaml)
+            - name: qbittorrent-init-v
+              mountPath: /custom-cont-init.d
+              readOnly: true
 
       volumes:
+        - name: qbittorrent-init-v
+          configMap:
+            name: qbittorrent-init
+            defaultMode: 0755   # the image runs only executable files
         - name: servarr-data-v
           persistentVolumeClaim:
             claimName: servarr-data-pvc

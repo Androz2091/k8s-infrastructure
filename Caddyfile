@@ -75,6 +75,9 @@ superwaymo.androz2091.fr {
 }
 
 qbt.androz2091.fr {
+    # tinyauth is the only login: qBittorrent skips its own for requests from Caddy
+    # (cluster-manifests/sushiflix/qbittorrent/configmap.yaml). Removing this line opens the WebUI.
+    import tinyauth_auth
     reverse_proxy http://qbittorrent.sushiflix.svc.cluster.local:80
 }
 

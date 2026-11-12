@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qbittorrent-init
+  labels:
+    app: qbittorrent
+data:
+  # Run by the linuxserver image at every start (/custom-cont-init.d), before qBittorrent.
+  # qbt.androz2091.fr is behind tinyauth in the Caddyfile. Caddy runs on ns561436 and reaches
+  # this pod from that node's cni0 address, 10.244.0.1, so requests from there skip
+  # qBittorrent's own login: tinyauth is the only one.
+  # - Keep `import tinyauth_auth` on qbt.androz2091.fr, or the WebUI is open to anyone.
+  # - Keep "reverse proxy support" off in qBittorrent: it would match X-Forwarded-For instead.
+  # - On a new worker (another pod CIDR), the address no longer matches and qBittorrent's
+  #   login comes back: update it here.
+  # The file is rewritten in place (not sed -i), so it stays owned by the user qBittorrent runs as.
+  tinyauth-bypass: |
+    #!/bin/bash
+    f=/config/qBittorrent/qBittorrent.conf
+    [[ -f $f ]] || exit 0
+    set_lines='AuthSubnetWhitelistEnabled=true'$'\n''AuthSubnetWhitelist=10.244.0.1/32'$'\n'
+    out="" section="" added=""
+    while IFS= read -r line || [[ -n $line ]]; do
+      [[ $line == \[*\] ]] && section=$line
+      [[ $section == '[WebUI]' && $line == AuthSubnetWhitelist* ]] && continue
+      out+="$line"$'\n'
+      if [[ $line == '[WebUI]' ]]; then out+=$set_lines; added=1; fi
+    done < "$f"
+    [[ -n $added ]] || out+=$'\n[WebUI]\n'$set_lines
+    printf '%s' "$out" > "$f"
