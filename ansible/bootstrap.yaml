@@ -91,6 +91,7 @@
         content: |
           overlay
           br_netfilter
+          tcp_bbr
         owner: root
         group: root
         mode: "0644"
@@ -103,6 +104,7 @@
       loop:
         - overlay
         - br_netfilter
+        - tcp_bbr
       tags: kernel
 
     - name: Let the node route pod traffic
@@ -126,6 +128,22 @@
       loop:
         - { name: fs.inotify.max_user_instances, value: "1024" }
         - { name: fs.inotify.max_user_watches, value: "1048576" }
+      tags: kernel
+
+    # BBR sends at the bandwidth and round trip it measures; Cubic slows down at every lost packet.
+    # From ns561436 to a home ~90 ms away: Cubic 15–29 Mbps, BBR 108–114 Mbps (2026-11-12, #201).
+    # Only the sender's choice counts: this speeds up what the nodes serve (Caddy, so Plex).
+    # fq is the queue BBR was designed with; it applies to queues created after this (an
+    # existing NIC keeps its own until a reboot), and BBR paces by itself meanwhile.
+    - name: Send TCP with BBR
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        reload: true
+      loop:
+        - { name: net.core.default_qdisc, value: fq }
+        - { name: net.ipv4.tcp_congestion_control, value: bbr }
       tags: kernel
 
     # kubelet's resolvConf (kubeadm/kubelet-config.yaml): a file of its own, because
