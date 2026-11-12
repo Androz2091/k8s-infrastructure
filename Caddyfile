@@ -1,3 +1,11 @@
+{
+    # no HTTP/3: browsers use HTTP/2 over TCP, which the nodes send with BBR. Caddy's QUIC
+    # library only has Reno, which stalled Plex at 20 Mbps over a ~90 ms route (#201).
+    servers {
+        protocols h1 h2
+    }
+}
+
 (adminjs_auth) {
     basic_auth {
         admin $2y$12$.T3FhLVeNE9qKmushm9MH.s4/ZoxJNqDdyyA2Jwjz2H.VTaD.3Yo6
