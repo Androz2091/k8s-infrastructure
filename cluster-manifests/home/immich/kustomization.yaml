@@ -11,7 +11,7 @@ helmCharts:
           containers:
             main:
               image:
-                tag: v3.3.5
+                tag: v3.4.2
               env:
                 DB_HOSTNAME: immich-db.home.svc.cluster.local # PostgreSQL 17 (database-17.yaml), #107
                 DB_USERNAME: immich
