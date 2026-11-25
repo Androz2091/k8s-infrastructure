@@ -1,0 +1,37 @@
+name: monica-image
+
+# Upstream publishes no Monica v6 image yet: this builds theirs, unmodified, from one commit.
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/monica-image.yml]
+  workflow_dispatch:
+
+permissions:
+  packages: write
+
+env:
+  VERSION: 6.0.0-preview.1
+  # the commit of the v6.0.0-preview.1 tag
+  COMMIT: 0f2f7d85ca9dd515a7fb4fb59803ec41283fb7e4
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: https://github.com/monicahq/monica.git#${{ env.COMMIT }}
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/androz2091/monica:${{ env.VERSION }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/Androz2091/k8s-infrastructure
+            org.opencontainers.image.revision=${{ env.COMMIT }}
+            org.opencontainers.image.version=${{ env.VERSION }}

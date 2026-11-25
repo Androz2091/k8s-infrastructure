@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monica-v6
+  namespace: home
+  labels:
+    app: monica-v6
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app: monica-v6
+  type: ClusterIP

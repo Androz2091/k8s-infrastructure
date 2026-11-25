@@ -1,0 +1,160 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monica-v6
+  namespace: home
+  labels:
+    app: monica-v6
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: monica-v6
+  template:
+    metadata:
+      labels:
+        app: monica-v6
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        # Apache listens on port 80 without being root
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "0"
+      containers:
+        - name: monica
+          # upstream publishes no v6 image: built by .github/workflows/monica-image.yml
+          image: &image ghcr.io/androz2091/monica:6.0.0-preview.1
+          imagePullPolicy: IfNotPresent
+
+          env: &env
+            - name: APP_ENV
+              value: production
+            - name: APP_DEBUG
+              value: "false"
+            - name: APP_URL
+              value: https://monicav6.androz2091.fr
+            # Caddy reaches the pod through the cluster network
+            - name: APP_TRUSTED_PROXIES
+              value: 10.0.0.0/8
+            - name: DB_CONNECTION
+              value: pgsql
+            - name: DB_HOST
+              value: postgresql.db.svc.cluster.local
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_DATABASE
+              value: monica_v6
+            - name: DB_USERNAME
+              value: monica_v6
+            - name: QUEUE_CONNECTION
+              value: database
+            - name: CACHE_STORE
+              value: database
+            - name: SESSION_DRIVER
+              value: database
+            - name: LOG_CHANNEL
+              value: stderr
+            - name: LOG_LEVEL
+              value: warning
+            # no SMTP yet
+            - name: MAIL_MAILER
+              value: log
+            - name: MONICA_SELF_HOSTED
+              value: "true"
+            - name: MONICA_SEARCH_ENGINE_INDEXING
+              value: "false"
+            # to turn off once the account exists
+            - name: MONICA_REGISTRATION_ENABLED
+              value: "true"
+          envFrom: &envFrom
+            - secretRef:
+                name: monica-v6-secrets
+
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+
+          volumeMounts: &volumeMounts
+            - name: storage
+              mountPath: /var/www/html/storage
+
+          # the first start runs the migrations
+          startupProbe:
+            httpGet:
+              path: /up
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+
+          securityContext: &securityContext
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+
+        # imports, exports and notifications
+        - name: queue
+          image: *image
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              until php -r 'exit((int) ! @file_get_contents("http://127.0.0.1/up"));'; do sleep 5; done
+              exec php artisan queue:work --sleep=10 --tries=3 --queue=high,default,low
+          env: *env
+          envFrom: *envFrom
+          volumeMounts: *volumeMounts
+          securityContext: *securityContext
+          resources: &workerResources
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 768Mi
+
+        # reminders; the image's own crontab needs root
+        - name: scheduler
+          image: *image
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              until php -r 'exit((int) ! @file_get_contents("http://127.0.0.1/up"));'; do sleep 5; done
+              exec php artisan schedule:work
+          env: *env
+          envFrom: *envFrom
+          volumeMounts: *volumeMounts
+          securityContext: *securityContext
+          resources: *workerResources
+
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: monica-v6-storage

@@ -195,6 +195,11 @@ monica.androz2091.fr {
     reverse_proxy http://monica.home.svc.cluster.local:80
 }
 
+monicav6.androz2091.fr {
+    import tinyauth_auth
+    reverse_proxy http://monica-v6.home.svc.cluster.local:80
+}
+
 prometheus-grafana.androz2091.fr {
     import tinyauth_auth
     reverse_proxy http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80

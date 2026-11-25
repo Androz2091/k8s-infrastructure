@@ -127,6 +127,7 @@ Each app in the shared `db/postgresql` connects with its own role, scoped to its
 | `haste`     | `pro/haste-server` |
 | `umami`     | `pro/umami-analytics` |
 | `monica`    | `home/monica` |
+| `monica_v6` | `home/monica-v6` |
 | `shlink`    | `home/shlink` |
 | `paperless` | `home/paperless` |
 | `bonds`     | `home/bonds` |
